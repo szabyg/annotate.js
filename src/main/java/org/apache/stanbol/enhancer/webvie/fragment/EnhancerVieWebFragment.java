@@ -87,13 +87,22 @@ public class EnhancerVieWebFragment implements WebFragment {
 
     @Override
     public List<LinkResource> getLinkResources() {
-        return Collections.emptyList();
+    	List<LinkResource> resources = new ArrayList<LinkResource>();
+    	resources.add(new LinkResource("stylesheet", "lib/Aristo/jquery-ui-1.8.7.custom.css", this, 10));
+        return resources;
     }
 
     @Override
     public List<ScriptResource> getScriptResources() {
         List<ScriptResource> resources = new ArrayList<ScriptResource>();
-        resources.add(new ScriptResource("text/javascript", "test.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/jquery-ui.1.8.12.min.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/underscore-min.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/backbone-min.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/vie.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/vie-containermanager.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/vie-collectionmanager.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/hallo/hallo.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/hallo/format.js", this, 10));
         return resources;
     }
 
