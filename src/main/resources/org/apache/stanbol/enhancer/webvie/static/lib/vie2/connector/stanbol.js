@@ -164,7 +164,8 @@ VIE2.connectors['stanbol'].queryEnhancer = function (text, callback) {
             type: "POST",
             url: enhancer_url,
             data: text,
-            dataType: "application/rdf+json"
+            dataType: "application/rdf+json",
+            contentType: "text/plain"
         });
     }
 };

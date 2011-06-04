@@ -103,6 +103,12 @@ public class EnhancerVieWebFragment implements WebFragment {
         resources.add(new ScriptResource("text/javascript", "lib/vie-collectionmanager.js", this, 10));
         resources.add(new ScriptResource("text/javascript", "lib/hallo/hallo.js", this, 10));
         resources.add(new ScriptResource("text/javascript", "lib/hallo/format.js", this, 10));
+
+        resources.add(new ScriptResource("text/javascript", "lib/jquery.rdfquery.debug.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/vie2/vie2-latest.debug.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/vie2/connector/stanbol.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/vie2/mapping/person.js", this, 10));
+        
         return resources;
     }
 
