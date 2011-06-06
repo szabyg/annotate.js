@@ -97,7 +97,7 @@ public class EnhancerVieWebFragment implements WebFragment {
         List<ScriptResource> resources = new ArrayList<ScriptResource>();
         resources.add(new ScriptResource("text/javascript", "lib/jquery-ui.1.8.12.min.js", this, 10));
         resources.add(new ScriptResource("text/javascript", "lib/underscore-min.js", this, 10));
-        resources.add(new ScriptResource("text/javascript", "lib/backbone-min.js", this, 10));
+        resources.add(new ScriptResource("text/javascript", "lib/backbone.js", this, 10));
         resources.add(new ScriptResource("text/javascript", "lib/vie.js", this, 10));
         resources.add(new ScriptResource("text/javascript", "lib/vie-containermanager.js", this, 10));
         resources.add(new ScriptResource("text/javascript", "lib/vie-collectionmanager.js", this, 10));
@@ -109,6 +109,8 @@ public class EnhancerVieWebFragment implements WebFragment {
         resources.add(new ScriptResource("text/javascript", "lib/vie2/connector/stanbol.js", this, 10));
         resources.add(new ScriptResource("text/javascript", "lib/vie2/mapping/person.js", this, 10));
         
+        resources.add(new ScriptResource("text/javascript", "lib/annotate.js", this, 10));
+
         return resources;
     }
 
