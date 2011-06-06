@@ -26,7 +26,7 @@
                 console.info('vie2.analyze done:', d);
                 alert(d);
             })
-        });
+        }).trigger('click');
     });
     </script>
     <article typeof="sioc:Post" about="http://stanbol.apache.org/enhancertest">
