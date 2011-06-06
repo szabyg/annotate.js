@@ -268,7 +268,7 @@
             }
             
             _.each(rdfjson, function(properties, entityUri){
-                
+                simpleProperties = {};
                 // Simplify rdfjson
                 _(properties).each(function(propertyValues, key){
                     key = '<' + key + '>';
