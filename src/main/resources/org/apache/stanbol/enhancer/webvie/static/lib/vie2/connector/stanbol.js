@@ -116,6 +116,8 @@ VIE2.connectors['stanbol'].enhance = function (text, callback) {
         var that = this;
         var c = function(data) {
             if (data) {
+                if(typeof data == "string")
+                    data = JSON.parse(data);
                 try {
                     var rdf = jQuery.rdf().load(data, {});
                     callback(rdf);
@@ -165,7 +167,8 @@ VIE2.connectors['stanbol'].queryEnhancer = function (text, callback) {
             url: enhancer_url,
             data: text,
             dataType: "application/rdf+json",
-            contentType: "text/plain"
+            contentType: "text/plain",
+            accepts: {"application/rdf+json": "application/rdf+json"}
         });
     }
 };
@@ -258,7 +261,7 @@ VIE2.connectors['stanbol'].queryEntityHub = function (uri, callback) {
             error: callback,
             type: "GET",
             url: entityhub_url + "/sites/entity?id=" + uri,
-            data: text,
+            data: '',
             dataType: "application/rdf+json"
         });
     }
