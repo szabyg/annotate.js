@@ -126,6 +126,8 @@ var VIE2 = this.VIE2 = {};
                             VIE2.globalCache.add(this);
                         });
                         
+                        
+                        // TODO Get only EntityEnhancement entities instead of subjectIndex.*
                         //register all subjects as backbone model
                         jQuery.each(rdf.databank.subjectIndex, function (subject, v) {
                             var subjStr = subject.toString();
