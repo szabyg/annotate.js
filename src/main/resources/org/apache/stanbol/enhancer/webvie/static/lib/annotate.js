@@ -29,11 +29,14 @@
       },
       getType: function() {
         return this._enhancement.toJSON()["<" + ns.dc + "type>"];
+      },
+      toJSON: function() {
+        return this._enhancement.toJSON();
       }
     };
     getOrCreateDomElement = function(element, text, options) {
       var domEl, len, newElement, pos;
-      if (options === void 0) {
+      if (options == null) {
         options = {};
       }
       domEl = element;
@@ -59,17 +62,22 @@
       }
     };
     processSuggestion = function(suggestion, parentEl) {
-      var el;
-      el = getOrCreateDomElement(parentEl[0], suggestion.getSelectedText());
-      return console.info(el);
+      var el, w;
+      el = getOrCreateDomElement(parentEl[0], suggestion.getSelectedText(), {
+        createElement: 'strong'
+      });
+      w = $(el).annotationSelector({
+        suggestion: suggestion
+      });
+      return console.info(el, w.data('annotationSelector'), w.annotationSelector('option', 'suggestion').toJSON());
     };
-    return jQuery.fn.analyze = function() {
+    jQuery.fn.analyze = function() {
       var analyzedNode;
       analyzedNode = this;
       return VIE2.connectors['stanbol'].analyze(this, {
         success: function(rdf) {
           var rdfJson, textAnnotations;
-          rdfJson = rdf.where("?s <" + ns.rdf + "type> <" + ns.enhancer + "Enhancement>").where('?s ?p ?o').dump();
+          rdfJson = rdf.databank.dump();
           console.info(rdfJson);
           VIE.EntityManager.getByRDFJSON(rdfJson);
           console.info("VIE.EntityManager", VIE.EntityManager);
@@ -83,5 +91,13 @@
         }
       });
     };
+    return jQuery.widget('IKS.annotationSelector', {
+      _create: function() {
+        return this.suggestion = this.options.suggestion;
+      },
+      options: {
+        suggestion: null
+      }
+    });
   })(jQuery);
 }).call(this);
