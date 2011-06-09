@@ -2,6 +2,27 @@
 <#escape x as x?html>
 <@common.page title="Enhancer VIE" hasrestapi=true> 
 
+<style>
+span.entity {
+    z-index: -1;
+    margin: -3px;
+    padding: 1px;
+    background-color: #E0E0E0;
+    /* box-shadow: 2px 2px 5px grey;*/
+    border-radius: 4px;
+    border: 2px outset rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+.entity.withSuggestions {border-color: rgba(0, 0, 0, 0.5);}
+
+.entity.Person       {background-color: #ffe;}
+.entity.Place        {background-color: #fef;}
+.entity.Organisation {background-color: #eff;}
+
+.entity.acknowledged.Person       {background-color: #ff9;}
+.entity.acknowledged.Place        {background-color: #f9d;}
+.entity.acknowledged.Organisation {background-color: #9ff;}
+</style>
 <div class="panel" id="webview"
      xmlns:sioc="http://rdfs.org/sioc/ns#">
 
@@ -26,7 +47,8 @@
                 console.info('vie2.analyze done:', d);
                 alert(d);
             })
-        }).trigger('click');
+        })//.trigger('click');
+
     });
     </script>
     <article typeof="sioc:Post" about="http://stanbol.apache.org/enhancertest">
@@ -37,6 +59,7 @@ Mozart learned voraciously from others, and developed a brilliance and maturity 
         </div>
     </article>
     <button id="enhanceButton">Enhance!</button>
+    
 </div>
 
 </@common.page>
