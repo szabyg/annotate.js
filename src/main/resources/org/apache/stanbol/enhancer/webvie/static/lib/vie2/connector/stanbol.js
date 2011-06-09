@@ -75,7 +75,7 @@ VIE2.connectors['stanbol'].analyze = function (object, options) {
             });
             //let's see if there are children to be enhanced.
             VIE2.log("info", "VIE2.Connector(" + self.id + ")", "Start reasoning '" + (rdf.databank.triples().length) + "'");
-            rdf.reason(rules);    
+            //rdf.reason(rules);    
             VIE2.log("info", "VIE2.Connector(" + self.id + ")", "End   reasoning '" + (rdf.databank.triples().length) + "'");
             if (options && options.success) {
                 options.success.call(self, rdf);
@@ -167,6 +167,7 @@ VIE2.connectors['stanbol'].queryEnhancer = function (text, callback) {
             url: enhancer_url,
             data: text,
             dataType: "application/rdf+json",
+            converters: {"text application/rdf+json": true},
             contentType: "text/plain",
             accepts: {"application/rdf+json": "application/rdf+json"}
         });
