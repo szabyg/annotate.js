@@ -267,3 +267,62 @@ VIE2.connectors['stanbol'].queryEntityHub = function (uri, callback) {
         });
     }
 };
+
+VIE2.connectors['stanbol'].findEntity = function (term, callback, limit, offset) {
+    // curl -X POST -d "name=Bishofsh&limit=10&offset=0" http://localhost:8080/entityhub/sites/find
+    var proxy = this._options.proxy_url;
+    
+    if (offset == null) {
+        offset = 0;
+    }
+    
+    if (limit == null) {
+        limit = 10;
+    }
+    
+    if (!this._options.entityhub_url) {
+        VIE2.log("warn", "VIE2.connectors(" + this.id + ")", "No URL found for entity hub!");
+        throw "VIE2.connector.stanbol.entityhub_url is empty";
+        return;
+    }
+    
+    var entityhub_url = this._options.entityhub_url.replace(/\/$/, '');
+    
+    function findResultTransform(findResponse){
+        console.info(findResponse);
+        return findResponse.results;
+    }
+    
+    if (proxy) {
+        // TODO test with proxy
+        jQuery.ajax({
+            async: true,
+            type: "POST",
+            success: callback,
+            error: callback,
+            url: proxy,
+            dataType: "application/rdf+json",
+            converters: {"text application/rdf+json": function(s){return JSON.parse(s);}},
+            data: {
+                proxy_url: entityhub_url + "/sites/find", 
+                content: "name=" + term + "&limit=" + offset + "&limit=" + offset,
+                verb: "POST",
+                format: "application/rdf+json"
+            }
+        });
+    } else {
+        jQuery.ajax({
+            async: true,
+            success: function(response){
+                callback(findResultTransform(response))
+            },
+            error: callback,
+            type: "POST",
+            url: entityhub_url + "/sites/find",
+            data: "name=" + term + "&limit=" + offset + "&limit=" + offset,
+            dataType: "application/rdf+json",
+            converters: {"text application/rdf+json": function(s){return JSON.parse(s);}}
+        });
+    }
+    
+};
