@@ -1,11 +1,12 @@
 (function() {
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   (function(jQuery) {
-    var Suggestion, getEntityAnnotations, getOrCreateDomElement, getTextAnnotations, ns, processSuggestion;
+    var Suggestion, deleteEnhancements, getEntityAnnotations, getOrCreateDomElement, getRightLabel, getTextAnnotations, ns, processSuggestion;
     ns = {
       rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
       enhancer: 'http://fise.iks-project.eu/ontology/',
-      dc: 'http://purl.org/dc/terms/'
+      dc: 'http://purl.org/dc/terms/',
+      rdfs: 'http://www.w3.org/2000/01/rdf-schema#'
     };
     getTextAnnotations = function() {
       return VIE.EntityManager.entities.filter(function(e) {
@@ -16,6 +17,27 @@
       return VIE.EntityManager.entities.filter(function(e) {
         return e.attributes["<" + ns.rdf + "type>"].indexOf("" + ns.enhancer + "EntityAnnotation") !== -1;
       });
+    };
+    deleteEnhancements = function(oldDocUri) {};
+    getRightLabel = function(entity) {
+      var label, labelMap, userLang, _i, _len, _ref;
+      ({
+        getLang: function(label) {
+          return label["xml:lang"];
+        }
+      });
+      labelMap = {};
+      _ref = _(entity["" + ns.rdfs + "label"]).flatten();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        label = _ref[_i];
+        labelMap[label["xml:lang"] || "_"] = label.value;
+      }
+      userLang = window.navigator.language.split("-")[0];
+      if (labelMap[userLang]) {
+        return labelMap[userLang].value;
+      } else {
+        return labelMap["_"];
+      }
     };
     Suggestion = function(enhancement) {
       var id;
@@ -37,9 +59,6 @@
       },
       getType: function() {
         return this._enhancement.toJSON()["<" + ns.dc + "type>"];
-      },
-      toJSON: function() {
-        return this._enhancement.toJSON();
       }
     };
     getOrCreateDomElement = function(element, text, options) {
@@ -70,38 +89,42 @@
       }
     };
     processSuggestion = function(suggestion, parentEl) {
-      var el, sType, w;
+      var el, sType;
       el = $(getOrCreateDomElement(parentEl[0], suggestion.getSelectedText(), {
         createElement: 'span'
       }));
       sType = suggestion.getType();
       el.addClass('entity').addClass(sType.substring(sType.lastIndexOf("/") + 1));
-      if (suggestion.getEntityEnhancements().length > 0) {
-        el.addClass("withSuggestions");
-      }
-      return w = el.annotationSelector({
+      el.addClass("withSuggestions");
+      return el.annotationSelector({
         suggestion: suggestion
       });
     };
     jQuery.fn.analyze = function() {
-      var analyzedNode;
+      var analyzedNode, oldDocUri;
       analyzedNode = this;
+      oldDocUri = this.data("analizedDocUri");
+      if (oldDocUri) {
+        deleteEnhancements(oldDocUri);
+      }
       return VIE2.connectors['stanbol'].analyze(this, {
-        success: function(rdf) {
-          var rdfJson, textAnnotations;
+        success: __bind(function(rdf) {
+          var docUri, rdfJson, textAnnotations;
           rdfJson = rdf.databank.dump();
           VIE.EntityManager.getByRDFJSON(rdfJson);
           textAnnotations = getTextAnnotations();
+          docUri = _(textAnnotations).first().get("<" + ns.enhancer + "extracted-from>");
+          this.data("analizedDocUri", docUri);
           return jQuery.each(textAnnotations, function() {
             var s;
             s = new Suggestion(this);
             console.info(s._enhancement, 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
             return processSuggestion(s, analyzedNode);
           });
-        }
+        }, this)
       });
     };
-    return jQuery.widget('IKS.annotationSelector', {
+    jQuery.widget('IKS.annotationSelector', {
       options: {
         suggestion: null
       },
@@ -126,32 +149,80 @@
       _create: function() {
         this.suggestion = this.options.suggestion;
         return this.element.click(__bind(function() {
-          var ul;
-          console.info(this.suggestion.getEntityEnhancements());
-          ul = $('<ul></ul>').appendTo($("body")[0]);
-          this._renderMenu(ul, this.suggestion.getEntityEnhancements());
-          this.menu = ul.menu({
-            select: __bind(function(event, ui) {
-              console.info(ui.item);
-              this.annotate(ui.item.data('enhancement'), 'acknowledged');
-              return ui.item.parent().menu('destroy').html('');
-            }, this),
-            blur: function(event, ui) {
-              console.info('blur', ui.item);
-              return ui.item.parent().menu('destroy').html('');
-            }
-          }).bind('menublur', function(event, ui) {
-            console.info('menublur', ui.item);
-            return ui.item.parent().menu('destroy').html('');
-          }).data('menu');
-          this.menu.element.position({
-            of: this.element,
-            my: "left top",
-            at: "left bottom",
-            collision: "none"
-          });
-          return console.info(this.menu.element);
+          this.entityEnhancements = this.suggestion.getEntityEnhancements();
+          console.info(this.entityEnhancements);
+          if (this.entityEnhancements.length > 0) {
+            return this._createMenu();
+          } else {
+            return this._showSearchbox();
+          }
         }, this));
+      },
+      _createMenu: function() {
+        var ul;
+        ul = $('<ul></ul>').appendTo($("body")[0]);
+        this._renderMenu(ul, this.entityEnhancements);
+        this.menu = ul.menu({
+          select: __bind(function(event, ui) {
+            console.info(ui.item);
+            this.annotate(ui.item.data('enhancement'), 'acknowledged');
+            return ui.item.parent().menu('destroy').html('');
+          }, this),
+          blur: function(event, ui) {
+            console.info('blur', ui.item);
+            return ui.item.parent().menu('destroy').html('');
+          }
+        }).bind('menublur', function(event, ui) {
+          console.info('menublur', ui.item);
+          return ui.item.parent().menu('destroy').html('');
+        }).data('menu');
+        this.menu.element.position({
+          of: this.element,
+          my: "left top",
+          at: "left bottom",
+          collision: "none"
+        });
+        return console.info(this.menu.element);
+      },
+      _showSearchbox: function() {
+        var searchEntryField;
+        searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo($("body")[0]);
+        searchEntryField.position({
+          of: this.element,
+          my: "left top",
+          at: "left bottom",
+          collision: "none"
+        });
+        $('.search', searchEntryField).autocomplete({
+          source: function(req, resp) {
+            console.info("req:", req);
+            return VIE2.connectors['stanbol'].findEntity("" + req.term + (req.term.length > 3 ? '*' : void 0), function(entityList) {
+              var entity, i, res;
+              console.info("resp:", _(entityList).map(function(ent) {
+                return ent.id;
+              }));
+              res = (function() {
+                var _results;
+                _results = [];
+                for (i in entityList) {
+                  entity = entityList[i];
+                  _results.push({
+                    key: entity.id,
+                    label: getRightLabel(entity)
+                  });
+                }
+                return _results;
+              })();
+              return resp(res);
+            });
+          }
+        });
+        return console.info("show searchbox");
+      }
+    });
+    return jQuery.widget('IKS.manualAnnotationLookup', {
+      options: {
+        suggestion: null
       }
     });
   })(jQuery);
