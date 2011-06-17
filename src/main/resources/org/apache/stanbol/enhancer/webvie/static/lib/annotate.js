@@ -9,8 +9,12 @@
       rdfs: 'http://www.w3.org/2000/01/rdf-schema#'
     };
     getTextAnnotations = function() {
-      return VIE.EntityManager.entities.filter(function(e) {
+      var all;
+      all = VIE.EntityManager.entities.filter(function(e) {
         return e.attributes["<" + ns.rdf + "type>"].indexOf("" + ns.enhancer + "TextAnnotation") !== -1;
+      });
+      return all = _(all).sortBy(function(e) {
+        return -1 * Number(e.attributes["<" + ns.enhancer + "confidence>"]);
       });
     };
     getEntityAnnotations = function() {
@@ -48,9 +52,12 @@
       getSelectedText: function() {
         return this._enhancement.toJSON()["<" + ns.enhancer + "selected-text>"];
       },
+      getConfidence: function() {
+        return this._enhancement.toJSON()["<" + ns.enhancer + "confidence>"];
+      },
       getEntityEnhancements: function() {
         return _(getEntityAnnotations()).filter(__bind(function(ann) {
-          if (_(ann.attributes["<" + ns.dc + "relation>"]).flatten().indexOf(this._enhancement.id) !== -1) {
+          if (_([ann.attributes["<" + ns.dc + "relation>"]]).flatten().indexOf(this._enhancement.id) !== -1) {
             return true;
           } else {
             return false;
@@ -59,27 +66,48 @@
       },
       getType: function() {
         return this._enhancement.toJSON()["<" + ns.dc + "type>"];
+      },
+      getContext: function() {
+        return this._enhancement.toJSON()["<" + ns.enhancer + "selection-context>"];
+      },
+      getStart: function() {
+        return Number(this._enhancement.toJSON()["<" + ns.enhancer + "start>"]);
+      },
+      getEnd: function() {
+        return Number(this._enhancement.toJSON()["<" + ns.enhancer + "end>"]);
       }
     };
     getOrCreateDomElement = function(element, text, options) {
-      var domEl, len, newElement, pos;
+      var domEl, len, newElement, pos, start, textContentOf;
       if (options == null) {
         options = {};
       }
       domEl = element;
-      if (element.textContent.indexOf(text) === -1) {
+      textContentOf = function(element) {
+        return element.textContent.replace(/\n/g, " ");
+      };
+      if (textContentOf(element).indexOf(text) === -1) {
         throw "'" + text + "' doesn't appear in the text block.";
         return $();
       }
-      while (domEl.textContent.indexOf(text) !== -1 && domEl.nodeName !== '#text') {
+      start = options.start + textContentOf(element).indexOf(textContentOf(element).trim());
+      pos = 0;
+      while (textContentOf(domEl).indexOf(text) !== -1 && domEl.nodeName !== '#text') {
         domEl = _(domEl.childNodes).detect(function(el) {
-          return el.textContent.indexOf(text) !== -1;
+          var p;
+          p = textContentOf(el).lastIndexOf(text);
+          if (p >= start - pos) {
+            return true;
+          } else {
+            pos += textContentOf(el).length;
+            return false;
+          }
         });
       }
-      if (options.createMode === "existing" && domEl.parentElement.textContent === text) {
+      if (options.createMode === "existing" && textContentOf(domEl.parentElement) === text) {
         return domEl.parentElement;
       } else {
-        pos = domEl.nodeValue.indexOf(text);
+        pos = start - pos;
         len = text.length;
         domEl.splitText(pos + len);
         newElement = document.createElement(options.createElement || 'span');
@@ -91,14 +119,16 @@
     processSuggestion = function(suggestion, parentEl) {
       var el, sType;
       el = $(getOrCreateDomElement(parentEl[0], suggestion.getSelectedText(), {
-        createElement: 'span'
+        createElement: 'span',
+        createMode: 'existing',
+        context: suggestion.getContext(),
+        start: suggestion.getStart(),
+        end: suggestion.getEnd()
       }));
       sType = suggestion.getType();
       el.addClass('entity').addClass(sType.substring(sType.lastIndexOf("/") + 1));
       el.addClass("withSuggestions");
-      return el.annotationSelector({
-        suggestion: suggestion
-      });
+      return el.annotationSelector().annotationSelector('addSuggestion', suggestion);
     };
     jQuery.fn.analyze = function() {
       var analyzedNode, oldDocUri;
@@ -118,7 +148,7 @@
           return jQuery.each(textAnnotations, function() {
             var s;
             s = new Suggestion(this);
-            console.info(s._enhancement, 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
+            console.info(s._enhancement, 'confidence', s.getConfidence(), 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
             return processSuggestion(s, analyzedNode);
           });
         }, this)
@@ -129,8 +159,14 @@
         suggestion: null
       },
       annotate: function(entityEnhancement, styleClass) {
-        this.element.attr('about', entityEnhancement.get("<" + ns.enhancer + "entity-reference>"));
-        this.element.addClass(styleClass);
+        var entityClass, entityHtml, entityType, entityUri, newElement;
+        entityUri = entityEnhancement.getUri();
+        entityType = this.suggestion.getType();
+        entityHtml = this.element.html();
+        entityClass = this.element.attr('class');
+        newElement = $("<a href='" + entityUri + "'                 about='" + entityUri + "'                 typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
+        this.element.replaceWith(newElement);
+        this.element = newElement.addClass(styleClass);
         return console.info("created enhancement in", this.element);
       },
       _renderMenu: function(ul, entityEnhancements) {
@@ -144,17 +180,21 @@
       _renderItem: function(ul, enhancement) {
         var label;
         label = enhancement.get("<" + ns.enhancer + "entity-label>");
-        return $("<li><a href='#'>" + label + "</a></li>").data('enhancement', enhancement).appendTo(ul);
+        $("<li><a href='#'>" + label + "</a></li>").data('enhancement', enhancement).appendTo(ul);
+        return enhancement.getUri = function() {
+          return this.get("<" + ns.enhancer + "entity-reference>");
+        };
       },
       _create: function() {
-        this.suggestion = this.options.suggestion;
         return this.element.click(__bind(function() {
           this.entityEnhancements = this.suggestion.getEntityEnhancements();
           console.info(this.entityEnhancements);
           if (this.entityEnhancements.length > 0) {
-            return this._createMenu();
+            if (this.menu === void 0) {
+              return this._createMenu();
+            }
           } else {
-            return this._showSearchbox();
+            return this._createSearchbox();
           }
         }, this));
       },
@@ -166,16 +206,18 @@
           select: __bind(function(event, ui) {
             console.info(ui.item);
             this.annotate(ui.item.data('enhancement'), 'acknowledged');
-            return ui.item.parent().menu('destroy').html('');
+            ui.item.parent().menu('destroy').remove();
+            return delete this.menu;
           }, this),
           blur: function(event, ui) {
             console.info('blur', ui.item);
-            return ui.item.parent().menu('destroy').html('');
+            return ui.item.parent().menu('destroy').remove();
           }
         }).bind('menublur', function(event, ui) {
           console.info('menublur', ui.item);
           return ui.item.parent().menu('destroy').html('');
-        }).data('menu');
+        }).focus().data('menu');
+        console.info("createMenu");
         this.menu.element.position({
           of: this.element,
           my: "left top",
@@ -184,7 +226,7 @@
         });
         return console.info(this.menu.element);
       },
-      _showSearchbox: function() {
+      _createSearchbox: function() {
         var searchEntryField;
         searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo($("body")[0]);
         searchEntryField.position({
@@ -208,16 +250,32 @@
                   entity = entityList[i];
                   _results.push({
                     key: entity.id,
-                    label: getRightLabel(entity)
+                    label: getRightLabel(entity),
+                    getUri: function() {
+                      return this.key;
+                    }
                   });
                 }
                 return _results;
               })();
               return resp(res);
             });
-          }
-        });
+          },
+          select: __bind(function(e, ui) {
+            console.info("select event", e, ui);
+            this.annotate(ui.item, "acknowledged");
+            console.info(e.target);
+            return $(e.target).remove();
+          }, this)
+        }).blur(function(e) {
+          console.info("blur event", e, $(e.target));
+          return $(e.target).autocomplete('option', 'destroy').parent().remove();
+        }).trigger('focus');
         return console.info("show searchbox");
+      },
+      addSuggestion: function(suggestion) {
+        this.options.suggestion = suggestion;
+        return this.suggestion = this.options.suggestion;
       }
     });
     return jQuery.widget('IKS.manualAnnotationLookup', {
