@@ -57,8 +57,7 @@
     # properties.
     # 
     # TODO Decouple from stanbol. Right now it works with apache stanbol only.
-
-    Suggestion = (enhancement) ->
+    Suggestion = (enhancement) -> 
         @_enhancement = enhancement
         id = @_enhancement.id
     Suggestion.prototype = 
@@ -250,7 +249,7 @@
                 my: "left top"
                 at: "left bottom"
                 collision: "none"}
-            $('.search',searchEntryField).autocomplete
+            $('.search',searchEntryField).autocomplete 
                 source: (req, resp) ->
                     console.info "req:", req
                     VIE2.connectors['stanbol'].findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
