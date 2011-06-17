@@ -19,13 +19,6 @@
             e.attributes["<#{ns.rdf}type>"].indexOf("#{ns.enhancer}TextAnnotation") != -1
         all = _(all).sortBy (e) -> -1 * Number e.attributes["<#{ns.enhancer}confidence>"]
         # remove duplicates on selected text
-#        temp = []
-#        all.filter (e) ->
-#            selText = e.attributes["<#{ns.enhancer}selected-text>"]
-#            if temp.indexOf(selText) is -1
-#                temp.push selText
-#                true
-#            else false
     
     # filter the entityManager for TextAnnotations    
     getEntityAnnotations = ->
@@ -80,14 +73,9 @@
             Number @_enhancement.toJSON()["<#{ns.enhancer}start>"]
         getEnd: ->
             Number @_enhancement.toJSON()["<#{ns.enhancer}end>"]
-        
-        # Get the text enhancement as JSON object
-        # toJSON: ->
-        #     @_enhancement.toJSON()
 
     # get create a dom element containing only the occurrence of the found entity
     # (getOrCreateDomElement is to be implemented)
-    # TODO add the option 'context' for being able to find the 'right' occurrence
 
     getOrCreateDomElement = (element, text, options = {}) ->
         domEl = element
@@ -98,9 +86,6 @@
             return $()
         start = options.start + 
         textContentOf(element).indexOf textContentOf(element).trim()
-#        textContentOf(element).indexOf(options.context) or textContentOf(element).indexOf(text)
-        # end   = options.end   or false
-        # context = options.context or text
         pos = 0
         while textContentOf(domEl).indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
             domEl = _(domEl.childNodes).detect (el) ->
@@ -111,14 +96,9 @@
                     pos += textContentOf(el).length
                     false
 
-
-#        while domEl.textContent.indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
-#            domEl = _(domEl.childNodes).detect (el) ->
-#                el.textContent.indexOf(text) isnt -1
         if options.createMode is "existing" and textContentOf(domEl.parentElement) is text
             return domEl.parentElement
         else
-#            pos = domEl.nodeValue.indexOf text
             pos = start - pos
             len = text.length
             domEl.splitText pos + len
