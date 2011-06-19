@@ -1,28 +1,41 @@
 (function() {
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   (function(jQuery) {
-    var Suggestion, deleteEnhancements, getEntityAnnotations, getOrCreateDomElement, getRightLabel, getTextAnnotations, ns, processSuggestion;
+    var EntityEnhancement, Suggestion, getEntityAnnotations, getOrCreateDomElement, getRightLabel, getTextAnnotations, ns, processSuggestion;
     ns = {
       rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
       enhancer: 'http://fise.iks-project.eu/ontology/',
       dc: 'http://purl.org/dc/terms/',
       rdfs: 'http://www.w3.org/2000/01/rdf-schema#'
     };
-    getTextAnnotations = function() {
-      var all;
-      all = VIE.EntityManager.entities.filter(function(e) {
-        return e.attributes["<" + ns.rdf + "type>"].indexOf("" + ns.enhancer + "TextAnnotation") !== -1;
+    getTextAnnotations = function(enhRdf) {
+      var res;
+      res = _(enhRdf).map(function(obj, key) {
+        obj.id = key;
+        return obj;
+      }).filter(function(e) {
+        return e["" + ns.rdf + "type"].map(function(x) {
+          return x.value;
+        }).indexOf("" + ns.enhancer + "TextAnnotation") !== -1;
       });
-      return all = _(all).sortBy(function(e) {
-        return -1 * Number(e.attributes["<" + ns.enhancer + "confidence>"]);
+      return _(res).sortBy(function(e) {
+        var conf;
+        if (e["" + ns.enhancer + "confidence"]) {
+          conf = Number(e["" + ns.enhancer + "confidence"][0].value);
+        }
+        return -1 * conf;
       });
     };
-    getEntityAnnotations = function() {
-      return VIE.EntityManager.entities.filter(function(e) {
-        return e.attributes["<" + ns.rdf + "type>"].indexOf("" + ns.enhancer + "EntityAnnotation") !== -1;
+    getEntityAnnotations = function(enhRdf) {
+      return _(enhRdf).map(function(obj, key) {
+        obj.id = key;
+        return obj;
+      }).filter(function(e) {
+        return e["" + ns.rdf + "type"].map(function(x) {
+          return x.value;
+        }).indexOf("" + ns.enhancer + "EntityAnnotation") !== -1;
       });
     };
-    deleteEnhancements = function(oldDocUri) {};
     getRightLabel = function(entity) {
       var label, labelMap, userLang, _i, _len, _ref;
       ({
@@ -43,38 +56,67 @@
         return labelMap["_"];
       }
     };
-    Suggestion = function(enhancement) {
-      var id;
+    Suggestion = function(enhancement, enhRdf) {
       this._enhancement = enhancement;
-      return id = this._enhancement.id;
+      this.enhRdf = enhRdf;
+      return this.id = this._enhancement.id;
     };
     Suggestion.prototype = {
       getSelectedText: function() {
-        return this._enhancement.toJSON()["<" + ns.enhancer + "selected-text>"];
+        return this._vals("" + ns.enhancer + "selected-text")[0];
       },
       getConfidence: function() {
-        return this._enhancement.toJSON()["<" + ns.enhancer + "confidence>"];
+        return this._vals("" + ns.enhancer + "confidence")[0];
       },
       getEntityEnhancements: function() {
-        return _(getEntityAnnotations()).filter(__bind(function(ann) {
-          if (_([ann.attributes["<" + ns.dc + "relation>"]]).flatten().indexOf(this._enhancement.id) !== -1) {
+        var rawList;
+        rawList = _(getEntityAnnotations(this.enhRdf)).filter(__bind(function(ann) {
+          var relations;
+          relations = _(ann["" + ns.dc + "relation"]).map(function(e) {
+            return e.value;
+          });
+          if ((relations.indexOf(this._enhancement.id)) !== -1) {
             return true;
           } else {
             return false;
           }
         }, this));
+        return _(rawList).map(function(ee) {
+          return new EntityEnhancement(ee);
+        });
       },
       getType: function() {
-        return this._enhancement.toJSON()["<" + ns.dc + "type>"];
+        return this._vals("" + ns.dc + "type")[0];
       },
       getContext: function() {
-        return this._enhancement.toJSON()["<" + ns.enhancer + "selection-context>"];
+        return this._vals("" + ns.enhancer + "selection-context")[0];
       },
       getStart: function() {
-        return Number(this._enhancement.toJSON()["<" + ns.enhancer + "start>"]);
+        return Number(this._vals("" + ns.enhancer + "start")[0]);
       },
       getEnd: function() {
-        return Number(this._enhancement.toJSON()["<" + ns.enhancer + "end>"]);
+        return Number(this._vals("" + ns.enhancer + "end")[0]);
+      },
+      _vals: function(key) {
+        return _(this._enhancement[key]).map(function(x) {
+          return x.value;
+        });
+      }
+    };
+    EntityEnhancement = function(ee) {
+      return $.extend(this, ee);
+    };
+    EntityEnhancement.prototype = {
+      getLabel: function() {
+        return this._vals("" + ns.enhancer + "entity-label")[0];
+      },
+      getUri: function() {
+        return this._vals("" + ns.enhancer + "entity-reference")[0];
+      },
+      _vals: function(key) {
+        return _(this[key]).map(function(x) {
+          return x.value;
+        });
       }
     };
     getOrCreateDomElement = function(element, text, options) {
@@ -131,23 +173,16 @@
       return el.annotationSelector().annotationSelector('addSuggestion', suggestion);
     };
     jQuery.fn.analyze = function() {
-      var analyzedNode, oldDocUri;
+      var analyzedNode;
       analyzedNode = this;
-      oldDocUri = this.data("analizedDocUri");
-      if (oldDocUri) {
-        deleteEnhancements(oldDocUri);
-      }
       return VIE2.connectors['stanbol'].analyze(this, {
         success: __bind(function(rdf) {
-          var docUri, rdfJson, textAnnotations;
+          var rdfJson, textAnnotations;
           rdfJson = rdf.databank.dump();
-          VIE.EntityManager.getByRDFJSON(rdfJson);
-          textAnnotations = getTextAnnotations();
-          docUri = _(textAnnotations).first().get("<" + ns.enhancer + "extracted-from>");
-          this.data("analizedDocUri", docUri);
+          textAnnotations = getTextAnnotations(rdfJson);
           return jQuery.each(textAnnotations, function() {
             var s;
-            s = new Suggestion(this);
+            s = new Suggestion(this, rdfJson);
             console.info(s._enhancement, 'confidence', s.getConfidence(), 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
             return processSuggestion(s, analyzedNode);
           });
@@ -157,33 +192,6 @@
     jQuery.widget('IKS.annotationSelector', {
       options: {
         suggestion: null
-      },
-      annotate: function(entityEnhancement, styleClass) {
-        var entityClass, entityHtml, entityType, entityUri, newElement;
-        entityUri = entityEnhancement.getUri();
-        entityType = this.suggestion.getType();
-        entityHtml = this.element.html();
-        entityClass = this.element.attr('class');
-        newElement = $("<a href='" + entityUri + "'                 about='" + entityUri + "'                 typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
-        this.element.replaceWith(newElement);
-        this.element = newElement.addClass(styleClass);
-        return console.info("created enhancement in", this.element);
-      },
-      _renderMenu: function(ul, entityEnhancements) {
-        var enhancement, _i, _len;
-        for (_i = 0, _len = entityEnhancements.length; _i < _len; _i++) {
-          enhancement = entityEnhancements[_i];
-          this._renderItem(ul, enhancement);
-        }
-        return console.info('render', entityEnhancements);
-      },
-      _renderItem: function(ul, enhancement) {
-        var label;
-        label = enhancement.get("<" + ns.enhancer + "entity-label>");
-        $("<li><a href='#'>" + label + "</a></li>").data('enhancement', enhancement).appendTo(ul);
-        return enhancement.getUri = function() {
-          return this.get("<" + ns.enhancer + "entity-reference>");
-        };
       },
       _create: function() {
         return this.element.click(__bind(function() {
@@ -197,6 +205,17 @@
             return this._createSearchbox();
           }
         }, this));
+      },
+      annotate: function(entityEnhancement, styleClass) {
+        var entityClass, entityHtml, entityType, entityUri, newElement;
+        entityUri = entityEnhancement.getUri();
+        entityType = this.suggestion.getType();
+        entityHtml = this.element.html();
+        entityClass = this.element.attr('class');
+        newElement = $("<a href='" + entityUri + "'                 about='" + entityUri + "'                 typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
+        this.element.replaceWith(newElement);
+        this.element = newElement.addClass(styleClass);
+        return console.info("created enhancement in", this.element);
       },
       _createMenu: function() {
         var ul;
@@ -225,6 +244,19 @@
           collision: "none"
         });
         return console.info(this.menu.element);
+      },
+      _renderMenu: function(ul, entityEnhancements) {
+        var enhancement, _i, _len;
+        for (_i = 0, _len = entityEnhancements.length; _i < _len; _i++) {
+          enhancement = entityEnhancements[_i];
+          this._renderItem(ul, enhancement);
+        }
+        return console.info('render', entityEnhancements);
+      },
+      _renderItem: function(ul, enhancement) {
+        var label;
+        label = enhancement.getLabel();
+        return $("<li><a href='#'>" + label + "</a></li>").data('enhancement', enhancement).appendTo(ul);
       },
       _createSearchbox: function() {
         var searchEntryField;

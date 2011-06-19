@@ -14,23 +14,31 @@
         rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
 
     # filter the entityManager for TextAnnotations
-    getTextAnnotations = ->
-        all = VIE.EntityManager.entities.filter (e) ->
-            e.attributes["<#{ns.rdf}type>"].indexOf("#{ns.enhancer}TextAnnotation") != -1
-        all = _(all).sortBy (e) -> -1 * Number e.attributes["<#{ns.enhancer}confidence>"]
-        # remove duplicates on selected text
+    getTextAnnotations = (enhRdf) ->
+        res = _(enhRdf).map((obj, key) ->
+            obj.id = key
+            obj
+        )
+        .filter (e) ->
+            e["#{ns.rdf}type"]
+            .map((x) -> x.value)
+            .indexOf("#{ns.enhancer}TextAnnotation") != -1
+        _(res).sortBy (e) -> 
+            conf = Number e["#{ns.enhancer}confidence"][0].value if e["#{ns.enhancer}confidence"]
+            -1 * conf
     
     # filter the entityManager for TextAnnotations    
-    getEntityAnnotations = ->
-        VIE.EntityManager.entities.filter (e) ->
-            e.attributes["<#{ns.rdf}type>"].indexOf("#{ns.enhancer}EntityAnnotation") != -1
+    getEntityAnnotations = (enhRdf) ->
+        _(enhRdf)
+        .map((obj, key) ->
+            obj.id = key
+            obj
+        )
+        .filter (e) ->
+            e["#{ns.rdf}type"]
+            .map((x) -> x.value)
+            .indexOf("#{ns.enhancer}EntityAnnotation") != -1
 
-    # 
-    deleteEnhancements = (oldDocUri) ->
-    # to be fixed
-#        VIE.EntityManager.entities.each (ent) -> 
-#            ent.destroy() if ent.attributes["<#{ns.enhancer}extracted-from>"] is oldDocUri
-    
     # Get the label in the user's language or the first one from a VIE entity
     getRightLabel = (entity) -> 
         getLang: (label) ->
@@ -46,37 +54,55 @@
         else 
             labelMap["_"]
     
-    # A suggestion object has the methods for getting generic enhancement-specific 
-    # properties.
+    # Generic API for a TextEnhancement
+    # A suggestion object has the methods for getting generic 
+    # text-enhancement-specific properties.
     # 
-    # TODO Decouple from stanbol. Right now it works with apache stanbol only.
-    Suggestion = (enhancement) -> 
+    # TODO Place it into a global Stanbol object. 
+    Suggestion = (enhancement, enhRdf) -> 
         @_enhancement = enhancement
-        id = @_enhancement.id
+        @enhRdf = enhRdf
+        @id = @_enhancement.id
     Suggestion.prototype = 
         # the text the annotation is for
         getSelectedText: -> 
-            @_enhancement.toJSON()["<#{ns.enhancer}selected-text>"]
+            @_vals("#{ns.enhancer}selected-text")[0]
         getConfidence: ->
-            @_enhancement.toJSON()["<#{ns.enhancer}confidence>"]
+            @_vals("#{ns.enhancer}confidence")[0]
         # get Entities suggested for the text enhancement (if any)
         getEntityEnhancements: ->
-            _(getEntityAnnotations()).filter (ann) =>
-                if _([ann.attributes["<#{ns.dc}relation>"]]).flatten().indexOf(@_enhancement.id) isnt -1 then true
+            rawList = _(getEntityAnnotations @enhRdf ).filter (ann) =>
+                relations = _(ann["#{ns.dc}relation"])
+                .map (e) -> e.value
+                if (relations.indexOf @_enhancement.id) isnt -1 then true
                 else false
+            _(rawList).map (ee) ->
+                new EntityEnhancement ee
         # The type of the entity suggestion (e.g. person, location, organization)
         getType: ->
-            @_enhancement.toJSON()["<#{ns.dc}type>"]
+            @_vals("#{ns.dc}type")[0]
         getContext: ->
-            @_enhancement.toJSON()["<#{ns.enhancer}selection-context>"]
+            @_vals("#{ns.enhancer}selection-context")[0]
         getStart: ->
-            Number @_enhancement.toJSON()["<#{ns.enhancer}start>"]
+            Number @_vals("#{ns.enhancer}start")[0]
         getEnd: ->
-            Number @_enhancement.toJSON()["<#{ns.enhancer}end>"]
-
+            Number @_vals("#{ns.enhancer}end")[0]
+        _vals: (key) ->
+            _(@_enhancement[key])
+            .map (x) -> x.value
+    
+    # Generic API for an EntityEnhancement. This is the implementation for Stanbol
+    EntityEnhancement = (ee) ->
+        $.extend @, ee
+    EntityEnhancement.prototype =
+        getLabel: ->
+            @_vals("#{ns.enhancer}entity-label")[0]
+        getUri: -> 
+            @_vals("#{ns.enhancer}entity-reference")[0]
+        _vals: (key) ->
+            _(@[key]).map (x) -> x.value
+    
     # get create a dom element containing only the occurrence of the found entity
-    # (getOrCreateDomElement is to be implemented)
-
     getOrCreateDomElement = (element, text, options = {}) ->
         domEl = element
         # find the text node
@@ -131,20 +157,14 @@
         # the annotations to it. We have to clean up the annotations to any 
         # old document state
         
-        oldDocUri = @data "analizedDocUri"
-        if oldDocUri
-            deleteEnhancements oldDocUri
         VIE2.connectors['stanbol'].analyze @,
             success: (rdf) =>
                 # Get enhancements
                 rdfJson = rdf.databank.dump()
                 
-                VIE.EntityManager.getByRDFJSON rdfJson
-                textAnnotations = getTextAnnotations()
-                docUri = _(textAnnotations).first().get "<#{ns.enhancer}extracted-from>"
-                @data "analizedDocUri", docUri
+                textAnnotations = getTextAnnotations(rdfJson)
                 jQuery.each textAnnotations, ->
-                    s = new Suggestion @
+                    s = new Suggestion @, rdfJson
                     console.info s._enhancement,
                         'confidence', s.getConfidence(),
                         'selectedText', s.getSelectedText(), 
@@ -156,6 +176,15 @@
     jQuery.widget 'IKS.annotationSelector',
         options:
             suggestion: null
+        _create: ->
+            @element.click =>
+                @entityEnhancements = @suggestion.getEntityEnhancements()
+                console.info @entityEnhancements
+                if @entityEnhancements.length > 0
+                    @_createMenu() if @menu is undefined
+                else
+                    @_createSearchbox()
+
         # Place the annotation on the DOM element (about and typeof attributes)
         annotate: (entityEnhancement, styleClass) ->
             entityUri = entityEnhancement.getUri()
@@ -170,24 +199,6 @@
             @element = newElement.addClass styleClass
             # TODO write the fact it's acknowledged into the VIE
             console.info "created enhancement in", @element
-        _renderMenu: (ul, entityEnhancements) ->
-            @_renderItem ul, enhancement for enhancement in entityEnhancements
-            console.info 'render', entityEnhancements
-        _renderItem: (ul, enhancement) ->
-            label = enhancement.get("<#{ns.enhancer}entity-label>")
-            $("<li><a href='#'>#{label}</a></li>")
-            .data('enhancement', enhancement)
-            .appendTo ul
-            # the annotate method needs a getter for the uri
-            enhancement.getUri = -> @get "<#{ns.enhancer}entity-reference>"
-        _create: ->
-            @element.click =>
-                @entityEnhancements = @suggestion.getEntityEnhancements()
-                console.info @entityEnhancements
-                if @entityEnhancements.length > 0
-                    @_createMenu() if @menu is undefined
-                else
-                    @_createSearchbox()
         _createMenu: ->
             ul = $('<ul></ul>')
             .appendTo( $("body")[0] )
@@ -218,6 +229,14 @@
                 at: "left bottom"
                 collision: "none"}
             console.info @menu.element
+        _renderMenu: (ul, entityEnhancements) ->
+            @_renderItem ul, enhancement for enhancement in entityEnhancements
+            console.info 'render', entityEnhancements
+        _renderItem: (ul, enhancement) ->
+            label = enhancement.getLabel()
+            $("<li><a href='#'>#{label}</a></li>")
+            .data('enhancement', enhancement)
+            .appendTo ul
 
         _createSearchbox: ->
             # Show an input box for autocompleted search
@@ -264,4 +283,4 @@
         options:
             suggestion: null
     
-)(jQuery)
+) jQuery
