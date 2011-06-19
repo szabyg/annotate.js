@@ -178,12 +178,39 @@
             suggestion: null
         _create: ->
             @element.click =>
+                @_createDialog()
                 @entityEnhancements = @suggestion.getEntityEnhancements()
                 console.info @entityEnhancements
                 if @entityEnhancements.length > 0
                     @_createMenu() if @menu is undefined
                 else
                     @_createSearchbox()
+
+        _createDialog: ->
+            label = @element.text()
+            dialogEl = $("<div>")
+            .attr( "tabIndex", -1)
+            .addClass()
+            .keydown( (event) =>
+                if not event.isDefaultPrevented() and event.keyCode and event.keyCode is $.ui.keyCode.ESCAPE
+                    console.info "dialogEl ESCAPE key event -> close"
+                    @close event
+                    event.preventDefault()
+            )
+            .appendTo( $("body")[0] )
+            dialogEl.dialog
+#                    modal: true
+                title: label
+                close: (event, ui) =>
+                    @close()
+            @dialog = dialogEl.data 'dialog'
+            console.info @dialog
+            @dialog.uiDialog.position {
+                of: @element
+                my: "left top"
+                at: "left bottom"
+                collision: "none"}
+            @dialog.element.focus(200)
 
         # Place the annotation on the DOM element (about and typeof attributes)
         annotate: (entityEnhancement, styleClass) ->
@@ -199,35 +226,46 @@
             @element = newElement.addClass styleClass
             # TODO write the fact it's acknowledged into the VIE
             console.info "created enhancement in", @element
+        close: (event) ->
+            if @menu
+                @menu.destroy()
+                @menu.element.remove() 
+                delete @menu
+            @dialog.destroy()
+            @dialog.element.remove()
+            @dialog.uiDialogTitlebar.remove()
+            delete @dialog
+
         _createMenu: ->
             ul = $('<ul></ul>')
-            .appendTo( $("body")[0] )
+            .appendTo( @dialog.element )
             @_renderMenu ul, @entityEnhancements
             @menu = ul
             .menu({
                 select: (event, ui) =>
                     console.info ui.item
                     @annotate ui.item.data('enhancement'), 'acknowledged'
-                    ui.item.parent().menu('destroy')
-                    .remove()
-                    delete @menu
+                    @close()
+#                    ui.item.parent().menu('destroy')
+#                    .remove()
+#                    delete @menu
                 blur: (event, ui) ->
                     console.info 'blur', ui.item
                     ui.item.parent().menu('destroy')
                     .remove()
             })
-            .bind('menublur', (event, ui) ->
-                console.info 'menublur', ui.item
-                ui.item.parent().menu('destroy').html ''
-            )
+#            .bind('menublur', (event, ui) ->
+#                console.info 'menublur', ui.item
+#                ui.item.parent().menu('destroy').html ''
+#            )
             .focus()
             .data 'menu'
             console.info "createMenu"
-            @menu.element.position {
-                of: @element
-                my: "left top"
-                at: "left bottom"
-                collision: "none"}
+#            @menu.element.position {
+#                of: @element
+#                my: "left top"
+#                at: "left bottom"
+#                collision: "none"}
             console.info @menu.element
         _renderMenu: (ul, entityEnhancements) ->
             @_renderItem ul, enhancement for enhancement in entityEnhancements
@@ -241,14 +279,15 @@
         _createSearchbox: ->
             # Show an input box for autocompleted search
             searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>')
-            .appendTo $( "body" )[0]
+            .appendTo @dialog.element
             searchEntryField
-            .position {
-                of: @element
-                my: "left top"
-                at: "left bottom"
-                collision: "none"}
-            $('.search',searchEntryField).autocomplete 
+#            .position {
+#                of: @element
+#                my: "left top"
+#                at: "left bottom"
+#                collision: "none"}
+            $('.search',searchEntryField)
+            .autocomplete 
                 source: (req, resp) ->
                     console.info "req:", req
                     VIE2.connectors['stanbol'].findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
@@ -265,12 +304,14 @@
                     console.info "select event", e, ui
                     @annotate ui.item, "acknowledged"
                     console.info e.target
-                    $(e.target).remove()
-            .blur (e) ->
-                console.info "blur event", e, $(e.target)
-                $(e.target)
-                .autocomplete('option', 'destroy')
-                .parent().remove()
+#                    $(e.target).remove()
+#                appendTo: @dialog.element
+
+#            .blur (e) ->
+#                console.info "blur event", e, $(e.target)
+#                $(e.target)
+#                .autocomplete('option', 'destroy')
+#                .parent().remove()
             .trigger 'focus'
             console.info "show searchbox"
         addSuggestion: (suggestion) ->

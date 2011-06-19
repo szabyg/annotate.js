@@ -195,6 +195,7 @@
       },
       _create: function() {
         return this.element.click(__bind(function() {
+          this._createDialog();
           this.entityEnhancements = this.suggestion.getEntityEnhancements();
           console.info(this.entityEnhancements);
           if (this.entityEnhancements.length > 0) {
@@ -205,6 +206,32 @@
             return this._createSearchbox();
           }
         }, this));
+      },
+      _createDialog: function() {
+        var dialogEl, label;
+        label = this.element.text();
+        dialogEl = $("<div>").attr("tabIndex", -1).addClass().keydown(__bind(function(event) {
+          if (!event.isDefaultPrevented() && event.keyCode && event.keyCode === $.ui.keyCode.ESCAPE) {
+            console.info("dialogEl ESCAPE key event -> close");
+            this.close(event);
+            return event.preventDefault();
+          }
+        }, this)).appendTo($("body")[0]);
+        dialogEl.dialog({
+          title: label,
+          close: __bind(function(event, ui) {
+            return this.close();
+          }, this)
+        });
+        this.dialog = dialogEl.data('dialog');
+        console.info(this.dialog);
+        this.dialog.uiDialog.position({
+          of: this.element,
+          my: "left top",
+          at: "left bottom",
+          collision: "none"
+        });
+        return this.dialog.element.focus(200);
       },
       annotate: function(entityEnhancement, styleClass) {
         var entityClass, entityHtml, entityType, entityUri, newElement;
@@ -217,32 +244,33 @@
         this.element = newElement.addClass(styleClass);
         return console.info("created enhancement in", this.element);
       },
+      close: function(event) {
+        if (this.menu) {
+          this.menu.destroy();
+          this.menu.element.remove();
+          delete this.menu;
+        }
+        this.dialog.destroy();
+        this.dialog.element.remove();
+        this.dialog.uiDialogTitlebar.remove();
+        return delete this.dialog;
+      },
       _createMenu: function() {
         var ul;
-        ul = $('<ul></ul>').appendTo($("body")[0]);
+        ul = $('<ul></ul>').appendTo(this.dialog.element);
         this._renderMenu(ul, this.entityEnhancements);
         this.menu = ul.menu({
           select: __bind(function(event, ui) {
             console.info(ui.item);
             this.annotate(ui.item.data('enhancement'), 'acknowledged');
-            ui.item.parent().menu('destroy').remove();
-            return delete this.menu;
+            return this.close();
           }, this),
           blur: function(event, ui) {
             console.info('blur', ui.item);
             return ui.item.parent().menu('destroy').remove();
           }
-        }).bind('menublur', function(event, ui) {
-          console.info('menublur', ui.item);
-          return ui.item.parent().menu('destroy').html('');
         }).focus().data('menu');
         console.info("createMenu");
-        this.menu.element.position({
-          of: this.element,
-          my: "left top",
-          at: "left bottom",
-          collision: "none"
-        });
         return console.info(this.menu.element);
       },
       _renderMenu: function(ul, entityEnhancements) {
@@ -260,13 +288,8 @@
       },
       _createSearchbox: function() {
         var searchEntryField;
-        searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo($("body")[0]);
-        searchEntryField.position({
-          of: this.element,
-          my: "left top",
-          at: "left bottom",
-          collision: "none"
-        });
+        searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo(this.dialog.element);
+        searchEntryField;
         $('.search', searchEntryField).autocomplete({
           source: function(req, resp) {
             console.info("req:", req);
@@ -296,12 +319,8 @@
           select: __bind(function(e, ui) {
             console.info("select event", e, ui);
             this.annotate(ui.item, "acknowledged");
-            console.info(e.target);
-            return $(e.target).remove();
+            return console.info(e.target);
           }, this)
-        }).blur(function(e) {
-          console.info("blur event", e, $(e.target));
-          return $(e.target).autocomplete('option', 'destroy').parent().remove();
         }).trigger('focus');
         return console.info("show searchbox");
       },
