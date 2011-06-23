@@ -276,7 +276,11 @@
         sourceObj = _(sources).detect(function(s) {
           return src.indexOf(s.uri) !== -1;
         });
-        return sourceObj.label;
+        if (sourceObj) {
+          return sourceObj.label;
+        } else {
+          return src.split("/")[2];
+        }
       },
       _create: function() {
         return this.element.click(__bind(function() {
@@ -324,6 +328,7 @@
         });
         this.dialog.element.focus(100);
         window.d = this.dialog;
+        this._updateTitle();
         return this._setButtons();
       },
       _setButtons: function() {
@@ -361,13 +366,15 @@
         entityHtml = this.element.html();
         entityClass = this.element.attr('class');
         newElement = $("<a href='" + entityUri + "'                 about='" + entityUri + "'                 typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
-        console.info("element data", this.element.data());
         ANTT.cloneCopyEvent(this.element[0], newElement[0]);
-        console.info("replace element");
+        this.linkedEntity = {
+          uri: entityUri,
+          type: entityType
+        };
         this.element.replaceWith(newElement);
         this.element = newElement.addClass(styleClass);
-        console.info("element data", this.element.data());
-        return console.info("created enhancement in", this.element);
+        console.info("created enhancement in", this.element);
+        return this._updateTitle();
       },
       close: function(event) {
         if (this.menu) {
@@ -379,6 +386,15 @@
         this.dialog.element.remove();
         this.dialog.uiDialogTitlebar.remove();
         return delete this.dialog;
+      },
+      _updateTitle: function() {
+        var title;
+        if (this.isAnnotated()) {
+          title = "" + (this.element.text()) + " <small>at " + (this._sourceLabel(this.linkedEntity.uri)) + "</small>";
+        } else {
+          title = this.element.text();
+        }
+        return this.dialog.element.dialog('option', 'title', title);
       },
       _createMenu: function() {
         var ul;

@@ -255,7 +255,10 @@
         _sourceLabel: (src) ->
             sources = @options.getSources()
             sourceObj = _(sources).detect (s) -> src.indexOf(s.uri) isnt -1
-            sourceObj.label
+            if sourceObj
+                sourceObj.label
+            else
+                src.split("/")[2]
         _create: ->
             @element.click =>
                 @_createDialog()
@@ -301,6 +304,7 @@
                 collision: "none"}
             @dialog.element.focus(100)
             window.d = @dialog
+            @_updateTitle()
             @_setButtons()
             
         _setButtons: ->
@@ -332,15 +336,15 @@
                 about='#{entityUri}' 
                 typeof='#{entityType}'
                 class='#{entityClass}'>#{entityHtml}</a>"
-            console.info "element data", @element.data()
             ANTT.cloneCopyEvent @element[0], newElement[0]
-                
-            console.info "replace element"
+            @linkedEntity =
+                uri: entityUri
+                type: entityType
             @element.replaceWith newElement
             @element = newElement.addClass styleClass
-            console.info "element data", @element.data()
             # TODO write the fact it's acknowledged into the VIE
             console.info "created enhancement in", @element
+            @_updateTitle()
         close: (event) ->
             if @menu
                 @menu.destroy()
@@ -350,7 +354,12 @@
             @dialog.element.remove()
             @dialog.uiDialogTitlebar.remove()
             delete @dialog
-
+        _updateTitle: ->
+            if @isAnnotated()
+                title = "#{@element.text()} <small>at #{@_sourceLabel(@linkedEntity.uri)}</small>"
+            else
+                title = @element.text()
+            @dialog.element.dialog 'option', 'title', title
         _createMenu: ->
             ul = $('<ul></ul>')
             .appendTo( @dialog.element )
