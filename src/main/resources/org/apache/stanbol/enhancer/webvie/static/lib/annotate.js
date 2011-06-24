@@ -253,7 +253,8 @@
               label: "geonames"
             }
           ];
-        }
+        },
+        annotationselected: function(event, ui) {}
       },
       _typeLabels: function(types) {
         var allKnownPrefixes, knownMapping, knownPrefixes;
@@ -283,7 +284,7 @@
         }
       },
       _create: function() {
-        return this.element.click(__bind(function() {
+        this.element.click(__bind(function() {
           this._createDialog();
           this.entityEnhancements = this.suggestion.getEntityEnhancements();
           console.info(this.entityEnhancements);
@@ -294,6 +295,7 @@
             }
           }
         }, this));
+        return this.element.bind("annotationselected", this.options.annotationselected);
       },
       _createDialog: function() {
         var dialogEl, label;
@@ -374,7 +376,10 @@
         this.element.replaceWith(newElement);
         this.element = newElement.addClass(styleClass);
         console.info("created enhancement in", this.element);
-        return this._updateTitle();
+        this._updateTitle();
+        return this._trigger('annotationselected', {
+          linkedEntity: this.linkedEntity
+        });
       },
       close: function(event) {
         if (this.menu) {

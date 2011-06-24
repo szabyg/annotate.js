@@ -240,6 +240,8 @@
                     uri: "http://sws.geonames.org/"
                     label: "geonames"
                 ]
+            # annotate event handler
+            annotationselected: (event, ui) ->
 
         # Produce type label list out of a uri list.
         # Filtered by the @options.types list
@@ -268,6 +270,7 @@
                 @_createSearchbox()
                 if @entityEnhancements.length > 0
                     @_createMenu() if @menu is undefined
+            @element.bind "annotationselected", @options.annotationselected
 
         _createDialog: ->
             label = @element.text()
@@ -345,6 +348,7 @@
             # TODO write the fact it's acknowledged into the VIE
             console.info "created enhancement in", @element
             @_updateTitle()
+            @_trigger 'annotationselected', {linkedEntity: @linkedEntity}
         close: (event) ->
             if @menu
                 @menu.destroy()
