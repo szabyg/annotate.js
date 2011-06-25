@@ -83,8 +83,8 @@
                 .map (e) -> e.value
                 if (relations.indexOf @_enhancement.id) isnt -1 then true
                 else false
-            _(rawList).map (ee) ->
-                new ANTT.EntityEnhancement ee
+            _(rawList).map (ee) =>
+                new ANTT.EntityEnhancement ee, @
         # The type of the entity suggestion (e.g. person, location, organization)
         getType: ->
             @_vals("#{ns.dc}type")[0]
@@ -99,13 +99,16 @@
             .map (x) -> x.value
     
     # Generic API for an EntityEnhancement. This is the implementation for Stanbol
-    ANTT.EntityEnhancement = (ee) ->
+    ANTT.EntityEnhancement = (ee, textEnh) ->
+        @_textEnhancement = textEnh
         $.extend @, ee
     ANTT.EntityEnhancement.prototype =
         getLabel: ->
             @_vals("#{ns.enhancer}entity-label")[0]
         getUri: -> 
             @_vals("#{ns.enhancer}entity-reference")[0]
+        getTextEnhancement: ->
+            @_textEnhancement
         getTypes: -> 
             @_vals("#{ns.enhancer}entity-type")
         getConfidence: ->
@@ -223,7 +226,6 @@
     ANTT.annotationSelector = 
     jQuery.widget 'IKS.annotationSelector',
         options:
-            suggestion: null
             ns:
                 dbpedia:  "http://dbpedia.org/ontology/"
             getTypes: ->
@@ -251,8 +253,26 @@
         _create: ->
             @element.click =>
                 @_createDialog()
-#                @_createCloseButton()
-                @entityEnhancements = @suggestion.getEntityEnhancements()
+                # Collect all EntityEnhancements for all the TextEnhancements
+                # on the selected node.
+                eEnhancements = []
+                for suggestion in @suggestions
+                    for enhancement in suggestion.getEntityEnhancements()
+                        eEnhancements.push enhancement
+                # filter enhancements with the same uri
+                # this is necessary because of a bug in stanbol that creates
+                # duplicate enhancements. 
+                # https://issues.apache.org/jira/browse/STANBOL-228
+                _tempUris = []
+                eEnhancements = _(eEnhancements).filter (eEnh) ->
+                    uri = eEnh.getUri()
+                    if _tempUris.indexOf(uri) is -1
+                        _tempUris.push uri
+                        true
+                    else
+                        false
+                @entityEnhancements = eEnhancements
+                
                 console.info @entityEnhancements
                 @_createSearchbox()
                 if @entityEnhancements.length > 0
@@ -342,7 +362,7 @@
         # Place the annotation on the DOM element (about and typeof attributes)
         annotate: (entityEnhancement, styleClass) ->
             entityUri = entityEnhancement.getUri()
-            entityType = @suggestion.getType()
+            entityType = entityEnhancement.getTextEnhancement().getType()
             entityHtml = @element.html()
             entityClass = @element.attr 'class'
             newElement = $ "<a href='#{entityUri}' 
@@ -374,6 +394,8 @@
             else
                 title = @element.text()
             @dialog.element.dialog 'option', 'title', title
+
+        # create menu and add to the dialog
         _createMenu: ->
             ul = $('<ul></ul>')
             .appendTo( @dialog.element )
@@ -381,7 +403,7 @@
             @menu = ul
             .menu({
                 select: (event, ui) =>
-                    console.info ui.item
+                    console.info "selected menu item", ui.item
                     @annotate ui.item.data('enhancement'), 'acknowledged'
                     @close(event)
                 blur: (event, ui) ->
@@ -395,30 +417,36 @@
             )
             .focus(150)
             .data 'menu'
-            console.info "createMenu"
-            console.info @menu.element
+
+        # Rendering menu for the EntityEnhancements suggested for the selected text
         _renderMenu: (ul, entityEnhancements) ->
             entityEnhancements = _(entityEnhancements).sortBy (ee) -> -1 * ee.getConfidence()
             @_renderItem ul, enhancement for enhancement in entityEnhancements
-            console.info 'render', entityEnhancements
+            console.info 'rendered menu for the elements', entityEnhancements
         _renderItem: (ul, enhancement) ->
-            console.info 'enhancement:', enhancement, 'conf:', enhancement.getConfidence()
             label = enhancement.getLabel()
             type = @_typeLabels enhancement.getTypes()
             source = @_sourceLabel enhancement.getUri()
-            $("<li><a href='#'>#{label} <small>(#{type} from #{source})</small></a></li>")
+            active = if @linkedEntity and enhancement.getUri() is @linkedEntity.uri
+                    " class='ui-state-active'" 
+                else ""
+            $("<li#{active}><a href='#'>#{label} <small>(#{type} from #{source})</small></a></li>")
             .data('enhancement', enhancement)
             .appendTo ul
+
+        # Remove the RDFa annotation from the selected dom element
         _removeAnnotation: ->
             @element.removeAttr 'about'
             @element.removeAttr 'typeof'
-        
+
+        # Render search box with autocompletion for finding the right entity
         _createSearchbox: ->
             # Show an input box for autocompleted search
             searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>')
             .appendTo @dialog.element
             $('.search',searchEntryField)
-            .autocomplete 
+            .autocomplete
+                # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
                     console.info "req:", req
                     VIE2.connectors['stanbol'].findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
@@ -431,16 +459,19 @@
                             getUri: -> @key
                             }
                         resp res
+                # An entity selected, annotate
                 select: (e, ui) =>
                     console.info "select event", e, ui
                     @annotate ui.item, "acknowledged"
                     console.info e.target
             .focus(200)
             console.info "show searchbox"
+
+        # add a suggestion that gets shown when the dialog is rendered
         addSuggestion: (suggestion) ->
-            # TODO support multiple suggestions
-            @options.suggestion = suggestion
-            @suggestion = @options.suggestion
+            @options.suggestions = @options.suggestions or []
+            @options.suggestions.push suggestion
+            @suggestions = @options.suggestions
 
     window.ANTT = ANTT
 ) jQuery
