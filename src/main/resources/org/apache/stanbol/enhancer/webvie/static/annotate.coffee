@@ -364,7 +364,10 @@
             entityUri = entityEnhancement.getUri()
             entityType = entityEnhancement.getTextEnhancement().getType()
             entityHtml = @element.html()
-            entityClass = @element.attr 'class'
+            # We ignore the old style classes
+            # entityClass = @element.attr 'class'
+            sType = entityEnhancement.getTextEnhancement().getType()
+            entityClass = 'entity ' + ANTT.uriSuffix sType
             newElement = $ "<a href='#{entityUri}' 
                 about='#{entityUri}' 
                 typeof='#{entityType}'

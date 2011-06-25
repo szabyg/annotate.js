@@ -391,11 +391,12 @@
         }
       },
       annotate: function(entityEnhancement, styleClass) {
-        var entityClass, entityHtml, entityType, entityUri, newElement;
+        var entityClass, entityHtml, entityType, entityUri, newElement, sType;
         entityUri = entityEnhancement.getUri();
         entityType = entityEnhancement.getTextEnhancement().getType();
         entityHtml = this.element.html();
-        entityClass = this.element.attr('class');
+        sType = entityEnhancement.getTextEnhancement().getType();
+        entityClass = 'entity ' + ANTT.uriSuffix(sType);
         newElement = $("<a href='" + entityUri + "'                 about='" + entityUri + "'                 typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
         ANTT.cloneCopyEvent(this.element[0], newElement[0]);
         this.linkedEntity = {
