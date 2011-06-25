@@ -4,3 +4,4 @@
 target/
 deploy.sh
 sc
+coffeecompile.sh
