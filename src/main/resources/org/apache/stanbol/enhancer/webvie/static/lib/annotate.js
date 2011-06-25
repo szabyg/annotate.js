@@ -329,7 +329,7 @@
       _createDialog: function() {
         var dialogEl, label;
         label = this.element.text();
-        dialogEl = $("<div>").attr("tabIndex", -1).addClass().keydown(__bind(function(event) {
+        dialogEl = $("<div><span class='entity-link'></span></div>").attr("tabIndex", -1).addClass().keydown(__bind(function(event) {
           if (!event.isDefaultPrevented() && event.keyCode && event.keyCode === $.ui.keyCode.ESCAPE) {
             console.info("dialogEl ESCAPE key event -> close");
             this.close(event);
@@ -365,7 +365,7 @@
       },
       _insertLink: function() {
         if (this.isAnnotated()) {
-          return $("Annotated: <a href='" + this.linkedEntity.uri + "' target='_blank'>                " + this.linkedEntity.label + " @ " + (this._sourceLabel(this.linkedEntity.uri)) + "</a><br/>").appendTo(this.dialog.element);
+          return $("Annotated: <a href='" + this.linkedEntity.uri + "' target='_blank'>                " + this.linkedEntity.label + " @ " + (this._sourceLabel(this.linkedEntity.uri)) + "</a><br/>").appendTo($('.entity-link', this.dialog.element));
         }
       },
       _setButtons: function() {
@@ -414,6 +414,7 @@
         this.element = newElement.addClass(styleClass);
         console.info("created enhancement in", this.element);
         this._updateTitle();
+        this._insertLink();
         return this._trigger('annotationselected', {
           linkedEntity: this.linkedEntity
         });

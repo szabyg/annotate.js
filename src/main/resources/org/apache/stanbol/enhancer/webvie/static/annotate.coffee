@@ -301,7 +301,7 @@
         # create dialog widget
         _createDialog: ->
             label = @element.text()
-            dialogEl = $("<div>")
+            dialogEl = $("<div><span class='entity-link'></span></div>")
             .attr( "tabIndex", -1)
             .addClass()
             .keydown( (event) =>
@@ -342,7 +342,7 @@
             if @isAnnotated()
                 $("Annotated: <a href='#{@linkedEntity.uri}' target='_blank'>
                 #{@linkedEntity.label} @ #{@_sourceLabel(@linkedEntity.uri)}</a><br/>")
-                .appendTo @dialog.element
+                .appendTo $( '.entity-link', @dialog.element )
         # create/update the dialog button row
         _setButtons: ->
             @dialog.element.dialog 'option', 'buttons', 
@@ -389,6 +389,7 @@
             # TODO write the fact it's acknowledged into the VIE
             console.info "created enhancement in", @element
             @_updateTitle()
+            @_insertLink()
             @_trigger 'annotationselected', {linkedEntity: @linkedEntity}
         close: (event) ->
             if @menu
