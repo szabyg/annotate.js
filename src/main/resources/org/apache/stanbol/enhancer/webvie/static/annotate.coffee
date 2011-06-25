@@ -333,9 +333,16 @@
                 collision: "none"}
             @dialog.element.focus(100)
             window.d = @dialog
+            @_insertLink()
             @_updateTitle()
             @_setButtons()
 
+        # If annotation is already made insert a link to the entity
+        _insertLink: ->
+            if @isAnnotated()
+                $("Annotated: <a href='#{@linkedEntity.uri}' target='_blank'>
+                #{@linkedEntity.label} @ #{@_sourceLabel(@linkedEntity.uri)}</a><br/>")
+                .appendTo @dialog.element
         # create/update the dialog button row
         _setButtons: ->
             @dialog.element.dialog 'option', 'buttons', 
@@ -376,6 +383,7 @@
             @linkedEntity =
                 uri: entityUri
                 type: entityType
+                label: entityEnhancement.getLabel()
             @element.replaceWith newElement
             @element = newElement.addClass styleClass
             # TODO write the fact it's acknowledged into the VIE
@@ -393,7 +401,7 @@
             delete @dialog
         _updateTitle: ->
             if @isAnnotated()
-                title = "#{@element.text()} <small>at #{@_sourceLabel(@linkedEntity.uri)}</small>"
+                title = "#{@linkedEntity.label} <small>@ #{@_sourceLabel(@linkedEntity.uri)}</small>"
             else
                 title = @element.text()
             @dialog.element.dialog 'option', 'title', title
@@ -426,15 +434,15 @@
             entityEnhancements = _(entityEnhancements).sortBy (ee) -> -1 * ee.getConfidence()
             @_renderItem ul, enhancement for enhancement in entityEnhancements
             console.info 'rendered menu for the elements', entityEnhancements
-        _renderItem: (ul, enhancement) ->
-            label = enhancement.getLabel()
-            type = @_typeLabels enhancement.getTypes()
-            source = @_sourceLabel enhancement.getUri()
-            active = if @linkedEntity and enhancement.getUri() is @linkedEntity.uri
+        _renderItem: (ul, eEnhancement) ->
+            label = eEnhancement.getLabel()
+            type = @_typeLabels eEnhancement.getTypes()
+            source = @_sourceLabel eEnhancement.getUri()
+            active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
                     " class='ui-state-active'" 
                 else ""
             $("<li#{active}><a href='#'>#{label} <small>(#{type} from #{source})</small></a></li>")
-            .data('enhancement', enhancement)
+            .data('enhancement', eEnhancement)
             .appendTo ul
 
         # Remove the RDFa annotation from the selected dom element
@@ -447,6 +455,7 @@
             # Show an input box for autocompleted search
             searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>')
             .appendTo @dialog.element
+            sugg = @suggestions[0]
             $('.search',searchEntryField)
             .autocomplete
                 # Define source method. TODO make independent from stanbol.
@@ -459,7 +468,12 @@
                             {
                             key: entity.id
                             label: ANTT.getRightLabel entity
+                            getLabel: -> @label
                             getUri: -> @key
+                            # To rethink: The type of the annotation (person, place, org)
+                            # should come from the search result, not from the first textEnhancement
+                            _tEnh: sugg
+                            getTextEnhancement: -> @_tEnh
                             }
                         resp res
                 # An entity selected, annotate

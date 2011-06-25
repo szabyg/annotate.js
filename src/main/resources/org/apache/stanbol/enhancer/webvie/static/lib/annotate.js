@@ -359,8 +359,14 @@
         });
         this.dialog.element.focus(100);
         window.d = this.dialog;
+        this._insertLink();
         this._updateTitle();
         return this._setButtons();
+      },
+      _insertLink: function() {
+        if (this.isAnnotated()) {
+          return $("Annotated: <a href='" + this.linkedEntity.uri + "' target='_blank'>                " + this.linkedEntity.label + " @ " + (this._sourceLabel(this.linkedEntity.uri)) + "</a><br/>").appendTo(this.dialog.element);
+        }
       },
       _setButtons: function() {
         return this.dialog.element.dialog('option', 'buttons', {
@@ -401,7 +407,8 @@
         ANTT.cloneCopyEvent(this.element[0], newElement[0]);
         this.linkedEntity = {
           uri: entityUri,
-          type: entityType
+          type: entityType,
+          label: entityEnhancement.getLabel()
         };
         this.element.replaceWith(newElement);
         this.element = newElement.addClass(styleClass);
@@ -425,7 +432,7 @@
       _updateTitle: function() {
         var title;
         if (this.isAnnotated()) {
-          title = "" + (this.element.text()) + " <small>at " + (this._sourceLabel(this.linkedEntity.uri)) + "</small>";
+          title = "" + this.linkedEntity.label + " <small>@ " + (this._sourceLabel(this.linkedEntity.uri)) + "</small>";
         } else {
           title = this.element.text();
         }
@@ -461,21 +468,22 @@
         }
         return console.info('rendered menu for the elements', entityEnhancements);
       },
-      _renderItem: function(ul, enhancement) {
+      _renderItem: function(ul, eEnhancement) {
         var active, label, source, type;
-        label = enhancement.getLabel();
-        type = this._typeLabels(enhancement.getTypes());
-        source = this._sourceLabel(enhancement.getUri());
-        active = this.linkedEntity && enhancement.getUri() === this.linkedEntity.uri ? " class='ui-state-active'" : "";
-        return $("<li" + active + "><a href='#'>" + label + " <small>(" + type + " from " + source + ")</small></a></li>").data('enhancement', enhancement).appendTo(ul);
+        label = eEnhancement.getLabel();
+        type = this._typeLabels(eEnhancement.getTypes());
+        source = this._sourceLabel(eEnhancement.getUri());
+        active = this.linkedEntity && eEnhancement.getUri() === this.linkedEntity.uri ? " class='ui-state-active'" : "";
+        return $("<li" + active + "><a href='#'>" + label + " <small>(" + type + " from " + source + ")</small></a></li>").data('enhancement', eEnhancement).appendTo(ul);
       },
       _removeAnnotation: function() {
         this.element.removeAttr('about');
         return this.element.removeAttr('typeof');
       },
       _createSearchbox: function() {
-        var searchEntryField;
+        var searchEntryField, sugg;
         searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo(this.dialog.element);
+        sugg = this.suggestions[0];
         $('.search', searchEntryField).autocomplete({
           source: function(req, resp) {
             console.info("req:", req);
@@ -492,8 +500,15 @@
                   _results.push({
                     key: entity.id,
                     label: ANTT.getRightLabel(entity),
+                    getLabel: function() {
+                      return this.label;
+                    },
                     getUri: function() {
                       return this.key;
+                    },
+                    _tEnh: sugg,
+                    getTextEnhancement: function() {
+                      return this._tEnh;
                     }
                   });
                 }
