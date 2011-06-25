@@ -146,6 +146,9 @@
     
     # processSuggestion deals with one suggestion in an ancestor element of its occurrence
     ANTT.processSuggestion = (suggestion, parentEl) ->
+        if not suggestion.getSelectedText()
+            console.warn "suggestion", suggestion, "doesn't have selected-text!"
+            return
         el = $ ANTT.getOrCreateDomElement parentEl[0], suggestion.getSelectedText(), 
             createElement: 'span'
             createMode: 'existing'
@@ -213,8 +216,10 @@
                         'type', s.getType(),
                         'EntityEnhancements', s.getEntityEnhancements()
                     ANTT.processSuggestion s, analyzedNode
-    
+    ######################################################
+    # AnnotationSelector widget
     # the annotationSelector makes an annotated word interactive
+    ######################################################
     ANTT.annotationSelector = 
     jQuery.widget 'IKS.annotationSelector',
         options:
@@ -243,24 +248,6 @@
             # annotate event handler
             annotationselected: (event, ui) ->
 
-        # Produce type label list out of a uri list.
-        # Filtered by the @options.types list
-        _typeLabels: (types) ->
-            knownMapping = @options.getTypes()
-            allKnownPrefixes = _(knownMapping).map (x) -> x.uri
-            knownPrefixes = _.intersect allKnownPrefixes, types
-            _(knownPrefixes).map (key) =>
-                foundPrefix = _(knownMapping).detect (x) -> x.uri is key
-                foundPrefix.label
-        
-        #
-        _sourceLabel: (src) ->
-            sources = @options.getSources()
-            sourceObj = _(sources).detect (s) -> src.indexOf(s.uri) isnt -1
-            if sourceObj
-                sourceObj.label
-            else
-                src.split("/")[2]
         _create: ->
             @element.click =>
                 @_createDialog()
@@ -272,6 +259,26 @@
                     @_createMenu() if @menu is undefined
             @element.bind "annotationselected", @options.annotationselected
 
+        # Produce type label list out of a uri list.
+        # Filtered by the @options.types list
+        _typeLabels: (types) ->
+            knownMapping = @options.getTypes()
+            allKnownPrefixes = _(knownMapping).map (x) -> x.uri
+            knownPrefixes = _.intersect allKnownPrefixes, types
+            _(knownPrefixes).map (key) =>
+                foundPrefix = _(knownMapping).detect (x) -> x.uri is key
+                foundPrefix.label
+        
+        # make a label for the entity source based on options.getSources()
+        _sourceLabel: (src) ->
+            sources = @options.getSources()
+            sourceObj = _(sources).detect (s) -> src.indexOf(s.uri) isnt -1
+            if sourceObj
+                sourceObj.label
+            else
+                src.split("/")[2]
+
+        # create dialog widget
         _createDialog: ->
             label = @element.text()
             dialogEl = $("<div>")
@@ -294,7 +301,6 @@
             .appendTo( $("body")[0] )
             dialogEl.dialog
                 width: 400
-#                modal: true
                 title: label
                 close: (event, ui) =>
                     @close(event)
@@ -309,7 +315,8 @@
             window.d = @dialog
             @_updateTitle()
             @_setButtons()
-            
+
+        # create/update the dialog button row
         _setButtons: ->
             @dialog.element.dialog 'option', 'buttons', 
                 rem: 
@@ -318,7 +325,9 @@
                         @remove()
                 Cancel: =>
                     @close()
-                    
+        
+        # remove suggestion/annotation, replace the separate html 
+        # element with the plain text and close the dialog
         remove: ->
             el = @element.parent()
             console.info el.html()
@@ -326,6 +335,7 @@
             console.info el.html()
             @close()
         
+        # tells if this is an annotated dom element, not a suggestion only
         isAnnotated: ->
             if @element.attr 'about' then true else false
             

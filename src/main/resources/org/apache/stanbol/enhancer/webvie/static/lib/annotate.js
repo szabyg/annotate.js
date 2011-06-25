@@ -170,6 +170,10 @@
     };
     ANTT.processSuggestion = function(suggestion, parentEl) {
       var el, sType;
+      if (!suggestion.getSelectedText()) {
+        console.warn("suggestion", suggestion, "doesn't have selected-text!");
+        return;
+      }
       el = $(ANTT.getOrCreateDomElement(parentEl[0], suggestion.getSelectedText(), {
         createElement: 'span',
         createMode: 'existing',
@@ -256,6 +260,20 @@
         },
         annotationselected: function(event, ui) {}
       },
+      _create: function() {
+        this.element.click(__bind(function() {
+          this._createDialog();
+          this.entityEnhancements = this.suggestion.getEntityEnhancements();
+          console.info(this.entityEnhancements);
+          this._createSearchbox();
+          if (this.entityEnhancements.length > 0) {
+            if (this.menu === void 0) {
+              return this._createMenu();
+            }
+          }
+        }, this));
+        return this.element.bind("annotationselected", this.options.annotationselected);
+      },
       _typeLabels: function(types) {
         var allKnownPrefixes, knownMapping, knownPrefixes;
         knownMapping = this.options.getTypes();
@@ -282,20 +300,6 @@
         } else {
           return src.split("/")[2];
         }
-      },
-      _create: function() {
-        this.element.click(__bind(function() {
-          this._createDialog();
-          this.entityEnhancements = this.suggestion.getEntityEnhancements();
-          console.info(this.entityEnhancements);
-          this._createSearchbox();
-          if (this.entityEnhancements.length > 0) {
-            if (this.menu === void 0) {
-              return this._createMenu();
-            }
-          }
-        }, this));
-        return this.element.bind("annotationselected", this.options.annotationselected);
       },
       _createDialog: function() {
         var dialogEl, label;
