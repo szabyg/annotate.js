@@ -4,18 +4,17 @@
 
 ((jQuery) ->
     # The annotate.js widget
-    # 
-    
+    #
+
     # define namespaces
     ns =
         rdf:      'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
         enhancer: 'http://fise.iks-project.eu/ontology/'
         dc:       'http://purl.org/dc/terms/'
         rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
-        
-    
+
     ANTT = ANTT or {}
-    
+
     # filter for TextAnnotations
     ANTT.getTextAnnotations = (enhRdf) ->
         res = _(enhRdf).map((obj, key) ->
@@ -26,15 +25,14 @@
             e["#{ns.rdf}type"]
             .map((x) -> x.value)
             .indexOf("#{ns.enhancer}TextAnnotation") != -1
-        res = _(res).sortBy (e) -> 
+        res = _(res).sortBy (e) ->
             conf = Number e["#{ns.enhancer}confidence"][0].value if e["#{ns.enhancer}confidence"]
             -1 * conf
-            
-        _(res).map (s)->
-            new ANTT.Suggestion s, enhRdf
 
-    
-    # filter the entityManager for TextAnnotations    
+        _(res).map (s)->
+            new ANTT.TextEnhancement s, enhRdf
+
+    # filter the entityManager for TextAnnotations
     ANTT.getEntityAnnotations = (enhRdf) ->
         _(enhRdf)
         .map((obj, key) ->
@@ -47,32 +45,32 @@
             .indexOf("#{ns.enhancer}EntityAnnotation") != -1
 
     # Get the label in the user's language or the first one from a VIE entity
-    ANTT.getRightLabel = (entity) -> 
+    ANTT.getRightLabel = (entity) ->
         getLang: (label) ->
             label["xml:lang"]
-        
+
         labelMap = {}
         for label in _(entity["#{ns.rdfs}label"]).flatten()
             labelMap[label["xml:lang"]|| "_"] = label.value
-        
+
         userLang = window.navigator.language.split("-")[0]
         if labelMap[userLang]
-            labelMap[userLang].value 
-        else 
+            labelMap[userLang].value
+        else
             labelMap["_"]
-    
+
     # Generic API for a TextEnhancement
-    # A suggestion object has the methods for getting generic 
+    # A suggestion object has the methods for getting generic
     # text-enhancement-specific properties.
-    # 
-    # TODO Place it into a global Stanbol object. 
-    ANTT.Suggestion = (enhancement, enhRdf) -> 
+    #
+    # TODO Place it into a global Stanbol object.
+    ANTT.TextEnhancement = (enhancement, enhRdf) ->
         @_enhancement = enhancement
         @enhRdf = enhRdf
         @id = @_enhancement.id
-    ANTT.Suggestion.prototype = 
+    ANTT.TextEnhancement.prototype =
         # the text the annotation is for
-        getSelectedText: -> 
+        getSelectedText: ->
             @_vals("#{ns.enhancer}selected-text")[0]
         getConfidence: ->
             @_vals("#{ns.enhancer}confidence")[0]
@@ -97,7 +95,7 @@
         _vals: (key) ->
             _(@_enhancement[key])
             .map (x) -> x.value
-    
+
     # Generic API for an EntityEnhancement. This is the implementation for Stanbol
     ANTT.EntityEnhancement = (ee, textEnh) ->
         @_textEnhancement = textEnh
@@ -105,17 +103,17 @@
     ANTT.EntityEnhancement.prototype =
         getLabel: ->
             @_vals("#{ns.enhancer}entity-label")[0]
-        getUri: -> 
+        getUri: ->
             @_vals("#{ns.enhancer}entity-reference")[0]
         getTextEnhancement: ->
             @_textEnhancement
-        getTypes: -> 
+        getTypes: ->
             @_vals("#{ns.enhancer}entity-type")
         getConfidence: ->
             Number @_vals("#{ns.enhancer}confidence")[0]
         _vals: (key) ->
             _(@[key]).map (x) -> x.value
-    
+
     # get create a dom element containing only the occurrence of the found entity
     ANTT.getOrCreateDomElement = (element, text, options = {}) ->
         domEl = element
@@ -124,7 +122,7 @@
         if(textContentOf(element).indexOf(text) is -1)
             throw "'#{text}' doesn't appear in the text block."
             return $()
-        start = options.start + 
+        start = options.start +
         textContentOf(element).indexOf textContentOf(element).trim()
         pos = 0
         while textContentOf(domEl).indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
@@ -146,13 +144,13 @@
             newElement.innerHTML = text
             domEl.parentElement.replaceChild newElement, domEl.splitText pos
             return $ newElement
-    
+
     # processSuggestion deals with one suggestion in an ancestor element of its occurrence
     ANTT.processSuggestion = (suggestion, parentEl) ->
         if not suggestion.getSelectedText()
             console.warn "suggestion", suggestion, "doesn't have selected-text!"
             return
-        el = $ ANTT.getOrCreateDomElement parentEl[0], suggestion.getSelectedText(), 
+        el = $ ANTT.getOrCreateDomElement parentEl[0], suggestion.getSelectedText(),
             createElement: 'span'
             createMode: 'existing'
             context: suggestion.getContext()
@@ -161,8 +159,8 @@
         sType = suggestion.getType()
         el.addClass('entity')
         .addClass(ANTT.uriSuffix sType)
-        
-        el.addClass "withSuggestions" 
+
+        el.addClass "withSuggestions"
         # Create widget to select from the suggestions
         el.annotationSelector(
             decline: (event, ui) ->
@@ -174,7 +172,7 @@
 
     ANTT.uriSuffix = (uri) ->
         uri.substring uri.lastIndexOf("/") + 1
-        
+
     # jquery events cloning method
     ANTT.cloneCopyEvent = (src, dest) ->
         if dest.nodeType isnt 1 or not jQuery.hasData src
@@ -183,7 +181,7 @@
         internalKey = $.expando
         oldData = $.data src
         curData = $.data dest, oldData
-        
+
         # Switch to use the internal data object, if it exists, for the next
         # stage of data copying
         if oldData = oldData[internalKey]
@@ -200,7 +198,7 @@
                     }
                 }`
             null
-    
+
     # the analyze jQuery plugin runs a stanbol enhancement process
     ANTT.analyze = jQuery.fn.analyze = ->
 #    jQuery.widget 'IKS.analyze',
@@ -208,20 +206,20 @@
 #            asdf: 3
 #        create: ->
         analyzedNode = @
-        # the analyzedDocUri makes the connection between a document state and 
-        # the annotations to it. We have to clean up the annotations to any 
+        # the analyzedDocUri makes the connection between a document state and
+        # the annotations to it. We have to clean up the annotations to any
         # old document state
-        
+
         VIE2.connectors['stanbol'].analyze @,
             success: (rdf) =>
                 # Get enhancements
                 rdfJson = rdf.databank.dump()
-                
+
                 textAnnotations = ANTT.getTextAnnotations(rdfJson)
                 _(textAnnotations).each (s) ->
                     console.info s._enhancement,
                         'confidence', s.getConfidence(),
-                        'selectedText', s.getSelectedText(), 
+                        'selectedText', s.getSelectedText(),
                         'type', s.getType(),
                         'EntityEnhancements', s.getEntityEnhancements()
                     ANTT.processSuggestion s, analyzedNode
@@ -229,7 +227,7 @@
     # AnnotationSelector widget
     # the annotationSelector makes an annotated word interactive
     ######################################################
-    ANTT.annotationSelector = 
+    ANTT.annotationSelector =
     jQuery.widget 'IKS.annotationSelector',
         options:
             ns:
@@ -265,7 +263,7 @@
                         eEnhancements.push enhancement
                 # filter enhancements with the same uri
                 # this is necessary because of a bug in stanbol that creates
-                # duplicate enhancements. 
+                # duplicate enhancements.
                 # https://issues.apache.org/jira/browse/STANBOL-228
                 _tempUris = []
                 eEnhancements = _(eEnhancements).filter (eEnh) ->
@@ -276,7 +274,7 @@
                     else
                         false
                 @entityEnhancements = eEnhancements
-                
+
                 console.info @entityEnhancements
                 @_createSearchbox()
                 if @entityEnhancements.length > 0
@@ -291,7 +289,7 @@
             _(knownPrefixes).map (key) =>
                 foundPrefix = _(knownMapping).detect (x) -> x.uri is key
                 foundPrefix.label
-        
+
         # make a label for the entity source based on options.getSources()
         _sourceLabel: (src) ->
             sources = @options.getSources()
@@ -348,28 +346,28 @@
                 .appendTo $( '.entity-link', @dialog.element )
         # create/update the dialog button row
         _setButtons: ->
-            @dialog.element.dialog 'option', 'buttons', 
-                rem: 
+            @dialog.element.dialog 'option', 'buttons',
+                rem:
                     text: if @isAnnotated() then 'Remove' else 'Decline'
                     click: (event) =>
                         @remove event
                 Cancel: =>
                     @close()
-        
-        # remove suggestion/annotation, replace the separate html 
+
+        # remove suggestion/annotation, replace the separate html
         # element with the plain text and close the dialog
         remove: (event) ->
             el = @element.parent()
             if not @isAnnotated() and @suggestions
-                @_trigger 'decline', event, 
+                @_trigger 'decline', event,
                     suggestions: @suggestions
             @element.replaceWith document.createTextNode @element.text()
             @close()
-        
+
         # tells if this is an annotated dom element, not a suggestion only
         isAnnotated: ->
             if @element.attr 'about' then true else false
-            
+
         # Place the annotation on the DOM element (about and typeof attributes)
         annotate: (entityEnhancement, styleClass) ->
             entityUri = entityEnhancement.getUri()
@@ -379,8 +377,8 @@
             # entityClass = @element.attr 'class'
             sType = entityEnhancement.getTextEnhancement().getType()
             entityClass = 'entity ' + ANTT.uriSuffix sType
-            newElement = $ "<a href='#{entityUri}' 
-                about='#{entityUri}' 
+            newElement = $ "<a href='#{entityUri}'
+                about='#{entityUri}'
                 typeof='#{entityType}'
                 class='#{entityClass}'>#{entityHtml}</a>"
             ANTT.cloneCopyEvent @element[0], newElement[0]
@@ -401,7 +399,7 @@
         close: (event) ->
             if @menu
                 @menu.destroy()
-                @menu.element.remove() 
+                @menu.element.remove()
                 delete @menu
             @dialog.destroy()
             @dialog.element.remove()
@@ -447,7 +445,7 @@
             type = @_typeLabels eEnhancement.getTypes()
             source = @_sourceLabel eEnhancement.getUri()
             active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
-                    " class='ui-state-active'" 
+                    " class='ui-state-active'"
                 else ""
             $("<li#{active}><a href='#'>#{label} <small>(#{type} from #{source})</small></a></li>")
             .data('enhancement', eEnhancement)
@@ -465,9 +463,9 @@
                 source: (req, resp) ->
                     console.info "req:", req
                     VIE2.connectors['stanbol'].findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
-                        console.info "resp:", _(entityList).map (ent) -> 
+                        console.info "resp:", _(entityList).map (ent) ->
                             ent.id
-                        res = for i, entity of entityList 
+                        res = for i, entity of entityList
                             {
                             key: entity.id
                             label: ANTT.getRightLabel entity

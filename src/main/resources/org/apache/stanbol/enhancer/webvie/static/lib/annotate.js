@@ -27,7 +27,7 @@
         return -1 * conf;
       });
       return _(res).map(function(s) {
-        return new ANTT.Suggestion(s, enhRdf);
+        return new ANTT.TextEnhancement(s, enhRdf);
       });
     };
     ANTT.getEntityAnnotations = function(enhRdf) {
@@ -60,12 +60,12 @@
         return labelMap["_"];
       }
     };
-    ANTT.Suggestion = function(enhancement, enhRdf) {
+    ANTT.TextEnhancement = function(enhancement, enhRdf) {
       this._enhancement = enhancement;
       this.enhRdf = enhRdf;
       return this.id = this._enhancement.id;
     };
-    ANTT.Suggestion.prototype = {
+    ANTT.TextEnhancement.prototype = {
       getSelectedText: function() {
         return this._vals("" + ns.enhancer + "selected-text")[0];
       },
@@ -411,7 +411,7 @@
         entityHtml = this.element.html();
         sType = entityEnhancement.getTextEnhancement().getType();
         entityClass = 'entity ' + ANTT.uriSuffix(sType);
-        newElement = $("<a href='" + entityUri + "'                 about='" + entityUri + "'                 typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
+        newElement = $("<a href='" + entityUri + "'                about='" + entityUri + "'                typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
         ANTT.cloneCopyEvent(this.element[0], newElement[0]);
         this.linkedEntity = {
           uri: entityUri,
