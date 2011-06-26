@@ -164,8 +164,14 @@
         
         el.addClass "withSuggestions" 
         # Create widget to select from the suggestions
-        el.annotationSelector()
+        el.annotationSelector(
+            decline: (event, ui) ->
+                console.info 'decline event', event, ui
+            select: (event, ui) ->
+                console.info 'select event', event, ui
+        )
         .annotationSelector 'addSuggestion', suggestion
+
     ANTT.uriSuffix = (uri) ->
         uri.substring uri.lastIndexOf("/") + 1
         
@@ -247,8 +253,6 @@
                     uri: "http://sws.geonames.org/"
                     label: "geonames"
                 ]
-            # annotate event handler
-            annotationselected: (event, ui) ->
 
         _create: ->
             @element.click =>
@@ -277,7 +281,6 @@
                 @_createSearchbox()
                 if @entityEnhancements.length > 0
                     @_createMenu() if @menu is undefined
-            @element.bind "annotationselected", @options.annotationselected
 
         # Produce type label list out of a uri list.
         # Filtered by the @options.types list
@@ -325,7 +328,7 @@
                 close: (event, ui) =>
                     @close(event)
             @dialog = dialogEl.data 'dialog'
-            console.info @dialog
+            console.info "dialog widget:", @dialog
             @dialog.uiDialog.position {
                 of: @element
                 my: "left top"
@@ -348,18 +351,19 @@
             @dialog.element.dialog 'option', 'buttons', 
                 rem: 
                     text: if @isAnnotated() then 'Remove' else 'Decline'
-                    click: =>
-                        @remove()
+                    click: (event) =>
+                        @remove event
                 Cancel: =>
                     @close()
         
         # remove suggestion/annotation, replace the separate html 
         # element with the plain text and close the dialog
-        remove: ->
+        remove: (event) ->
             el = @element.parent()
-            console.info el.html()
+            if not @isAnnotated() and @suggestions
+                @_trigger 'decline', event, 
+                    suggestions: @suggestions
             @element.replaceWith document.createTextNode @element.text()
-            console.info el.html()
             @close()
         
         # tells if this is an annotated dom element, not a suggestion only
@@ -390,7 +394,10 @@
             console.info "created enhancement in", @element
             @_updateTitle()
             @_insertLink()
-            @_trigger 'annotationselected', {linkedEntity: @linkedEntity}
+            @_trigger 'select', null,
+                linkedEntity: @linkedEntity
+                textEnhancement: entityEnhancement.getTextEnhancement()
+                entityEnhancement: entityEnhancement
         close: (event) ->
             if @menu
                 @menu.destroy()
@@ -446,11 +453,6 @@
             .data('enhancement', eEnhancement)
             .appendTo ul
 
-        # Remove the RDFa annotation from the selected dom element
-        _removeAnnotation: ->
-            @element.removeAttr 'about'
-            @element.removeAttr 'typeof'
-
         # Render search box with autocompletion for finding the right entity
         _createSearchbox: ->
             # Show an input box for autocompleted search
@@ -479,7 +481,6 @@
                         resp res
                 # An entity selected, annotate
                 select: (e, ui) =>
-                    console.info "select event", e, ui
                     @annotate ui.item, "acknowledged"
                     console.info e.target
             .focus(200)

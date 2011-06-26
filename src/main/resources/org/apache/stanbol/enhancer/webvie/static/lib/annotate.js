@@ -188,7 +188,14 @@
       sType = suggestion.getType();
       el.addClass('entity').addClass(ANTT.uriSuffix(sType));
       el.addClass("withSuggestions");
-      return el.annotationSelector().annotationSelector('addSuggestion', suggestion);
+      return el.annotationSelector({
+        decline: function(event, ui) {
+          return console.info('decline event', event, ui);
+        },
+        select: function(event, ui) {
+          return console.info('select event', event, ui);
+        }
+      }).annotationSelector('addSuggestion', suggestion);
     };
     ANTT.uriSuffix = function(uri) {
       return uri.substring(uri.lastIndexOf("/") + 1);
@@ -260,11 +267,10 @@
               label: "geonames"
             }
           ];
-        },
-        annotationselected: function(event, ui) {}
+        }
       },
       _create: function() {
-        this.element.click(__bind(function() {
+        return this.element.click(__bind(function() {
           var eEnhancements, enhancement, suggestion, _i, _j, _len, _len2, _ref, _ref2, _tempUris;
           this._createDialog();
           eEnhancements = [];
@@ -297,7 +303,6 @@
             }
           }
         }, this));
-        return this.element.bind("annotationselected", this.options.annotationselected);
       },
       _typeLabels: function(types) {
         var allKnownPrefixes, knownMapping, knownPrefixes;
@@ -350,7 +355,7 @@
           }, this)
         });
         this.dialog = dialogEl.data('dialog');
-        console.info(this.dialog);
+        console.info("dialog widget:", this.dialog);
         this.dialog.uiDialog.position({
           of: this.element,
           my: "left top",
@@ -372,8 +377,8 @@
         return this.dialog.element.dialog('option', 'buttons', {
           rem: {
             text: this.isAnnotated() ? 'Remove' : 'Decline',
-            click: __bind(function() {
-              return this.remove();
+            click: __bind(function(event) {
+              return this.remove(event);
             }, this)
           },
           Cancel: __bind(function() {
@@ -381,12 +386,15 @@
           }, this)
         });
       },
-      remove: function() {
+      remove: function(event) {
         var el;
         el = this.element.parent();
-        console.info(el.html());
+        if (!this.isAnnotated() && this.suggestions) {
+          this._trigger('decline', event, {
+            suggestions: this.suggestions
+          });
+        }
         this.element.replaceWith(document.createTextNode(this.element.text()));
-        console.info(el.html());
         return this.close();
       },
       isAnnotated: function() {
@@ -415,8 +423,10 @@
         console.info("created enhancement in", this.element);
         this._updateTitle();
         this._insertLink();
-        return this._trigger('annotationselected', {
-          linkedEntity: this.linkedEntity
+        return this._trigger('select', null, {
+          linkedEntity: this.linkedEntity,
+          textEnhancement: entityEnhancement.getTextEnhancement(),
+          entityEnhancement: entityEnhancement
         });
       },
       close: function(event) {
@@ -477,10 +487,6 @@
         active = this.linkedEntity && eEnhancement.getUri() === this.linkedEntity.uri ? " class='ui-state-active'" : "";
         return $("<li" + active + "><a href='#'>" + label + " <small>(" + type + " from " + source + ")</small></a></li>").data('enhancement', eEnhancement).appendTo(ul);
       },
-      _removeAnnotation: function() {
-        this.element.removeAttr('about');
-        return this.element.removeAttr('typeof');
-      },
       _createSearchbox: function() {
         var searchEntryField, sugg;
         searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo(this.dialog.element);
@@ -519,7 +525,6 @@
             });
           },
           select: __bind(function(e, ui) {
-            console.info("select event", e, ui);
             this.annotate(ui.item, "acknowledged");
             return console.info(e.target);
           }, this)
