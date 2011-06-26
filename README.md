@@ -28,3 +28,15 @@ shortcuts to the most important directories called 'sc':
     lrwxrwxrwx 1 1000 1000  63 2011-06-01 11:43 static -> ../src/main/resources/org/apache/stanbol/enhancer/webvie/static
     lrwxrwxrwx 1 1000 1000 135 2011-06-01 11:44 template -> ../src/main/resources/org/apache/stanbol/enhancer/webvie/templates/org/apache/stanbol/enhancer/webvie/resource/EnhancerVieRootResource/
 
+Events
+======
+
+select:
+------
+
+Triggered on annotating a suggested TextEnhancement
+
+decline:
+-------
+
+Triggered on declining a suggested TextEnhancement
