@@ -66,17 +66,18 @@
     # TODO Place it into a global Stanbol object.
     ANTT.TextEnhancement = (enhancement, enhRdf) ->
         @_enhancement = enhancement
-        @enhRdf = enhRdf
+        @_enhRdf = enhRdf
         @id = @_enhancement.id
     ANTT.TextEnhancement.prototype =
         # the text the annotation is for
         getSelectedText: ->
             @_vals("#{ns.enhancer}selected-text")[0]
+        # confidence value
         getConfidence: ->
             @_vals("#{ns.enhancer}confidence")[0]
         # get Entities suggested for the text enhancement (if any)
         getEntityEnhancements: ->
-            rawList = _(ANTT.getEntityAnnotations @enhRdf ).filter (ann) =>
+            rawList = _(ANTT.getEntityAnnotations @_enhRdf ).filter (ann) =>
                 relations = _(ann["#{ns.dc}relation"])
                 .map (e) -> e.value
                 if (relations.indexOf @_enhancement.id) isnt -1 then true
@@ -86,12 +87,19 @@
         # The type of the entity suggested (e.g. person, location, organization)
         getType: ->
             @_vals("#{ns.dc}type")[0]
+        # Optional, not used
         getContext: ->
             @_vals("#{ns.enhancer}selection-context")[0]
+        # start position in the original text
         getStart: ->
             Number @_vals("#{ns.enhancer}start")[0]
+        # end position in the original text
         getEnd: ->
             Number @_vals("#{ns.enhancer}end")[0]
+        # Optional
+        getOrigText: ->
+            ciUri = @_vals("#{ns.enhancer}extracted-from")[0]
+            @_enhRdf[ciUri]["http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent"][0].value
         _vals: (key) ->
             _(@_enhancement[key])
             .map (x) -> x.value
@@ -114,16 +122,24 @@
         _vals: (key) ->
             _(@[key]).map (x) -> x.value
 
-    # get create a dom element containing only the occurrence of the found entity
+    # get or create a dom element containing only the occurrence of the found entity
     ANTT.getOrCreateDomElement = (element, text, options = {}) ->
         domEl = element
+        textContentOf = (element) -> $(element).text().replace(/\n/g, " ")
         # find the text node
-        textContentOf = (element) -> element.textContent.replace(/\n/g, " ")
         if textContentOf(element).indexOf(text) is -1
             throw "'#{text}' doesn't appear in the text block."
             return $()
         start = options.start +
         textContentOf(element).indexOf textContentOf(element).trim()
+        # Correct small position errors
+        start = ANTT.nearestPosition textContentOf(element), text, start
+        if not start
+            debugger
+            start = options.start +
+            textContentOf(element).indexOf textContentOf(element).trim()
+            # Correct small position errors
+            start = ANTT.nearestPosition textContentOf(element), text, start
         pos = 0
         while textContentOf(domEl).indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
             domEl = _(domEl.childNodes).detect (el) ->
@@ -134,16 +150,47 @@
                     pos += textContentOf(el).length
                     false
 
-        if options.createMode is "existing" and textContentOf(domEl.parentElement) is text
-            return domEl.parentElement
+        if options.createMode is "existing" and textContentOf($(domEl).parent()) is text
+            return $(domEl).parent()[0]
         else
             pos = start - pos
             len = text.length
+            textToCut = textContentOf(domEl).substring(pos, pos+len)
+            if textToCut isnt text
+                debugger;
             domEl.splitText pos + len
             newElement = document.createElement options.createElement or 'span'
             newElement.innerHTML = text
-            domEl.parentElement.replaceChild newElement, domEl.splitText pos
+            $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
             return $ newElement
+
+    # Find occurrence indexes of s in str
+    ANTT.occurrences = (str, s) ->
+        res = []
+        last = 0
+        while str.indexOf(s, last + 1) isnt -1
+            next = str.indexOf s, last+1
+            res.push next
+            last = next
+
+    # Find the nearest number among the 
+    ANTT.nearest = (arr, nr) ->
+        _(arr).sortedIndex nr
+
+    # Nearest position
+    ANTT.nearestPosition = (str, s, ind) ->
+        arr = @occurrences(str,s)
+        i1 = @nearest arr, ind
+        if arr.length is 1
+            arr[0]
+        else if i1 is arr.length
+            arr[i1-1]
+        else
+            i0 = i1-1
+            d0 = ind - arr[i0]
+            d1 = arr[i1] - ind
+            if d1 > d0 then arr[i0]
+            else arr[i1]
 
     ANTT.uriSuffix = (uri) ->
         uri.substring uri.lastIndexOf("/") + 1
