@@ -44,15 +44,15 @@ span.entity {
             },
             editable: true
         });
+        $('#webview article div').annotate();
         
         $('#enhanceButton').button().click(function(){
-            
-            $('#webview article div').analyze(function(d){
-                console.info('vie2.analyze done:', d);
-                alert(d);
-            })
+            $('#webview article div').annotate('enable');
         })
         .trigger('click');
+        $('#enhanceDisableButton').button().click(function(){
+            $('#webview article div').annotate('disable');
+        })
 
     });
     </script>
@@ -74,6 +74,7 @@ Mozart learned voraciously from others, and developed a brilliance and maturity 
 -->
     </article>
     <button id="enhanceButton">Enhance!</button>
+    <button id="enhanceDisableButton">disable</button>
     
 </div>
 

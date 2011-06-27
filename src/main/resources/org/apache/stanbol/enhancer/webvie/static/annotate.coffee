@@ -60,7 +60,7 @@
             labelMap["_"]
 
     # Generic API for a TextEnhancement
-    # A suggestion object has the methods for getting generic
+    # A TextEnhancement object has the methods for getting generic
     # text-enhancement-specific properties.
     #
     # TODO Place it into a global Stanbol object.
@@ -83,7 +83,7 @@
                 else false
             _(rawList).map (ee) =>
                 new ANTT.EntityEnhancement ee, @
-        # The type of the entity suggestion (e.g. person, location, organization)
+        # The type of the entity suggested (e.g. person, location, organization)
         getType: ->
             @_vals("#{ns.dc}type")[0]
         getContext: ->
@@ -119,7 +119,7 @@
         domEl = element
         # find the text node
         textContentOf = (element) -> element.textContent.replace(/\n/g, " ")
-        if(textContentOf(element).indexOf(text) is -1)
+        if textContentOf(element).indexOf(text) is -1
             throw "'#{text}' doesn't appear in the text block."
             return $()
         start = options.start +
@@ -144,31 +144,6 @@
             newElement.innerHTML = text
             domEl.parentElement.replaceChild newElement, domEl.splitText pos
             return $ newElement
-
-    # processSuggestion deals with one suggestion in an ancestor element of its occurrence
-    ANTT.processSuggestion = (suggestion, parentEl) ->
-        if not suggestion.getSelectedText()
-            console.warn "suggestion", suggestion, "doesn't have selected-text!"
-            return
-        el = $ ANTT.getOrCreateDomElement parentEl[0], suggestion.getSelectedText(),
-            createElement: 'span'
-            createMode: 'existing'
-            context: suggestion.getContext()
-            start:   suggestion.getStart()
-            end:     suggestion.getEnd()
-        sType = suggestion.getType()
-        el.addClass('entity')
-        .addClass(ANTT.uriSuffix sType)
-
-        el.addClass "withSuggestions"
-        # Create widget to select from the suggestions
-        el.annotationSelector(
-            decline: (event, ui) ->
-                console.info 'decline event', event, ui
-            select: (event, ui) ->
-                console.info 'select event', event, ui
-        )
-        .annotationSelector 'addSuggestion', suggestion
 
     ANTT.uriSuffix = (uri) ->
         uri.substring uri.lastIndexOf("/") + 1
@@ -200,29 +175,62 @@
             null
 
     # the analyze jQuery plugin runs a stanbol enhancement process
-    ANTT.analyze = jQuery.fn.analyze = ->
-#    jQuery.widget 'IKS.analyze',
-#        options:
-#            asdf: 3
-#        create: ->
-        analyzedNode = @
-        # the analyzedDocUri makes the connection between a document state and
-        # the annotations to it. We have to clean up the annotations to any
-        # old document state
+#    ANTT.analyze = jQuery.fn.analyze = ->
+    jQuery.widget 'IKS.annotate',
+        options:
+            autoAnalyze: false
+        _create: ->
+            if @options.autoAnalyze
+                @enable()
+        enable: ->
+            analyzedNode = @element
+            # the analyzedDocUri makes the connection between a document state and
+            # the annotations to it. We have to clean up the annotations to any
+            # old document state
 
-        VIE2.connectors['stanbol'].analyze @,
-            success: (rdf) =>
-                # Get enhancements
-                rdfJson = rdf.databank.dump()
+            VIE2.connectors['stanbol'].analyze @element,
+                success: (rdf) =>
+                    # Get enhancements
+                    rdfJson = rdf.databank.dump()
 
-                textAnnotations = ANTT.getTextAnnotations(rdfJson)
-                _(textAnnotations).each (s) ->
-                    console.info s._enhancement,
-                        'confidence', s.getConfidence(),
-                        'selectedText', s.getSelectedText(),
-                        'type', s.getType(),
-                        'EntityEnhancements', s.getEntityEnhancements()
-                    ANTT.processSuggestion s, analyzedNode
+                    textAnnotations = ANTT.getTextAnnotations(rdfJson)
+                    _(textAnnotations).each (s) =>
+                        console.info s._enhancement,
+                            'confidence', s.getConfidence(),
+                            'selectedText', s.getSelectedText(),
+                            'type', s.getType(),
+                            'EntityEnhancements', s.getEntityEnhancements()
+                        @processTextEnhancement s, analyzedNode
+
+        disable: ->
+            $( ':IKS-annotationSelector', @element ).each () ->
+                $(@).annotationSelector 'disable'
+
+        # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
+        processTextEnhancement: (textEnh, parentEl) ->
+            if not textEnh.getSelectedText()
+                console.warn "textEnh", textEnh, "doesn't have selected-text!"
+                return
+            el = $ ANTT.getOrCreateDomElement parentEl[0], textEnh.getSelectedText(),
+                createElement: 'span'
+                createMode: 'existing'
+                context: textEnh.getContext()
+                start:   textEnh.getStart()
+                end:     textEnh.getEnd()
+            sType = textEnh.getType()
+            el.addClass('entity')
+            .addClass(ANTT.uriSuffix sType)
+
+            el.addClass "withSuggestions"
+            # Create widget to select from the suggested entities
+            el.annotationSelector(
+                decline: (event, ui) ->
+                    console.info 'decline event', event, ui
+                select: (event, ui) ->
+                    console.info 'select event', event, ui
+            )
+            .annotationSelector 'addTextEnhancement', textEnh
+
     ######################################################
     # AnnotationSelector widget
     # the annotationSelector makes an annotated word interactive
@@ -258,8 +266,8 @@
                 # Collect all EntityEnhancements for all the TextEnhancements
                 # on the selected node.
                 eEnhancements = []
-                for suggestion in @suggestions
-                    for enhancement in suggestion.getEntityEnhancements()
+                for textEnh in @textEnhancements
+                    for enhancement in textEnh.getEntityEnhancements()
                         eEnhancements.push enhancement
                 # filter enhancements with the same uri
                 # this is necessary because of a bug in stanbol that creates
@@ -280,6 +288,10 @@
                 if @entityEnhancements.length > 0
                     @_createMenu() if @menu is undefined
 
+        _destroy: ->
+            console.info 'destroy', @
+            @close()
+            
         # Produce type label list out of a uri list.
         # Filtered by the @options.types list
         _typeLabels: (types) ->
@@ -340,7 +352,7 @@
 
         # If annotation is already made insert a link to the entity
         _insertLink: ->
-            if @isAnnotated()
+            if @isAnnotated() and @dialog
                 $("Annotated: <a href='#{@linkedEntity.uri}' target='_blank'>
                 #{@linkedEntity.label} @ #{@_sourceLabel(@linkedEntity.uri)}</a><br/>")
                 .appendTo $( '.entity-link', @dialog.element )
@@ -354,17 +366,24 @@
                 Cancel: =>
                     @close()
 
-        # remove suggestion/annotation, replace the separate html
+        # remove textEnhancement/annotation, replace the separate html
         # element with the plain text and close the dialog
         remove: (event) ->
             el = @element.parent()
-            if not @isAnnotated() and @suggestions
+            if not @isAnnotated() and @textEnhancements
                 @_trigger 'decline', event,
-                    suggestions: @suggestions
-            @element.replaceWith document.createTextNode @element.text()
-            @close()
+                    textEnhancements: @textEnhancements
+            @destroy()
+            if @element.qname().name isnt '#text'
+                @element.replaceWith document.createTextNode @element.text()
 
-        # tells if this is an annotated dom element, not a suggestion only
+        # 
+        disable: ->
+            if not @isAnnotated() and @element.qname().name isnt '#text'
+                @element.replaceWith document.createTextNode @element.text()
+            
+
+        # tells if this is an annotated dom element (not a highlighted textEnhancement only)
         isAnnotated: ->
             if @element.attr 'about' then true else false
 
@@ -401,16 +420,18 @@
                 @menu.destroy()
                 @menu.element.remove()
                 delete @menu
-            @dialog.destroy()
-            @dialog.element.remove()
-            @dialog.uiDialogTitlebar.remove()
-            delete @dialog
+            if @dialog
+                @dialog.destroy()
+                @dialog.element.remove()
+                @dialog.uiDialogTitlebar.remove()
+                delete @dialog
         _updateTitle: ->
-            if @isAnnotated()
-                title = "#{@linkedEntity.label} <small>@ #{@_sourceLabel(@linkedEntity.uri)}</small>"
-            else
-                title = @element.text()
-            @dialog.element.dialog 'option', 'title', title
+            if @dialog
+                if @isAnnotated()
+                    title = "#{@linkedEntity.label} <small>@ #{@_sourceLabel(@linkedEntity.uri)}</small>"
+                else
+                    title = @element.text()
+                @dialog._setOption 'title', title
 
         # create menu and add to the dialog
         _createMenu: ->
@@ -456,7 +477,7 @@
             # Show an input box for autocompleted search
             searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>')
             .appendTo @dialog.element
-            sugg = @suggestions[0]
+            sugg = @textEnhancements[0]
             $('.search',searchEntryField)
             .autocomplete
                 # Define source method. TODO make independent from stanbol.
@@ -484,11 +505,11 @@
             .focus(200)
             console.info "show searchbox"
 
-        # add a suggestion that gets shown when the dialog is rendered
-        addSuggestion: (suggestion) ->
-            @options.suggestions = @options.suggestions or []
-            @options.suggestions.push suggestion
-            @suggestions = @options.suggestions
+        # add a textEnhancement that gets shown when the dialog is rendered
+        addTextEnhancement: (textEnh) ->
+            @options.textEnhancements = @options.textEnhancements or []
+            @options.textEnhancements.push textEnh
+            @textEnhancements = @options.textEnhancements
 
     window.ANTT = ANTT
 ) jQuery

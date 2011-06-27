@@ -172,31 +172,6 @@
         return $(newElement);
       }
     };
-    ANTT.processSuggestion = function(suggestion, parentEl) {
-      var el, sType;
-      if (!suggestion.getSelectedText()) {
-        console.warn("suggestion", suggestion, "doesn't have selected-text!");
-        return;
-      }
-      el = $(ANTT.getOrCreateDomElement(parentEl[0], suggestion.getSelectedText(), {
-        createElement: 'span',
-        createMode: 'existing',
-        context: suggestion.getContext(),
-        start: suggestion.getStart(),
-        end: suggestion.getEnd()
-      }));
-      sType = suggestion.getType();
-      el.addClass('entity').addClass(ANTT.uriSuffix(sType));
-      el.addClass("withSuggestions");
-      return el.annotationSelector({
-        decline: function(event, ui) {
-          return console.info('decline event', event, ui);
-        },
-        select: function(event, ui) {
-          return console.info('select event', event, ui);
-        }
-      }).annotationSelector('addSuggestion', suggestion);
-    };
     ANTT.uriSuffix = function(uri) {
       return uri.substring(uri.lastIndexOf("/") + 1);
     };
@@ -223,21 +198,61 @@
         return null;
       }
     };
-    ANTT.analyze = jQuery.fn.analyze = function() {
-      var analyzedNode;
-      analyzedNode = this;
-      return VIE2.connectors['stanbol'].analyze(this, {
-        success: __bind(function(rdf) {
-          var rdfJson, textAnnotations;
-          rdfJson = rdf.databank.dump();
-          textAnnotations = ANTT.getTextAnnotations(rdfJson);
-          return _(textAnnotations).each(function(s) {
-            console.info(s._enhancement, 'confidence', s.getConfidence(), 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
-            return ANTT.processSuggestion(s, analyzedNode);
-          });
-        }, this)
-      });
-    };
+    jQuery.widget('IKS.annotate', {
+      options: {
+        autoAnalyze: false
+      },
+      _create: function() {
+        if (this.options.autoAnalyze) {
+          return this.enable();
+        }
+      },
+      enable: function() {
+        var analyzedNode;
+        analyzedNode = this.element;
+        return VIE2.connectors['stanbol'].analyze(this.element, {
+          success: __bind(function(rdf) {
+            var rdfJson, textAnnotations;
+            rdfJson = rdf.databank.dump();
+            textAnnotations = ANTT.getTextAnnotations(rdfJson);
+            return _(textAnnotations).each(__bind(function(s) {
+              console.info(s._enhancement, 'confidence', s.getConfidence(), 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
+              return this.processTextEnhancement(s, analyzedNode);
+            }, this));
+          }, this)
+        });
+      },
+      disable: function() {
+        return $(':IKS-annotationSelector', this.element).each(function() {
+          return $(this).annotationSelector('disable');
+        });
+      },
+      processTextEnhancement: function(textEnh, parentEl) {
+        var el, sType;
+        if (!textEnh.getSelectedText()) {
+          console.warn("textEnh", textEnh, "doesn't have selected-text!");
+          return;
+        }
+        el = $(ANTT.getOrCreateDomElement(parentEl[0], textEnh.getSelectedText(), {
+          createElement: 'span',
+          createMode: 'existing',
+          context: textEnh.getContext(),
+          start: textEnh.getStart(),
+          end: textEnh.getEnd()
+        }));
+        sType = textEnh.getType();
+        el.addClass('entity').addClass(ANTT.uriSuffix(sType));
+        el.addClass("withSuggestions");
+        return el.annotationSelector({
+          decline: function(event, ui) {
+            return console.info('decline event', event, ui);
+          },
+          select: function(event, ui) {
+            return console.info('select event', event, ui);
+          }
+        }).annotationSelector('addTextEnhancement', textEnh);
+      }
+    });
     ANTT.annotationSelector = jQuery.widget('IKS.annotationSelector', {
       options: {
         ns: {
@@ -271,13 +286,13 @@
       },
       _create: function() {
         return this.element.click(__bind(function() {
-          var eEnhancements, enhancement, suggestion, _i, _j, _len, _len2, _ref, _ref2, _tempUris;
+          var eEnhancements, enhancement, textEnh, _i, _j, _len, _len2, _ref, _ref2, _tempUris;
           this._createDialog();
           eEnhancements = [];
-          _ref = this.suggestions;
+          _ref = this.textEnhancements;
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            suggestion = _ref[_i];
-            _ref2 = suggestion.getEntityEnhancements();
+            textEnh = _ref[_i];
+            _ref2 = textEnh.getEntityEnhancements();
             for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
               enhancement = _ref2[_j];
               eEnhancements.push(enhancement);
@@ -303,6 +318,10 @@
             }
           }
         }, this));
+      },
+      _destroy: function() {
+        console.info('destroy', this);
+        return this.close();
       },
       _typeLabels: function(types) {
         var allKnownPrefixes, knownMapping, knownPrefixes;
@@ -369,7 +388,7 @@
         return this._setButtons();
       },
       _insertLink: function() {
-        if (this.isAnnotated()) {
+        if (this.isAnnotated() && this.dialog) {
           return $("Annotated: <a href='" + this.linkedEntity.uri + "' target='_blank'>                " + this.linkedEntity.label + " @ " + (this._sourceLabel(this.linkedEntity.uri)) + "</a><br/>").appendTo($('.entity-link', this.dialog.element));
         }
       },
@@ -389,13 +408,20 @@
       remove: function(event) {
         var el;
         el = this.element.parent();
-        if (!this.isAnnotated() && this.suggestions) {
+        if (!this.isAnnotated() && this.textEnhancements) {
           this._trigger('decline', event, {
-            suggestions: this.suggestions
+            textEnhancements: this.textEnhancements
           });
         }
-        this.element.replaceWith(document.createTextNode(this.element.text()));
-        return this.close();
+        this.destroy();
+        if (this.element.qname().name !== '#text') {
+          return this.element.replaceWith(document.createTextNode(this.element.text()));
+        }
+      },
+      disable: function() {
+        if (!this.isAnnotated() && this.element.qname().name !== '#text') {
+          return this.element.replaceWith(document.createTextNode(this.element.text()));
+        }
       },
       isAnnotated: function() {
         if (this.element.attr('about')) {
@@ -435,19 +461,23 @@
           this.menu.element.remove();
           delete this.menu;
         }
-        this.dialog.destroy();
-        this.dialog.element.remove();
-        this.dialog.uiDialogTitlebar.remove();
-        return delete this.dialog;
+        if (this.dialog) {
+          this.dialog.destroy();
+          this.dialog.element.remove();
+          this.dialog.uiDialogTitlebar.remove();
+          return delete this.dialog;
+        }
       },
       _updateTitle: function() {
         var title;
-        if (this.isAnnotated()) {
-          title = "" + this.linkedEntity.label + " <small>@ " + (this._sourceLabel(this.linkedEntity.uri)) + "</small>";
-        } else {
-          title = this.element.text();
+        if (this.dialog) {
+          if (this.isAnnotated()) {
+            title = "" + this.linkedEntity.label + " <small>@ " + (this._sourceLabel(this.linkedEntity.uri)) + "</small>";
+          } else {
+            title = this.element.text();
+          }
+          return this.dialog._setOption('title', title);
         }
-        return this.dialog.element.dialog('option', 'title', title);
       },
       _createMenu: function() {
         var ul;
@@ -490,7 +520,7 @@
       _createSearchbox: function() {
         var searchEntryField, sugg;
         searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo(this.dialog.element);
-        sugg = this.suggestions[0];
+        sugg = this.textEnhancements[0];
         $('.search', searchEntryField).autocomplete({
           source: function(req, resp) {
             console.info("req:", req);
@@ -531,10 +561,10 @@
         }).focus(200);
         return console.info("show searchbox");
       },
-      addSuggestion: function(suggestion) {
-        this.options.suggestions = this.options.suggestions || [];
-        this.options.suggestions.push(suggestion);
-        return this.suggestions = this.options.suggestions;
+      addTextEnhancement: function(textEnh) {
+        this.options.textEnhancements = this.options.textEnhancements || [];
+        this.options.textEnhancements.push(textEnh);
+        return this.textEnhancements = this.options.textEnhancements;
       }
     });
     return window.ANTT = ANTT;
