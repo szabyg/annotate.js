@@ -30,7 +30,6 @@ span.entity {
      xmlns:sioc="http://rdfs.org/sioc/ns#"
      xmlns:schema="http://www.schema.org/">
 
-    <em><strong>Disclaimer</strong>: Hello World :-)</em>
     <script>
     $(document).ready(function(){
         VIE2.connectors['stanbol'].options({
@@ -44,7 +43,15 @@ span.entity {
             },
             editable: true
         });
-        $('#webview article div').annotate();
+        $('#webview article div').annotate({
+            decline: function(event, ui){
+                console.info('decline event', event, ui);
+            },
+            select: function(event, ui){
+                console.info('select event', event, ui);
+            }
+
+        });
         
         $('#enhanceButton').button().click(function(){
             $('#webview article div').annotate('enable');
@@ -65,13 +72,6 @@ Jolie was named a goodwill ambassador for the Office of the High Commissioner fo
 The office said her interest in "humanitarian affairs was piqued in 2000 when she went to Cambodia to film the adventure film 'Tomb Raider.' "
 Jolie has won numerous acting awards, including a best supporting actress Academy Award for her performance in 1999's "Girl, Interrupted."
         </div>
-<!--
-Wolfgang Amadeus Mozart (German: [ˈvɔlfɡaŋ amaˈdeus ˈmoːtsaʁt], English see fn.), baptismal name Johannes Chrysostomus Wolfgangus Theophilus Mozart (27 January 1756 – 5 December 1791), was a prolific and influential composer of the Classical era. He composed over 600 works, many acknowledged as pinnacles of symphonic, concertante, chamber, piano, operatic, and choral music. He is among the most enduringly popular of classical composers.
-Mozart showed prodigious ability from his earliest childhood in Salzburg. Already competent on keyboard and violin, he composed from the age of five and performed before European royalty. 
-At 17, he was engaged as a court musician in Salzburg, but grew restless and travelled in search of a better position, always composing abundantly. While visiting Vienna in 1781, he was dismissed from his Salzburg position. He chose to stay in the capital, where he achieved fame but little financial security. 
-During his final years in Vienna, he composed many of his best-known symphonies, concertos, and operas, and portions of the Requiem, which was largely unfinished at the time of Mozart's death. The circumstances of his early death have been much mythologized. He was survived by his wife Constanze and two sons.
-Mozart learned voraciously from others, and developed a brilliance and maturity of style that encompassed the light and graceful along with the dark and passionate. His influence on subsequent Western art music is profound. Beethoven wrote his own early compositions in the shadow of Mozart, of whom Joseph Haydn wrote that "posterity will not see such a talent again in 100 years."
--->
     </article>
     <button id="enhanceButton">Enhance!</button>
     <button id="enhanceDisableButton">disable</button>

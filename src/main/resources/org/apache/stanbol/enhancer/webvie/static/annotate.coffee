@@ -223,12 +223,7 @@
 
             el.addClass "withSuggestions"
             # Create widget to select from the suggested entities
-            el.annotationSelector(
-                decline: (event, ui) ->
-                    console.info 'decline event', event, ui
-                select: (event, ui) ->
-                    console.info 'select event', event, ui
-            )
+            el.annotationSelector( @options )
             .annotationSelector 'addTextEnhancement', textEnh
 
     ######################################################

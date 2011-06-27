@@ -243,14 +243,7 @@
         sType = textEnh.getType();
         el.addClass('entity').addClass(ANTT.uriSuffix(sType));
         el.addClass("withSuggestions");
-        return el.annotationSelector({
-          decline: function(event, ui) {
-            return console.info('decline event', event, ui);
-          },
-          select: function(event, ui) {
-            return console.info('select event', event, ui);
-          }
-        }).annotationSelector('addTextEnhancement', textEnh);
+        return el.annotationSelector(this.options).annotationSelector('addTextEnhancement', textEnh);
       }
     });
     ANTT.annotationSelector = jQuery.widget('IKS.annotationSelector', {
