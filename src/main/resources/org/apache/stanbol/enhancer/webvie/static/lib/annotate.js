@@ -215,6 +215,13 @@
             var rdfJson, textAnnotations;
             rdfJson = rdf.databank.dump();
             textAnnotations = ANTT.getTextAnnotations(rdfJson);
+            textAnnotations = _(textAnnotations).filter(function(textEnh) {
+              if (textEnh.getSelectedText && textEnh.getSelectedText()) {
+                return true;
+              } else {
+                return false;
+              }
+            });
             return _(textAnnotations).each(__bind(function(s) {
               console.info(s._enhancement, 'confidence', s.getConfidence(), 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
               return this.processTextEnhancement(s, analyzedNode);

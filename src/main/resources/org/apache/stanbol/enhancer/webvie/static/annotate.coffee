@@ -194,7 +194,15 @@
                     rdfJson = rdf.databank.dump()
 
                     textAnnotations = ANTT.getTextAnnotations(rdfJson)
-                    _(textAnnotations).each (s) =>
+                    # Remove all textAnnotations without a selected text property
+                    textAnnotations = _(textAnnotations)
+                    .filter (textEnh) ->
+                        if textEnh.getSelectedText and textEnh.getSelectedText()
+                            true
+                        else
+                            false
+                    _(textAnnotations)
+                    .each (s) =>
                         console.info s._enhancement,
                             'confidence', s.getConfidence(),
                             'selectedText', s.getSelectedText(),
