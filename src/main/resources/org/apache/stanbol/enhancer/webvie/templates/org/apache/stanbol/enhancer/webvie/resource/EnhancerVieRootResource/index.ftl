@@ -53,13 +53,21 @@ span.entity {
 
         });
         
-        $('#enhanceButton').button().click(function(){
-            $('#webview article div').annotate('enable');
-        })
-        $('#enhanceDisableButton').button().click(function(){
-            $('#webview article div').annotate('disable');
-        })
-
+        $('#enhanceButton').button({enhState: 'passiv'}).click(function(){
+            // Button with two states
+            var oldState = $(this).button('option', 'enhState');
+            var newState = oldState === 'passiv' ? 'active' : 'passiv';
+            $(this).button('option', 'enhState', newState);
+            if($(this).button('option', 'enhState') === 'active'){
+                // annotate.enable()
+                $('#webview article div').annotate('enable');
+                $(this).button('option', 'label', 'Done');
+            } else {
+                // annotate.disable()
+                $('#webview article div').annotate('disable');
+                $(this).button('option', 'label', 'Enhance!');
+            }
+        });
     });
     </script>
     <article typeof="schema:CreativeWork" about="http://stanbol.apache.org/enhancertest">
@@ -68,7 +76,6 @@ span.entity {
         </div>
     </article>
     <button id="enhanceButton">Enhance!</button>
-    <button id="enhanceDisableButton">disable</button>
     
 </div>
 
