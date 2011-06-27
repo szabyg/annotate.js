@@ -53,14 +53,22 @@ span.entity {
 
         });
         
-        $('#enhanceButton').button().click(function(){
-            $('#webview article div').annotate('enable');
+        $('#enhanceButton').button({enhState: 'passiv'}).click(function(){
+            // Button with two states
+            var oldState = $(this).button('option', 'enhState');
+            var newState = oldState === 'passiv' ? 'active' : 'passiv';
+            $(this).button('option', 'enhState', newState);
+            if($(this).button('option', 'enhState') === 'active'){
+                // annotate.enable()
+                $('#webview article div').annotate('enable');
+                $(this).button('option', 'label', 'Done');
+            } else {
+                // annotate.disable()
+                $('#webview article div').annotate('disable');
+                $(this).button('option', 'label', 'Enhance!');
+            }
         })
         .trigger('click');
-        $('#enhanceDisableButton').button().click(function(){
-            $('#webview article div').annotate('disable');
-        })
-
     });
     </script>
     <article typeof="schema:CreativeWork" about="http://stanbol.apache.org/enhancertest">
@@ -74,7 +82,6 @@ Jolie has won numerous acting awards, including a best supporting actress Academ
         </div>
     </article>
     <button id="enhanceButton">Enhance!</button>
-    <button id="enhanceDisableButton">disable</button>
     
 </div>
 
