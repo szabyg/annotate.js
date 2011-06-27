@@ -62,7 +62,7 @@
     };
     ANTT.TextEnhancement = function(enhancement, enhRdf) {
       this._enhancement = enhancement;
-      this.enhRdf = enhRdf;
+      this._enhRdf = enhRdf;
       return this.id = this._enhancement.id;
     };
     ANTT.TextEnhancement.prototype = {
@@ -74,7 +74,7 @@
       },
       getEntityEnhancements: function() {
         var rawList;
-        rawList = _(ANTT.getEntityAnnotations(this.enhRdf)).filter(__bind(function(ann) {
+        rawList = _(ANTT.getEntityAnnotations(this._enhRdf)).filter(__bind(function(ann) {
           var relations;
           relations = _(ann["" + ns.dc + "relation"]).map(function(e) {
             return e.value;
@@ -100,6 +100,11 @@
       },
       getEnd: function() {
         return Number(this._vals("" + ns.enhancer + "end")[0]);
+      },
+      getOrigText: function() {
+        var ciUri;
+        ciUri = this._vals("" + ns.enhancer + "extracted-from")[0];
+        return this._enhRdf[ciUri]["http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent"][0].value;
       },
       _vals: function(key) {
         return _(this._enhancement[key]).map(function(x) {
@@ -134,19 +139,25 @@
       }
     };
     ANTT.getOrCreateDomElement = function(element, text, options) {
-      var domEl, len, newElement, pos, start, textContentOf;
+      var domEl, len, newElement, pos, start, textContentOf, textToCut;
       if (options == null) {
         options = {};
       }
       domEl = element;
       textContentOf = function(element) {
-        return element.textContent.replace(/\n/g, " ");
+        return $(element).text().replace(/\n/g, " ");
       };
       if (textContentOf(element).indexOf(text) === -1) {
         throw "'" + text + "' doesn't appear in the text block.";
         return $();
       }
       start = options.start + textContentOf(element).indexOf(textContentOf(element).trim());
+      start = ANTT.nearestPosition(textContentOf(element), text, start);
+      if (!start) {
+        debugger;
+        start = options.start + textContentOf(element).indexOf(textContentOf(element).trim());
+        start = ANTT.nearestPosition(textContentOf(element), text, start);
+      }
       pos = 0;
       while (textContentOf(domEl).indexOf(text) !== -1 && domEl.nodeName !== '#text') {
         domEl = _(domEl.childNodes).detect(function(el) {
@@ -160,16 +171,54 @@
           }
         });
       }
-      if (options.createMode === "existing" && textContentOf(domEl.parentElement) === text) {
-        return domEl.parentElement;
+      if (options.createMode === "existing" && textContentOf($(domEl).parent()) === text) {
+        return $(domEl).parent()[0];
       } else {
         pos = start - pos;
         len = text.length;
+        textToCut = textContentOf(domEl).substring(pos, pos + len);
+        if (textToCut !== text) {
+          debugger;
+        }
         domEl.splitText(pos + len);
         newElement = document.createElement(options.createElement || 'span');
         newElement.innerHTML = text;
-        domEl.parentElement.replaceChild(newElement, domEl.splitText(pos));
+        $(domEl).parent()[0].replaceChild(newElement, domEl.splitText(pos));
         return $(newElement);
+      }
+    };
+    ANTT.occurrences = function(str, s) {
+      var last, next, res, _results;
+      res = [];
+      last = 0;
+      _results = [];
+      while (str.indexOf(s, last + 1) !== -1) {
+        next = str.indexOf(s, last + 1);
+        res.push(next);
+        _results.push(last = next);
+      }
+      return _results;
+    };
+    ANTT.nearest = function(arr, nr) {
+      return _(arr).sortedIndex(nr);
+    };
+    ANTT.nearestPosition = function(str, s, ind) {
+      var arr, d0, d1, i0, i1;
+      arr = this.occurrences(str, s);
+      i1 = this.nearest(arr, ind);
+      if (arr.length === 1) {
+        return arr[0];
+      } else if (i1 === arr.length) {
+        return arr[i1 - 1];
+      } else {
+        i0 = i1 - 1;
+        d0 = ind - arr[i0];
+        d1 = arr[i1] - ind;
+        if (d1 > d0) {
+          return arr[i0];
+        } else {
+          return arr[i1];
+        }
       }
     };
     ANTT.uriSuffix = function(uri) {
