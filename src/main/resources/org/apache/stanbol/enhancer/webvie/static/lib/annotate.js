@@ -367,6 +367,7 @@
           }, this)
         });
         this.dialog = dialogEl.data('dialog');
+        this.dialog.uiDialogTitlebar.hide();
         console.info("dialog widget:", this.dialog);
         this.dialog.uiDialog.position({
           of: this.element,

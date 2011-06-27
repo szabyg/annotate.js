@@ -333,6 +333,7 @@
                 close: (event, ui) =>
                     @close(event)
             @dialog = dialogEl.data 'dialog'
+            @dialog.uiDialogTitlebar.hide()
             console.info "dialog widget:", @dialog
             @dialog.uiDialog.position {
                 of: @element
