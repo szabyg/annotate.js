@@ -118,15 +118,18 @@ VIE2.connectors['stanbol'].enhance = function (text, callback) {
             if (data) {
                 if(typeof data == "string")
                     data = JSON.parse(data);
+                var rdf;
                 try {
-                    var rdf = jQuery.rdf().load(data, {});
-                    callback(rdf);
+                    rdf = jQuery.rdf().load(data, {});
                 } 
                 catch (e) {
                     VIE2.log("error", "VIE2.Connector(" + that.id + ")", e);
                     VIE2.log("error", "VIE2.Connector(" + that.id + ")", data);
-                    callback(jQuery.rdf());
+                    rdf = jQuery.rdf();
                 }
+                setTimeout(function(){
+                    callback(rdf)
+                }, 1);
             }
         };
         this.queryEnhancer(text, c);
