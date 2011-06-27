@@ -53,7 +53,9 @@ span.entity {
 
         });
         
-        $('#enhanceButton').button({enhState: 'passiv'}).click(function(){
+        $('#enhanceButton')
+        .button({enhState: 'passiv'})
+        .click(function(){
             // Button with two states
             var oldState = $(this).button('option', 'enhState');
             var newState = oldState === 'passiv' ? 'active' : 'passiv';
