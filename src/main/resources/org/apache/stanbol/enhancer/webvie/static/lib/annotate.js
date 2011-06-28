@@ -41,24 +41,19 @@
       });
     };
     ANTT.getRightLabel = function(entity) {
-      var label, labelMap, userLang, _i, _len, _ref;
-      ({
-        getLang: function(label) {
-          return label["xml:lang"];
-        }
-      });
+      var cleanLabel, label, labelMap, userLang, _i, _len, _ref;
       labelMap = {};
       _ref = _(entity["" + ns.rdfs + "label"]).flatten();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         label = _ref[_i];
-        labelMap[label["xml:lang"] || "_"] = label.value;
+        cleanLabel = label.value;
+        if (cleanLabel.lastIndexOf("@" === cleanLabel.length - 3)) {
+          cleanLabel = cleanLabel.substring(0, cleanLabel.length - 3);
+        }
+        labelMap[label["xml:lang"] || "_"] = cleanLabel;
       }
       userLang = window.navigator.language.split("-")[0];
-      if (labelMap[userLang]) {
-        return labelMap[userLang].value;
-      } else {
-        return labelMap["_"];
-      }
+      return labelMap[userLang] || labelMap["_"] || labelMap["en"];
     };
     ANTT.TextEnhancement = function(enhancement, enhRdf) {
       this._enhancement = enhancement;
@@ -568,9 +563,10 @@
         return $("<li" + active + "><a href='#'>" + label + " <small>(" + type + " from " + source + ")</small></a></li>").data('enhancement', eEnhancement).appendTo(ul);
       },
       _createSearchbox: function() {
-        var searchEntryField, sugg;
+        var searchEntryField, sugg, widget;
         searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo(this.dialog.element);
         sugg = this.textEnhancements[0];
+        widget = this;
         $('.search', searchEntryField).autocomplete({
           source: function(req, resp) {
             console.info("req:", req);
@@ -586,9 +582,10 @@
                   entity = entityList[i];
                   _results.push({
                     key: entity.id,
-                    label: ANTT.getRightLabel(entity),
+                    label: "" + (ANTT.getRightLabel(entity)) + " @ " + (widget._sourceLabel(entity.id)),
+                    _label: ANTT.getRightLabel(entity),
                     getLabel: function() {
-                      return this.label;
+                      return this._label;
                     },
                     getUri: function() {
                       return this.key;
