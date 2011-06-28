@@ -46,18 +46,15 @@
 
     # Get the label in the user's language or the first one from a VIE entity
     ANTT.getRightLabel = (entity) ->
-        getLang: (label) ->
-            label["xml:lang"]
-
         labelMap = {}
         for label in _(entity["#{ns.rdfs}label"]).flatten()
-            labelMap[label["xml:lang"]|| "_"] = label.value
-
+            cleanLabel = label.value
+            if cleanLabel.lastIndexOf "@" is cleanLabel.length - 3
+                cleanLabel = cleanLabel.substring 0, cleanLabel.length - 3
+            labelMap[label["xml:lang"]|| "_"] = cleanLabel
         userLang = window.navigator.language.split("-")[0]
-        if labelMap[userLang]
-            labelMap[userLang].value
-        else
-            labelMap["_"]
+        # Return the first best label
+        labelMap[userLang] or labelMap["_"] or labelMap["en"]
 
     # Generic API for a TextEnhancement
     # A TextEnhancement object has the methods for getting generic
@@ -529,6 +526,7 @@
             searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>')
             .appendTo @dialog.element
             sugg = @textEnhancements[0]
+            widget = @
             $('.search',searchEntryField)
             .autocomplete
                 # Define source method. TODO make independent from stanbol.
@@ -540,8 +538,9 @@
                         res = for i, entity of entityList
                             {
                             key: entity.id
-                            label: ANTT.getRightLabel entity
-                            getLabel: -> @label
+                            label: "#{ANTT.getRightLabel entity} @ #{widget._sourceLabel entity.id}"
+                            _label: ANTT.getRightLabel entity
+                            getLabel: -> @_label
                             getUri: -> @key
                             # To rethink: The type of the annotation (person, place, org)
                             # should come from the search result, not from the first textEnhancement
