@@ -227,6 +227,10 @@
         _create: ->
             if @options.autoAnalyze
                 @enable()
+            @_logger = if @options.debug then console else 
+                info: ->
+                warn: ->
+                error: ->
         enable: ->
             analyzedNode = @element
             # the analyzedDocUri makes the connection between a document state and
@@ -248,7 +252,7 @@
                             false
                     _(textAnnotations)
                     .each (s) =>
-                        @_log s._enhancement,
+                        @_logger.info s._enhancement,
                             'confidence', s.getConfidence(),
                             'selectedText', s.getSelectedText(),
                             'type', s.getType(),
@@ -273,14 +277,11 @@
             sType = textEnh.getType()
             el.addClass('entity')
             .addClass(ANTT.uriSuffix sType)
-
-            el.addClass "withSuggestions"
+            if textEnh.getEntityEnhancements().length
+                el.addClass "withSuggestions"
             # Create widget to select from the suggested entities
             el.annotationSelector( @options )
             .annotationSelector 'addTextEnhancement', textEnh
-        _log: ->
-            if @options.debug
-                console.log.apply console, arguments
 
     ######################################################
     # AnnotationSelector widget
@@ -313,34 +314,40 @@
 
         _create: ->
             @element.click =>
-                @_createDialog()
-                # Collect all EntityEnhancements for all the TextEnhancements
-                # on the selected node.
-                eEnhancements = []
-                for textEnh in @textEnhancements
-                    for enhancement in textEnh.getEntityEnhancements()
-                        eEnhancements.push enhancement
-                # filter enhancements with the same uri
-                # this is necessary because of a bug in stanbol that creates
-                # duplicate enhancements.
-                # https://issues.apache.org/jira/browse/STANBOL-228
-                _tempUris = []
-                eEnhancements = _(eEnhancements).filter (eEnh) ->
-                    uri = eEnh.getUri()
-                    if _tempUris.indexOf(uri) is -1
-                        _tempUris.push uri
-                        true
-                    else
-                        false
-                @entityEnhancements = eEnhancements
+                if not @dialog
+                    @_createDialog()
+                    # Collect all EntityEnhancements for all the TextEnhancements
+                    # on the selected node.
+                    eEnhancements = []
+                    for textEnh in @textEnhancements
+                        for enhancement in textEnh.getEntityEnhancements()
+                            eEnhancements.push enhancement
+                    # filter enhancements with the same uri
+                    # this is necessary because of a bug in stanbol that creates
+                    # duplicate enhancements.
+                    # https://issues.apache.org/jira/browse/STANBOL-228
+                    _tempUris = []
+                    eEnhancements = _(eEnhancements).filter (eEnh) ->
+                        uri = eEnh.getUri()
+                        if _tempUris.indexOf(uri) is -1
+                            _tempUris.push uri
+                            true
+                        else
+                            false
+                    @entityEnhancements = eEnhancements
 
-                @_log @entityEnhancements
-                @_createSearchbox()
-                if @entityEnhancements.length > 0
-                    @_createMenu() if @menu is undefined
+                    @_logger.info @entityEnhancements
+                    @_createSearchbox()
+                    if @entityEnhancements.length > 0
+                        @_createMenu() if @menu is undefined
+                else @searchEntryField.find('.search').focus 100
+            @_logger = if @options.debug then console else 
+                info: ->
+                warn: ->
+                error: ->
 
         _destroy: ->
-            @_log 'destroy', @
+            @_logger.info 'destroy', @
             @close()
             
         # Produce type label list out of a uri list.
@@ -370,16 +377,16 @@
             .addClass()
             .keydown( (event) =>
                 if not event.isDefaultPrevented() and event.keyCode and event.keyCode is $.ui.keyCode.ESCAPE
-                    @_log "dialogEl ESCAPE key event -> close"
+                    @_logger.info "dialogEl ESCAPE key event -> close"
                     @close event
                     event.preventDefault()
             )
             .bind('dialogblur', (event) =>
-                @_log 'dialog dialogblur'
+                @_logger.info 'dialog dialogblur'
                 @close(event)
             )
             .bind('blur', (event) =>
-                @_log 'dialog blur'
+                @_logger.info 'dialog blur'
                 @close(event)
             )
             .appendTo( $("body")[0] )
@@ -390,7 +397,7 @@
                     @close(event)
             @dialog = dialogEl.data 'dialog'
             @dialog.uiDialogTitlebar.hide()
-            @_log "dialog widget:", @dialog
+            @_logger.info "dialog widget:", @dialog
             @dialog.uiDialog.position {
                 of: @element
                 my: "left top"
@@ -460,7 +467,7 @@
             @element.replaceWith newElement
             @element = newElement.addClass styleClass
             # TODO write the fact it's acknowledged into the VIE
-            @_log "created enhancement in", @element
+            @_logger.info "created enhancement in", @element
             @_updateTitle()
             @_insertLink()
             @_trigger 'select', null,
@@ -493,17 +500,17 @@
             @menu = ul
             .menu({
                 select: (event, ui) =>
-                    @_log "selected menu item", ui.item
+                    @_logger.info "selected menu item", ui.item
                     @annotate ui.item.data('enhancement'), 'acknowledged'
                     @close(event)
                 blur: (event, ui) ->
-                    @_log 'menu.blur()', ui.item
+                    @_logger.info 'menu.blur()', ui.item
             })
             .bind('blur', (event, ui) ->
-                @_log 'menu blur', ui
+                @_logger.info 'menu blur', ui
             )
             .bind('menublur', (event, ui) ->
-                @_log 'menu menublur', ui.item
+                @_logger.info 'menu menublur', ui.item
             )
             .focus(150)
             .data 'menu'
@@ -512,7 +519,7 @@
         _renderMenu: (ul, entityEnhancements) ->
             entityEnhancements = _(entityEnhancements).sortBy (ee) -> -1 * ee.getConfidence()
             @_renderItem ul, enhancement for enhancement in entityEnhancements
-            @_log 'rendered menu for the elements', entityEnhancements
+            @_logger.info 'rendered menu for the elements', entityEnhancements
         _renderItem: (ul, eEnhancement) ->
             label = eEnhancement.getLabel()
             type = @_typeLabels eEnhancement.getTypes()
@@ -527,17 +534,17 @@
         # Render search box with autocompletion for finding the right entity
         _createSearchbox: ->
             # Show an input box for autocompleted search
-            searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>')
+            @searchEntryField = $('<span style="background: fff;"><label for="search"></label><input id="search" class="search"></span>')
             .appendTo @dialog.element
             sugg = @textEnhancements[0]
             widget = @
-            $('.search',searchEntryField)
+            $('.search',@searchEntryField)
             .autocomplete
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
-                    @_log "req:", req
-                    @options.connector.findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
-                        @_log "resp:", _(entityList).map (ent) ->
+                    widget._logger.info "req:", req
+                    widget.options.connector.findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
+                        widget._logger.info "resp:", _(entityList).map (ent) ->
                             ent.id
                         res = for i, entity of entityList
                             {
@@ -555,18 +562,15 @@
                 # An entity selected, annotate
                 select: (e, ui) =>
                     @annotate ui.item, "acknowledged"
-                    @_log e.target
+                    @_logger.info e.target
             .focus(200)
-            @_log "show searchbox"
+            @_logger.info "show searchbox"
 
         # add a textEnhancement that gets shown when the dialog is rendered
         addTextEnhancement: (textEnh) ->
             @options.textEnhancements = @options.textEnhancements or []
             @options.textEnhancements.push textEnh
             @textEnhancements = @options.textEnhancements
-        _log: ->
-            if @options.debug
-                console.log.apply console, arguments
 
     window.ANTT = ANTT
 ) jQuery

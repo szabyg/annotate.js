@@ -6,25 +6,35 @@
 article {
     padding: 10px;
 }
-span.entity {
+span.entity,
+a[typeof][about] {
     z-index: -1;
     margin: -3px;
     padding: 1px;
     background-color: #E0E0E0;
     /* box-shadow: 2px 2px 5px grey;*/
-    border-radius: 4px;
+    border-radius: 3px;
     border: outset rgba(0, 0, 0, 0.1);
     white-space: nowrap;
+    border-width:2px;
 }
+a[typeof][about] {border-radius:1px;border-width:1px;}
+a[typeof][about] {color: black}
 .entity.withSuggestions {border-color: rgba(0, 0, 0, 0.5);}
 
-.entity.Person       {background-color: #ffe;}
-.entity.Place        {background-color: #fef;}
-.entity.Organisation {background-color: #eff;}
+.entity.Person, 
+a[typeof][about].Person       {background-color: #ffe;}
 
+.entity.Place,
+a[typeof][about].Place        {background-color: #fef;}
+
+.entity.Organisation,
+a[typeof][about].Organisation {background-color: #eff;}
+/*
 .entity.acknowledged.Person       {background-color: #ff9;}
 .entity.acknowledged.Place        {background-color: #f9d;}
 .entity.acknowledged.Organisation {background-color: #9ff;}
+*/
 </style>
 <div class="panel" id="webview"
      xmlns:sioc="http://rdfs.org/sioc/ns#"
@@ -38,6 +48,14 @@ span.entity {
             "entityhub_url" : "/entityhub/"
         });
 
+        // Implement our own Backbone.sync method
+        Backbone.sync = function(method, model, options) {
+            console.log('Backbone.sync', method, model.toJSONLD());
+        };
+        
+        
+        VIE.CollectionManager.loadCollections();
+
         $('#webview article').hallo({
             plugins: {
               'halloformat': {}
@@ -46,11 +64,14 @@ span.entity {
         });
         $('#webview article div').annotate({
             connector: VIE2.connectors['stanbol'],
-            debug: false,
+            debug: true,
             decline: function(event, ui){
                 console.info('decline event', event, ui);
             },
             select: function(event, ui){
+                x={};
+                x[ui.entityEnhancement.getUri()] = ui.entityEnhancement;
+                VIE.EntityManager.getByRDFJSON(x);
                 console.info('select event', event, ui);
             }
 
@@ -88,7 +109,19 @@ Jolie has won numerous acting awards, including a best supporting actress Academ
         </div>
     </article>
     <button id="enhanceButton">Enhance!</button>
-    
+    <div typeof="http://purl.org/dc/dcmitype/Collection" rel="dcterms:hasPart" about="http://example.com/stanbol-webenhancer">
+        <article typeof="sioc:Post" about="http://example.net/blog/news_item">
+            <h1 property="dcterms:title">News item title</h1>
+            <div property="sioc:content">
+                <p>
+                Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.
+                </p>
+                <p>
+                Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Typi non habent claritatem insitam; est usus legentis in iis qui facit eorum claritatem. Investigationes demonstraverunt lectores legere me lius quod ii legunt saepius. Claritas est etiam processus dynamicus, qui sequitur mutationem consuetudium lectorum. Mirum est notare quam littera gothica, quam nunc putamus parum claram, anteposuerit litterarum formas humanitatis per seacula quarta decima et quinta decima. Eodem modo typi, qui nunc nobis videntur parum clari, fiant sollemnes in futurum.
+                </p>
+            </div>
+        </article>
+    </div>
 </div>
 
 </@common.page>
