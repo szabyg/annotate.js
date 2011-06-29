@@ -22,18 +22,18 @@ a[typeof][about] {border-radius:1px;border-width:1px;}
 a[typeof][about] {color: black}
 .entity.withSuggestions {border-color: rgba(0, 0, 0, 0.5);}
 
-.entity.Person, 
-a[typeof][about].Person       {background-color: #ffe;}
+.entity.person, 
+a[typeof][about].person       {background-color: #ffe;}
 
-.entity.Place,
-a[typeof][about].Place        {background-color: #fef;}
+.entity.place,
+a[typeof][about].place        {background-color: #fef;}
 
-.entity.Organisation,
-a[typeof][about].Organisation {background-color: #eff;}
+.entity.organisation,
+a[typeof][about].organisation {background-color: #eff;}
 /*
-.entity.acknowledged.Person       {background-color: #ff9;}
-.entity.acknowledged.Place        {background-color: #f9d;}
-.entity.acknowledged.Organisation {background-color: #9ff;}
+.entity.acknowledged.person       {background-color: #ff9;}
+.entity.acknowledged.place        {background-color: #f9d;}
+.entity.acknowledged.organisation {background-color: #9ff;}
 */
 </style>
 <div class="panel" id="webview"

@@ -276,7 +276,7 @@
                 end:     textEnh.getEnd()
             sType = textEnh.getType()
             el.addClass('entity')
-            .addClass(ANTT.uriSuffix sType)
+            .addClass ANTT.uriSuffix(sType).toLowerCase()
             if textEnh.getEntityEnhancements().length
                 el.addClass "withSuggestions"
             # Create widget to select from the suggested entities
