@@ -255,7 +255,7 @@
       enable: function() {
         var analyzedNode;
         analyzedNode = this.element;
-        return VIE2.connectors['stanbol'].analyze(this.element, {
+        return this.options.connector.analyze(this.element, {
           success: __bind(function(rdf) {
             var rdfJson, textAnnotations;
             rdfJson = rdf.databank.dump();
@@ -576,7 +576,7 @@
         $('.search', searchEntryField).autocomplete({
           source: function(req, resp) {
             this._log("req:", req);
-            return VIE2.connectors['stanbol'].findEntity("" + req.term + (req.term.length > 3 ? '*' : void 0), function(entityList) {
+            return this.options.connector.findEntity("" + req.term + (req.term.length > 3 ? '*' : void 0), function(entityList) {
               var entity, i, res;
               this._log("resp:", _(entityList).map(function(ent) {
                 return ent.id;

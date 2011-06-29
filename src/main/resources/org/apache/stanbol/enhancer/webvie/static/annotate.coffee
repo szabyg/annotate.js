@@ -233,7 +233,7 @@
             # the annotations to it. We have to clean up the annotations to any
             # old document state
 
-            VIE2.connectors['stanbol'].analyze @element,
+            @options.connector.analyze @element,
                 success: (rdf) =>
                     # Get enhancements
                     rdfJson = rdf.databank.dump()
@@ -536,7 +536,7 @@
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
                     @_log "req:", req
-                    VIE2.connectors['stanbol'].findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
+                    @options.connector.findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
                         @_log "resp:", _(entityList).map (ent) ->
                             ent.id
                         res = for i, entity of entityList

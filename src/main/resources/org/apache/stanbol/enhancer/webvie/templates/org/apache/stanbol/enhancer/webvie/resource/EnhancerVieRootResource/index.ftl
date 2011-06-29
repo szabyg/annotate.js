@@ -45,6 +45,7 @@ span.entity {
             editable: true
         });
         $('#webview article div').annotate({
+            connector: VIE2.connectors['stanbol'],
             debug: false,
             decline: function(event, ui){
                 console.info('decline event', event, ui);
