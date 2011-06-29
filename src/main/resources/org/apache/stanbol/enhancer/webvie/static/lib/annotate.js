@@ -298,7 +298,7 @@
           end: textEnh.getEnd()
         }));
         sType = textEnh.getType();
-        el.addClass('entity').addClass(ANTT.uriSuffix(sType));
+        el.addClass('entity').addClass(ANTT.uriSuffix(sType).toLowerCase());
         if (textEnh.getEntityEnhancements().length) {
           el.addClass("withSuggestions");
         }
