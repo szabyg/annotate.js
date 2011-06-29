@@ -31,6 +31,7 @@ span.entity {
      xmlns:schema="http://www.schema.org/">
 
     <script>
+    VIE2.logLevels=[];
     $(document).ready(function(){
         VIE2.connectors['stanbol'].options({
             "enhancer_url" : "/engines/",
@@ -44,6 +45,7 @@ span.entity {
             editable: true
         });
         $('#webview article div').annotate({
+            debug: false,
             decline: function(event, ui){
                 console.info('decline event', event, ui);
             },
