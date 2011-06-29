@@ -223,6 +223,7 @@
     jQuery.widget 'IKS.annotate',
         options:
             autoAnalyze: false
+            debug: false
         _create: ->
             if @options.autoAnalyze
                 @enable()
@@ -232,7 +233,7 @@
             # the annotations to it. We have to clean up the annotations to any
             # old document state
 
-            VIE2.connectors['stanbol'].analyze @element,
+            @options.connector.analyze @element,
                 success: (rdf) =>
                     # Get enhancements
                     rdfJson = rdf.databank.dump()
@@ -247,7 +248,7 @@
                             false
                     _(textAnnotations)
                     .each (s) =>
-                        console.info s._enhancement,
+                        @_log s._enhancement,
                             'confidence', s.getConfidence(),
                             'selectedText', s.getSelectedText(),
                             'type', s.getType(),
@@ -277,6 +278,9 @@
             # Create widget to select from the suggested entities
             el.annotationSelector( @options )
             .annotationSelector 'addTextEnhancement', textEnh
+        _log: ->
+            if @options.debug
+                console.log.apply console, arguments
 
     ######################################################
     # AnnotationSelector widget
@@ -330,13 +334,13 @@
                         false
                 @entityEnhancements = eEnhancements
 
-                console.info @entityEnhancements
+                @_log @entityEnhancements
                 @_createSearchbox()
                 if @entityEnhancements.length > 0
                     @_createMenu() if @menu is undefined
 
         _destroy: ->
-            console.info 'destroy', @
+            @_log 'destroy', @
             @close()
             
         # Produce type label list out of a uri list.
@@ -366,16 +370,16 @@
             .addClass()
             .keydown( (event) =>
                 if not event.isDefaultPrevented() and event.keyCode and event.keyCode is $.ui.keyCode.ESCAPE
-                    console.info "dialogEl ESCAPE key event -> close"
+                    @_log "dialogEl ESCAPE key event -> close"
                     @close event
                     event.preventDefault()
             )
             .bind('dialogblur', (event) =>
-                console.info 'dialog dialogblur'
+                @_log 'dialog dialogblur'
                 @close(event)
             )
             .bind('blur', (event) =>
-                console.info 'dialog blur'
+                @_log 'dialog blur'
                 @close(event)
             )
             .appendTo( $("body")[0] )
@@ -386,7 +390,7 @@
                     @close(event)
             @dialog = dialogEl.data 'dialog'
             @dialog.uiDialogTitlebar.hide()
-            console.info "dialog widget:", @dialog
+            @_log "dialog widget:", @dialog
             @dialog.uiDialog.position {
                 of: @element
                 my: "left top"
@@ -456,7 +460,7 @@
             @element.replaceWith newElement
             @element = newElement.addClass styleClass
             # TODO write the fact it's acknowledged into the VIE
-            console.info "created enhancement in", @element
+            @_log "created enhancement in", @element
             @_updateTitle()
             @_insertLink()
             @_trigger 'select', null,
@@ -489,17 +493,17 @@
             @menu = ul
             .menu({
                 select: (event, ui) =>
-                    console.info "selected menu item", ui.item
+                    @_log "selected menu item", ui.item
                     @annotate ui.item.data('enhancement'), 'acknowledged'
                     @close(event)
                 blur: (event, ui) ->
-                    console.info 'menu.blur()', ui.item
+                    @_log 'menu.blur()', ui.item
             })
             .bind('blur', (event, ui) ->
-                console.info 'menu blur', ui
+                @_log 'menu blur', ui
             )
             .bind('menublur', (event, ui) ->
-                console.info 'menu menublur', ui.item
+                @_log 'menu menublur', ui.item
             )
             .focus(150)
             .data 'menu'
@@ -508,7 +512,7 @@
         _renderMenu: (ul, entityEnhancements) ->
             entityEnhancements = _(entityEnhancements).sortBy (ee) -> -1 * ee.getConfidence()
             @_renderItem ul, enhancement for enhancement in entityEnhancements
-            console.info 'rendered menu for the elements', entityEnhancements
+            @_log 'rendered menu for the elements', entityEnhancements
         _renderItem: (ul, eEnhancement) ->
             label = eEnhancement.getLabel()
             type = @_typeLabels eEnhancement.getTypes()
@@ -531,9 +535,9 @@
             .autocomplete
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
-                    console.info "req:", req
-                    VIE2.connectors['stanbol'].findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
-                        console.info "resp:", _(entityList).map (ent) ->
+                    @_log "req:", req
+                    @options.connector.findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
+                        @_log "resp:", _(entityList).map (ent) ->
                             ent.id
                         res = for i, entity of entityList
                             {
@@ -551,15 +555,18 @@
                 # An entity selected, annotate
                 select: (e, ui) =>
                     @annotate ui.item, "acknowledged"
-                    console.info e.target
+                    @_log e.target
             .focus(200)
-            console.info "show searchbox"
+            @_log "show searchbox"
 
         # add a textEnhancement that gets shown when the dialog is rendered
         addTextEnhancement: (textEnh) ->
             @options.textEnhancements = @options.textEnhancements or []
             @options.textEnhancements.push textEnh
             @textEnhancements = @options.textEnhancements
+        _log: ->
+            if @options.debug
+                console.log.apply console, arguments
 
     window.ANTT = ANTT
 ) jQuery
