@@ -249,8 +249,13 @@
       },
       _create: function() {
         if (this.options.autoAnalyze) {
-          return this.enable();
+          this.enable();
         }
+        return this._logger = this.options.debug ? console : {
+          info: function() {},
+          warn: function() {},
+          error: function() {}
+        };
       },
       enable: function() {
         var analyzedNode;
@@ -268,7 +273,7 @@
               }
             });
             return _(textAnnotations).each(__bind(function(s) {
-              this._log(s._enhancement, 'confidence', s.getConfidence(), 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
+              this._logger.info(s._enhancement, 'confidence', s.getConfidence(), 'selectedText', s.getSelectedText(), 'type', s.getType(), 'EntityEnhancements', s.getEntityEnhancements());
               return this.processTextEnhancement(s, analyzedNode);
             }, this));
           }, this)
@@ -294,13 +299,10 @@
         }));
         sType = textEnh.getType();
         el.addClass('entity').addClass(ANTT.uriSuffix(sType));
-        el.addClass("withSuggestions");
-        return el.annotationSelector(this.options).annotationSelector('addTextEnhancement', textEnh);
-      },
-      _log: function() {
-        if (this.options.debug) {
-          return console.log.apply(console, arguments);
+        if (textEnh.getEntityEnhancements().length) {
+          el.addClass("withSuggestions");
         }
+        return el.annotationSelector(this.options).annotationSelector('addTextEnhancement', textEnh);
       }
     });
     ANTT.annotationSelector = jQuery.widget('IKS.annotationSelector', {
@@ -335,42 +337,51 @@
         }
       },
       _create: function() {
-        return this.element.click(__bind(function() {
+        this.element.click(__bind(function() {
           var eEnhancements, enhancement, textEnh, _i, _j, _len, _len2, _ref, _ref2, _tempUris;
-          this._createDialog();
-          eEnhancements = [];
-          _ref = this.textEnhancements;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            textEnh = _ref[_i];
-            _ref2 = textEnh.getEntityEnhancements();
-            for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-              enhancement = _ref2[_j];
-              eEnhancements.push(enhancement);
+          if (!this.dialog) {
+            this._createDialog();
+            eEnhancements = [];
+            _ref = this.textEnhancements;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              textEnh = _ref[_i];
+              _ref2 = textEnh.getEntityEnhancements();
+              for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+                enhancement = _ref2[_j];
+                eEnhancements.push(enhancement);
+              }
             }
-          }
-          _tempUris = [];
-          eEnhancements = _(eEnhancements).filter(function(eEnh) {
-            var uri;
-            uri = eEnh.getUri();
-            if (_tempUris.indexOf(uri) === -1) {
-              _tempUris.push(uri);
-              return true;
-            } else {
-              return false;
+            _tempUris = [];
+            eEnhancements = _(eEnhancements).filter(function(eEnh) {
+              var uri;
+              uri = eEnh.getUri();
+              if (_tempUris.indexOf(uri) === -1) {
+                _tempUris.push(uri);
+                return true;
+              } else {
+                return false;
+              }
+            });
+            this.entityEnhancements = eEnhancements;
+            this._logger.info(this.entityEnhancements);
+            this._createSearchbox();
+            if (this.entityEnhancements.length > 0) {
+              if (this.menu === void 0) {
+                return this._createMenu();
+              }
             }
-          });
-          this.entityEnhancements = eEnhancements;
-          this._log(this.entityEnhancements);
-          this._createSearchbox();
-          if (this.entityEnhancements.length > 0) {
-            if (this.menu === void 0) {
-              return this._createMenu();
-            }
+          } else {
+            return this.searchEntryField.find('.search').focus(100);
           }
         }, this));
+        return this._logger = this.options.debug ? console : {
+          info: function() {},
+          warn: function() {},
+          error: function() {}
+        };
       },
       _destroy: function() {
-        this._log('destroy', this);
+        this._logger.info('destroy', this);
         return this.close();
       },
       _typeLabels: function(types) {
@@ -405,15 +416,15 @@
         label = this.element.text();
         dialogEl = $("<div><span class='entity-link'></span></div>").attr("tabIndex", -1).addClass().keydown(__bind(function(event) {
           if (!event.isDefaultPrevented() && event.keyCode && event.keyCode === $.ui.keyCode.ESCAPE) {
-            this._log("dialogEl ESCAPE key event -> close");
+            this._logger.info("dialogEl ESCAPE key event -> close");
             this.close(event);
             return event.preventDefault();
           }
         }, this)).bind('dialogblur', __bind(function(event) {
-          this._log('dialog dialogblur');
+          this._logger.info('dialog dialogblur');
           return this.close(event);
         }, this)).bind('blur', __bind(function(event) {
-          this._log('dialog blur');
+          this._logger.info('dialog blur');
           return this.close(event);
         }, this)).appendTo($("body")[0]);
         dialogEl.dialog({
@@ -425,7 +436,7 @@
         });
         this.dialog = dialogEl.data('dialog');
         this.dialog.uiDialogTitlebar.hide();
-        this._log("dialog widget:", this.dialog);
+        this._logger.info("dialog widget:", this.dialog);
         this.dialog.uiDialog.position({
           of: this.element,
           my: "left top",
@@ -497,7 +508,7 @@
         };
         this.element.replaceWith(newElement);
         this.element = newElement.addClass(styleClass);
-        this._log("created enhancement in", this.element);
+        this._logger.info("created enhancement in", this.element);
         this._updateTitle();
         this._insertLink();
         return this._trigger('select', null, {
@@ -536,17 +547,17 @@
         this._renderMenu(ul, this.entityEnhancements);
         return this.menu = ul.menu({
           select: __bind(function(event, ui) {
-            this._log("selected menu item", ui.item);
+            this._logger.info("selected menu item", ui.item);
             this.annotate(ui.item.data('enhancement'), 'acknowledged');
             return this.close(event);
           }, this),
           blur: function(event, ui) {
-            return this._log('menu.blur()', ui.item);
+            return this._logger.info('menu.blur()', ui.item);
           }
         }).bind('blur', function(event, ui) {
-          return this._log('menu blur', ui);
+          return this._logger.info('menu blur', ui);
         }).bind('menublur', function(event, ui) {
-          return this._log('menu menublur', ui.item);
+          return this._logger.info('menu menublur', ui.item);
         }).focus(150).data('menu');
       },
       _renderMenu: function(ul, entityEnhancements) {
@@ -558,7 +569,7 @@
           enhancement = entityEnhancements[_i];
           this._renderItem(ul, enhancement);
         }
-        return this._log('rendered menu for the elements', entityEnhancements);
+        return this._logger.info('rendered menu for the elements', entityEnhancements);
       },
       _renderItem: function(ul, eEnhancement) {
         var active, label, source, type;
@@ -569,16 +580,16 @@
         return $("<li" + active + "><a href='#'>" + label + " <small>(" + type + " from " + source + ")</small></a></li>").data('enhancement', eEnhancement).appendTo(ul);
       },
       _createSearchbox: function() {
-        var searchEntryField, sugg, widget;
-        searchEntryField = $('<span style="background: fff;"><label for="search"></label><input class="search"></span>').appendTo(this.dialog.element);
+        var sugg, widget;
+        this.searchEntryField = $('<span style="background: fff;"><label for="search"></label><input id="search" class="search"></span>').appendTo(this.dialog.element);
         sugg = this.textEnhancements[0];
         widget = this;
-        $('.search', searchEntryField).autocomplete({
+        $('.search', this.searchEntryField).autocomplete({
           source: function(req, resp) {
-            this._log("req:", req);
-            return this.options.connector.findEntity("" + req.term + (req.term.length > 3 ? '*' : void 0), function(entityList) {
+            widget._logger.info("req:", req);
+            return widget.options.connector.findEntity("" + req.term + (req.term.length > 3 ? '*' : void 0), function(entityList) {
               var entity, i, res;
-              this._log("resp:", _(entityList).map(function(ent) {
+              widget._logger.info("resp:", _(entityList).map(function(ent) {
                 return ent.id;
               }));
               res = (function() {
@@ -609,20 +620,15 @@
           },
           select: __bind(function(e, ui) {
             this.annotate(ui.item, "acknowledged");
-            return this._log(e.target);
+            return this._logger.info(e.target);
           }, this)
         }).focus(200);
-        return this._log("show searchbox");
+        return this._logger.info("show searchbox");
       },
       addTextEnhancement: function(textEnh) {
         this.options.textEnhancements = this.options.textEnhancements || [];
         this.options.textEnhancements.push(textEnh);
         return this.textEnhancements = this.options.textEnhancements;
-      },
-      _log: function() {
-        if (this.options.debug) {
-          return console.log.apply(console, arguments);
-        }
       }
     });
     return window.ANTT = ANTT;
