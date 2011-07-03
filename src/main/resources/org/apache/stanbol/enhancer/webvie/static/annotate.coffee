@@ -432,15 +432,19 @@
             if not @isAnnotated() and @textEnhancements
                 @_trigger 'decline', event,
                     textEnhancements: @textEnhancements
+            else
+                @_trigger 'remove', event,
+                    textEnhancement: @_acceptedTextEnhancement
+                    entityEnhancement: @_acceptedEntityEnhancement
+                    linkedEntity: @linkedEntity
             @destroy()
             if @element.qname().name isnt '#text'
                 @element.replaceWith document.createTextNode @element.text()
 
-        # 
+        # Remove the widget if not annotated.
         disable: ->
             if not @isAnnotated() and @element.qname().name isnt '#text'
                 @element.replaceWith document.createTextNode @element.text()
-            
 
         # tells if this is an annotated dom element (not a highlighted textEnhancement only)
         isAnnotated: ->
@@ -466,10 +470,11 @@
                 label: entityEnhancement.getLabel()
             @element.replaceWith newElement
             @element = newElement.addClass styleClass
-            # TODO write the fact it's acknowledged into the VIE
-            @_logger.info "created enhancement in", @element
+            @_logger.info "created annotation in", @element
             @_updateTitle()
             @_insertLink()
+            @_acceptedTextEnhancement = entityEnhancement.getTextEnhancement()
+            @_acceptedEntityEnhancement = entityEnhancement
             @_trigger 'select', null,
                 linkedEntity: @linkedEntity
                 textEnhancement: entityEnhancement.getTextEnhancement()

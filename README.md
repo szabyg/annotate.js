@@ -49,3 +49,14 @@ Events
 
 **decline**:
     Triggered on declining a suggested TextEnhancement
+
+**remove**:
+    Triggered when an annotation is removed
+    
+    function (event, ui)
+    
+    The ui object has the following attributes:
+        `textEnhancement`,
+        `entityEnhancement`
+        `linkedEntity`
+

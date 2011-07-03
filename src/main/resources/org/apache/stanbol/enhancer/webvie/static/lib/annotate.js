@@ -474,6 +474,12 @@
           this._trigger('decline', event, {
             textEnhancements: this.textEnhancements
           });
+        } else {
+          this._trigger('remove', event, {
+            textEnhancement: this._acceptedTextEnhancement,
+            entityEnhancement: this._acceptedEntityEnhancement,
+            linkedEntity: this.linkedEntity
+          });
         }
         this.destroy();
         if (this.element.qname().name !== '#text') {
@@ -508,9 +514,11 @@
         };
         this.element.replaceWith(newElement);
         this.element = newElement.addClass(styleClass);
-        this._logger.info("created enhancement in", this.element);
+        this._logger.info("created annotation in", this.element);
         this._updateTitle();
         this._insertLink();
+        this._acceptedTextEnhancement = entityEnhancement.getTextEnhancement();
+        this._acceptedEntityEnhancement = entityEnhancement;
         return this._trigger('select', null, {
           linkedEntity: this.linkedEntity,
           textEnhancement: entityEnhancement.getTextEnhancement(),
