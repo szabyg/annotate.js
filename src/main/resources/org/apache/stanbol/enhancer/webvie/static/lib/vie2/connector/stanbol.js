@@ -170,7 +170,6 @@ VIE2.connectors['stanbol'].queryEnhancer = function (text, callback) {
             url: enhancer_url,
             data: text,
             dataType: "application/rdf+json",
-            converters: {"text application/rdf+json": true},
             contentType: "text/plain",
             accepts: {"application/rdf+json": "application/rdf+json"}
         });
@@ -251,8 +250,9 @@ VIE2.connectors['stanbol'].queryEntityHub = function (uri, callback) {
             success: callback,
             error: callback,
             url: proxy,
+            dataType: "application/rdf+json",
             data: {
-                proxy_url: entityhub_url + "/sites/entity?id=" + uri, 
+                proxy_url: entityhub_url + "/sites/entity?id=" + escape(uri), 
                 content: '',
                 verb: "GET",
                 format: "application/rdf+json"
@@ -264,7 +264,7 @@ VIE2.connectors['stanbol'].queryEntityHub = function (uri, callback) {
             success: callback,
             error: callback,
             type: "GET",
-            url: entityhub_url + "/sites/entity?id=" + uri,
+            url: entityhub_url + "/sites/entity?id=" + escape(uri),
             data: '',
             dataType: "application/rdf+json"
         });
@@ -305,7 +305,6 @@ VIE2.connectors['stanbol'].findEntity = function (term, callback, limit, offset)
             error: callback,
             url: proxy,
             dataType: "application/rdf+json",
-            converters: {"text application/rdf+json": function(s){return JSON.parse(s);}},
             data: {
                 proxy_url: entityhub_url + "/sites/find", 
                 content: "name=" + term + "&limit=" + offset + "&limit=" + offset,
@@ -323,9 +322,12 @@ VIE2.connectors['stanbol'].findEntity = function (term, callback, limit, offset)
             type: "POST",
             url: entityhub_url + "/sites/find",
             data: "name=" + term + "&limit=" + offset + "&limit=" + offset,
-            dataType: "application/rdf+json",
-            converters: {"text application/rdf+json": function(s){return JSON.parse(s);}}
+            dataType: "application/rdf+json"
         });
     }
     
 };
+jQuery.ajaxSetup({
+    converters: {"text application/rdf+json": function(s){return JSON.parse(s);}}
+});
+
