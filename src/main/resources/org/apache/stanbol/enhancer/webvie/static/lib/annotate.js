@@ -148,11 +148,6 @@
       }
       start = options.start + textContentOf(element).indexOf(textContentOf(element).trim());
       start = ANTT.nearestPosition(textContentOf(element), text, start);
-      if (!start) {
-        debugger;
-        start = options.start + textContentOf(element).indexOf(textContentOf(element).trim());
-        start = ANTT.nearestPosition(textContentOf(element), text, start);
-      }
       pos = 0;
       while (textContentOf(domEl).indexOf(text) !== -1 && domEl.nodeName !== '#text') {
         domEl = _(domEl.childNodes).detect(function(el) {
@@ -172,14 +167,15 @@
         pos = start - pos;
         len = text.length;
         textToCut = textContentOf(domEl).substring(pos, pos + len);
-        if (textToCut !== text) {
-          debugger;
+        if (textToCut === text) {
+          domEl.splitText(pos + len);
+          newElement = document.createElement(options.createElement || 'span');
+          newElement.innerHTML = text;
+          $(domEl).parent()[0].replaceChild(newElement, domEl.splitText(pos));
+          return $(newElement);
+        } else {
+          return console.warn("dom element creation problem: " + textToCut + " isnt " + text);
         }
-        domEl.splitText(pos + len);
-        newElement = document.createElement(options.createElement || 'span');
-        newElement.innerHTML = text;
-        $(domEl).parent()[0].replaceChild(newElement, domEl.splitText(pos));
-        return $(newElement);
       }
     };
     ANTT.occurrences = function(str, s) {
@@ -217,7 +213,9 @@
       }
     };
     ANTT.uriSuffix = function(uri) {
-      return uri.substring(uri.lastIndexOf("/") + 1);
+      var res;
+      res = uri.substring(uri.lastIndexOf("#") + 1);
+      return res.substring(res.lastIndexOf("/") + 1);
     };
     ANTT.cloneCopyEvent = function(src, dest) {
       var curData, events, internalKey, oldData;
@@ -357,7 +355,8 @@
     ANTT.annotationSelector = jQuery.widget('IKS.annotationSelector', {
       options: {
         ns: {
-          dbpedia: "http://dbpedia.org/ontology/"
+          dbpedia: "http://dbpedia.org/ontology/",
+          skos: "http://www.w3.org/2004/02/skos/core#"
         },
         getTypes: function() {
           return [
@@ -370,6 +369,9 @@
             }, {
               uri: "" + this.ns.dbpedia + "Organisation",
               label: 'Organisation'
+            }, {
+              uri: "" + this.ns.skos + "Concept",
+              label: 'Concept'
             }
           ];
         },
@@ -415,7 +417,6 @@
               }
             });
             this.entityEnhancements = eEnhancements;
-            this._logger.info(this.entityEnhancements);
             this._createSearchbox();
             if (this.entityEnhancements.length > 0) {
               if (this.menu === void 0) {
@@ -433,7 +434,6 @@
         };
       },
       _destroy: function() {
-        this._logger.info('destroy', this);
         return this.close();
       },
       _typeLabels: function(types) {
@@ -468,7 +468,6 @@
         label = this.element.text();
         dialogEl = $("<div><span class='entity-link'></span></div>").attr("tabIndex", -1).addClass().keydown(__bind(function(event) {
           if (!event.isDefaultPrevented() && event.keyCode && event.keyCode === $.ui.keyCode.ESCAPE) {
-            this._logger.info("dialogEl ESCAPE key event -> close");
             this.close(event);
             return event.preventDefault();
           }
@@ -560,7 +559,7 @@
         entityType = entityEnhancement.getTextEnhancement().getType();
         entityHtml = this.element.html();
         sType = entityEnhancement.getTextEnhancement().getType();
-        entityClass = 'entity ' + ANTT.uriSuffix(sType);
+        entityClass = 'entity ' + ANTT.uriSuffix(sType).toLowerCase();
         newElement = $("<a href='" + entityUri + "'                about='" + entityUri + "'                typeof='" + entityType + "'                class='" + entityClass + "'>" + entityHtml + "</a>");
         ANTT.cloneCopyEvent(this.element[0], newElement[0]);
         this.linkedEntity = {
@@ -641,7 +640,7 @@
       },
       _renderItem: function(ul, eEnhancement) {
         var active, label, source, type;
-        label = eEnhancement.getLabel();
+        label = eEnhancement.getLabel().replace(/^\"|\"$/g, "");
         type = this._typeLabels(eEnhancement.getTypes());
         source = this._sourceLabel(eEnhancement.getUri());
         active = this.linkedEntity && eEnhancement.getUri() === this.linkedEntity.uri ? " class='ui-state-active'" : "";
@@ -690,15 +689,11 @@
             this.annotate(ui.item, "acknowledged");
             return this._logger.info("autocomplete.select", e.target, ui);
           }, this),
-          blur: __bind(function(e, ui) {
-            return this._logger.info("autocomplete.blur", e.target, ui);
-          }, this),
           focus: __bind(function(e, ui) {
             this._logger.info("autocomplete.focus", e.target, ui);
             return this._entityPreview(ui.item);
           }, this)
         }).focus(200).blur(__bind(function(e, ui) {
-          this._logger.info("autocomplete.blur2", e, ui);
           return this._dialogCloseTimeout = setTimeout((__bind(function() {
             return this.close();
           }, this)), 200);

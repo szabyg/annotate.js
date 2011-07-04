@@ -131,12 +131,6 @@
         textContentOf(element).indexOf textContentOf(element).trim()
         # Correct small position errors
         start = ANTT.nearestPosition textContentOf(element), text, start
-        if not start
-            debugger
-            start = options.start +
-            textContentOf(element).indexOf textContentOf(element).trim()
-            # Correct small position errors
-            start = ANTT.nearestPosition textContentOf(element), text, start
         pos = 0
         while textContentOf(domEl).indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
             domEl = _(domEl.childNodes).detect (el) ->
@@ -153,13 +147,14 @@
             pos = start - pos
             len = text.length
             textToCut = textContentOf(domEl).substring(pos, pos+len)
-            if textToCut isnt text
-                debugger;
-            domEl.splitText pos + len
-            newElement = document.createElement options.createElement or 'span'
-            newElement.innerHTML = text
-            $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
-            return $ newElement
+            if textToCut is text
+                domEl.splitText pos + len
+                newElement = document.createElement options.createElement or 'span'
+                newElement.innerHTML = text
+                $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
+                $ newElement
+            else
+                console.warn "dom element creation problem: #{textToCut} isnt #{text}"
 
     # Find occurrence indexes of s in str
     ANTT.occurrences = (str, s) ->
@@ -190,7 +185,8 @@
             else arr[i1]
 
     ANTT.uriSuffix = (uri) ->
-        uri.substring uri.lastIndexOf("/") + 1
+        res = uri.substring uri.lastIndexOf("#") + 1
+        res.substring res.lastIndexOf("/") + 1
 
     # jquery events cloning method
     ANTT.cloneCopyEvent = (src, dest) ->
@@ -334,6 +330,7 @@
         options:
             ns:
                 dbpedia:  "http://dbpedia.org/ontology/"
+                skos:     "http://www.w3.org/2004/02/skos/core#"
             getTypes: ->
                 [
                     uri:   "#{@ns.dbpedia}Place"
@@ -344,6 +341,9 @@
                 ,
                     uri:   "#{@ns.dbpedia}Organisation"
                     label: 'Organisation'
+                ,
+                    uri:   "#{@ns.skos}Concept"
+                    label: 'Concept'
                 ]
             getSources: ->
                 [
@@ -379,7 +379,6 @@
                             false
                     @entityEnhancements = eEnhancements
 
-                    @_logger.info @entityEnhancements
                     @_createSearchbox()
                     if @entityEnhancements.length > 0
                         @_createMenu() if @menu is undefined
@@ -390,7 +389,6 @@
                 error: ->
 
         _destroy: ->
-            @_logger.info 'destroy', @
             @close()
             
         # Produce type label list out of a uri list.
@@ -420,7 +418,6 @@
             .addClass()
             .keydown( (event) =>
                 if not event.isDefaultPrevented() and event.keyCode and event.keyCode is $.ui.keyCode.ESCAPE
-                    @_logger.info "dialogEl ESCAPE key event -> close"
                     @close event
                     event.preventDefault()
             )
@@ -504,7 +501,7 @@
             # We ignore the old style classes
             # entityClass = @element.attr 'class'
             sType = entityEnhancement.getTextEnhancement().getType()
-            entityClass = 'entity ' + ANTT.uriSuffix sType
+            entityClass = 'entity ' + ANTT.uriSuffix(sType).toLowerCase()
             newElement = $ "<a href='#{entityUri}'
                 about='#{entityUri}'
                 typeof='#{entityType}'
@@ -576,7 +573,7 @@
             @_renderItem ul, enhancement for enhancement in entityEnhancements
             @_logger.info 'rendered menu for the elements', entityEnhancements
         _renderItem: (ul, eEnhancement) ->
-            label = eEnhancement.getLabel()
+            label = eEnhancement.getLabel().replace /^\"|\"$/g, ""
             type = @_typeLabels eEnhancement.getTypes()
             source = @_sourceLabel eEnhancement.getUri()
             active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
@@ -618,16 +615,14 @@
                 select: (e, ui) =>
                     @annotate ui.item, "acknowledged"
                     @_logger.info "autocomplete.select", e.target, ui
-                blur: (e, ui) =>
-                    @_logger.info "autocomplete.blur", e.target, ui
                 focus: (e, ui) =>
                     @_logger.info "autocomplete.focus", e.target, ui
                     @_entityPreview ui.item
             .focus(200)
             .blur (e, ui) =>
-                @_logger.info "autocomplete.blur2", e, ui
                 @_dialogCloseTimeout = setTimeout ( => @close()), 200
             @_logger.info "show searchbox"
+        # Show preview of a hovered item
         _entityPreview: _.throttle(( (item) ->
             @_logger.info "Show preview for", item
         ), 1500)
