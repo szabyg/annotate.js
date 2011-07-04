@@ -227,10 +227,42 @@
         _create: ->
             if @options.autoAnalyze
                 @enable()
+            widget = @
+            # logger can be turned on and off. It will show the real caller line in the log
             @_logger = if @options.debug then console else 
                 info: ->
                 warn: ->
                 error: ->
+            # widgetentityCache.get(uri, cb) will get and cache the entity from an entityhub
+            @entityCache = window.entityCache =
+                _entities: {}
+                get: (uri, scope, cb) ->
+                    # If entity is stored in the cache already just call cb
+                    if @_entities[uri] and @_entities[uri].status is "done"
+                        cb.apply scope, @_entities[uri]
+                    # If the entity is new to the cache
+                    else if not @_entities[uri]
+                        # create cache entry
+                        @_entities[uri] = 
+                            status: "pending"
+                            uri: uri
+                        cache = @
+                        # make a request to the entity hub
+#                        widget._logger.info "send request for", uri, @_entities[uri]
+                        widget.options.connector.queryEntityHub uri, (entity) ->
+                            if not entity.status
+                                if entity.id isnt uri
+                                    widget._logger.warn "wrong callback", uri, entity.id
+                                cache._entities[uri].entity = entity
+                                cache._entities[uri].status = "done"
+                                $(cache._entities[uri]).trigger "done", entity
+                            else
+                                widget._logger.warn "error getting entity", uri, entity
+                    if @_entities[uri] and @_entities[uri].status is "pending"
+                        $( @_entities[uri] )
+                        .bind "done", (event, entity) ->
+                            cb.apply scope, [entity]
+
         enable: ->
             analyzedNode = @element
             # the analyzedDocUri makes the connection between a document state and
@@ -275,12 +307,22 @@
                 start:   textEnh.getStart()
                 end:     textEnh.getEnd()
             sType = textEnh.getType()
+            widget = @
             el.addClass('entity')
             .addClass ANTT.uriSuffix(sType).toLowerCase()
             if textEnh.getEntityEnhancements().length
                 el.addClass "withSuggestions"
+            for eEnh in textEnh.getEntityEnhancements()
+                eEnhUri = eEnh.getUri()
+                @entityCache.get eEnhUri, eEnh, (entity) ->
+                    if this.getUri() isnt entity.id
+                        widget._logger.warn "wrong callback", entity.id, this.getUri()
+#                    widget._logger.info "entity for", textEnh.getSelectedText(), this.getUri(), entity
             # Create widget to select from the suggested entities
-            el.annotationSelector( @options )
+            options =
+                cache: @entityCache
+            $.extend options, @options
+            el.annotationSelector( options )
             .annotationSelector 'addTextEnhancement', textEnh
 
     ######################################################
@@ -316,6 +358,7 @@
             @element.click =>
                 if not @dialog
                     @_createDialog()
+                    setTimeout((=> @dialog.open()), 220)
                     # Collect all EntityEnhancements for all the TextEnhancements
                     # on the selected node.
                     eEnhancements = []
@@ -390,19 +433,22 @@
                 @close(event)
             )
             .appendTo( $("body")[0] )
+            widget = @
             dialogEl.dialog
                 width: 400
                 title: label
                 close: (event, ui) =>
                     @close(event)
+                autoOpen: false
+                open: (e, ui) ->
+                    $.data(this, 'dialog').uiDialog.position {
+                        of: widget.element
+                        my: "left top"
+                        at: "left bottom"
+                        collision: "none"}
             @dialog = dialogEl.data 'dialog'
             @dialog.uiDialogTitlebar.hide()
             @_logger.info "dialog widget:", @dialog
-            @dialog.uiDialog.position {
-                of: @element
-                my: "left top"
-                at: "left bottom"
-                collision: "none"}
             @dialog.element.focus(100)
             window.d = @dialog
             @_insertLink()
@@ -508,8 +554,12 @@
                     @_logger.info "selected menu item", ui.item
                     @annotate ui.item.data('enhancement'), 'acknowledged'
                     @close(event)
-                blur: (event, ui) ->
+                blur: (event, ui) =>
                     @_logger.info 'menu.blur()', ui.item
+                focus: (event, ui) =>
+                    @_logger.info 'menu.focus()', ui.item
+                    # show preview
+                    @_entityPreview ui.item
             })
             .bind('blur', (event, ui) ->
                 @_logger.info 'menu blur', ui
@@ -567,9 +617,20 @@
                 # An entity selected, annotate
                 select: (e, ui) =>
                     @annotate ui.item, "acknowledged"
-                    @_logger.info e.target
+                    @_logger.info "autocomplete.select", e.target, ui
+                blur: (e, ui) =>
+                    @_logger.info "autocomplete.blur", e.target, ui
+                focus: (e, ui) =>
+                    @_logger.info "autocomplete.focus", e.target, ui
+                    @_entityPreview ui.item
             .focus(200)
+            .blur (e, ui) =>
+                @_logger.info "autocomplete.blur2", e, ui
+                @_dialogCloseTimeout = setTimeout ( => @close()), 200
             @_logger.info "show searchbox"
+        _entityPreview: _.throttle(( (item) ->
+            @_logger.info "Show preview for", item
+        ), 1500)
 
         # add a textEnhancement that gets shown when the dialog is rendered
         addTextEnhancement: (textEnh) ->
