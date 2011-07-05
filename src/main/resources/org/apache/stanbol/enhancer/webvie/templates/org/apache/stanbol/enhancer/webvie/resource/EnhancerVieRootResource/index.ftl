@@ -85,8 +85,8 @@ a[typeof][about].concept {background-color: #eef;}
             $(this).button('option', 'enhState', newState);
             if($(this).button('option', 'enhState') === 'active'){
                 // annotate.enable()
-                $('#webview article div').annotate('enable');
                 $(this).button('option', 'label', 'Done');
+                $('#webview article div').annotate('enable');
             } else {
                 // annotate.disable()
                 $('#webview article div').annotate('disable');
@@ -101,7 +101,60 @@ a[typeof][about].concept {background-color: #eef;}
         </div>
     </article>
     <button id="enhanceButton">Enhance!</button>
+    
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
+    <hr/>
+    <div class="panel">
+        <h3>Featuring annotate.js</h3>
+        <h3>Features</h3>
+        <ul>
+            <li>Text-Enhancement support</li>
+            <li>Spell-checker - like interaction with annotation enhancements</li>
+            <li>Write RDFa into your content</li>
+            <li>Independent of any editor</li>
+            <li>One-line integration</li>
+            <li>Configurable Enhancement types</li>
+        </ul>
+
+        <h3>Goals</h3>
+        <ul>
+            <li>Provide Text enhancement directly in your content</li>
+            <li>Provide another open source (MIT license), flexibly usable, easy to 
+                integrate tool for (semi-)automatic and manual semantic enhancement.</li>
+            <li>
+                A tool that's fun to integrate 
+                <pre>
+    var stanbolConnector = new StanbolConnector({
+        "enhancer_url" : "http://example.com/engines/",
+        "entityhub_url" : "http://example.com/entityhub/"
+    });
+    $('#content').annotate({
+        connector: stanbolConnector
+    });
+                </pre>
+            </li>
+        </ul>
+        <h3>Additional planned features</h3>
+        <ul>
+            <li>Manual annotation - loosely coupled wysiwyg-editor enhancement?, 
+                needs selection-support</li>
+            <li>Connection to VIE - loosely coupled, easy integration</li>
+            <li>Clean up decoupling from the stanbol backend - schema mapping</li>
+            <li>Preview with client-side templating with jquery</li>
+            <li>Support Mocroformat</li>
+            <li>Edit relationships</li>
+        <ul>
+        <h3>Dependencies</h3>
+        <ul>
+            <li>jQuery 1.5</li>
+            <li>jQuery UI 1.9m5</li>
+            <li>Backbone.js</li>
+            <li>a wysiwyg-editor with save() (here: <a href="https://github.com/bergie/hallo">hallo editor</a>)</li>
+            <li>VIE, VIE^2 (optional)</li>
+        <ul>
+        
+    </div>
 </div>
 
 </@common.page>
