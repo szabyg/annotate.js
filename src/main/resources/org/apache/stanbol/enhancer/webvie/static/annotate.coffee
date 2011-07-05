@@ -235,7 +235,7 @@
                 get: (uri, scope, cb) ->
                     # If entity is stored in the cache already just call cb
                     if @_entities[uri] and @_entities[uri].status is "done"
-                        cb.apply scope, @_entities[uri]
+                        cb.apply scope, [@_entities[uri]]
                     # If the entity is new to the cache
                     else if not @_entities[uri]
                         # create cache entry

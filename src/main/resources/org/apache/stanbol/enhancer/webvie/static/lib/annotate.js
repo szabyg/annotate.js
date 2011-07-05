@@ -261,7 +261,7 @@
           get: function(uri, scope, cb) {
             var cache;
             if (this._entities[uri] && this._entities[uri].status === "done") {
-              cb.apply(scope, this._entities[uri]);
+              cb.apply(scope, [this._entities[uri]]);
             } else if (!this._entities[uri]) {
               this._entities[uri] = {
                 status: "pending",
