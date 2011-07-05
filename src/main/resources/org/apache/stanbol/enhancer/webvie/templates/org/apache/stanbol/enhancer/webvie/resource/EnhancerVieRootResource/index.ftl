@@ -54,15 +54,6 @@ a[typeof][about].concept {background-color: #eef;}
             "entityhub_url" : "/entityhub/"
         });
 
-        // Implement our own Backbone.sync method
-        Backbone.sync = function(method, model, options) {
-            console.log('Backbone.sync', method, model.toJSONLD());
-        };
-        
-
-        VIE.CollectionManager.loadCollections();
-        VIE.RDFaEntities.getInstances();
-
         $('article.active-enhancement').remove();
         $('#webview article').hallo({
             plugins: {
@@ -106,7 +97,7 @@ a[typeof][about].concept {background-color: #eef;}
     </script>
     <article typeof="schema:CreativeWork" about="http://stanbol.apache.org/enhancertest">
         <div property="sioc:content">
-            Text to analyze..
+            Chemoprevention with aspirin reduces the recurrence of colonic adenomas greater than 5 mm in diameter after 1 year in patients who had previous colorectal adenomas, reported Dr. Robert Benamouzig of Avicenne Hospital, Bobigny, France, and his associates
         </div>
     </article>
     <button id="enhanceButton">Enhance!</button>
