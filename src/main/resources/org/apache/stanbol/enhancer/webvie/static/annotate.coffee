@@ -586,11 +586,11 @@
         # Render search box with autocompletion for finding the right entity
         _createSearchbox: ->
             # Show an input box for autocompleted search
-            @searchEntryField = $('<span style="background: fff;"><label for="search"></label><input id="search" class="search"></span>')
+            @searchEntryField = $('<span style="background: fff;"><label for="search">Search:</label> <input id="search" class="search"></span>')
             .appendTo @dialog.element
             sugg = @textEnhancements[0]
             widget = @
-            $('.search',@searchEntryField)
+            $( '.search', @searchEntryField )
             .autocomplete
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->

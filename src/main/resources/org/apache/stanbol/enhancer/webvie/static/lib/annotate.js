@@ -648,7 +648,7 @@
       },
       _createSearchbox: function() {
         var sugg, widget;
-        this.searchEntryField = $('<span style="background: fff;"><label for="search"></label><input id="search" class="search"></span>').appendTo(this.dialog.element);
+        this.searchEntryField = $('<span style="background: fff;"><label for="search">Search:</label> <input id="search" class="search"></span>').appendTo(this.dialog.element);
         sugg = this.textEnhancements[0];
         widget = this;
         $('.search', this.searchEntryField).autocomplete({
