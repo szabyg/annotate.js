@@ -30,7 +30,11 @@ a[typeof][about].place        {background-color: #fef;}
 
 .entity.organisation,
 a[typeof][about].organisation {background-color: #eff;}
+
 /*
+.entity.concept,
+a[typeof][about].concept {background-color: #eef;}
+
 .entity.acknowledged.person       {background-color: #ff9;}
 .entity.acknowledged.place        {background-color: #f9d;}
 .entity.acknowledged.organisation {background-color: #9ff;}
@@ -38,7 +42,9 @@ a[typeof][about].organisation {background-color: #eff;}
 </style>
 <div class="panel" id="webview"
      xmlns:sioc="http://rdfs.org/sioc/ns#"
-     xmlns:schema="http://www.schema.org/">
+     xmlns:schema="http://www.schema.org/"
+     xmlns:enhancer="http://fise.iks-project.eu/ontology/"
+     xmlns:dc="http://purl.org/dc/terms/">
 
     <script>
     VIE2.logLevels=[];
@@ -53,9 +59,11 @@ a[typeof][about].organisation {background-color: #eff;}
             console.log('Backbone.sync', method, model.toJSONLD());
         };
         
-        
-        VIE.CollectionManager.loadCollections();
 
+        VIE.CollectionManager.loadCollections();
+        VIE.RDFaEntities.getInstances();
+
+        $('article.active-enhancement').remove();
         $('#webview article').hallo({
             plugins: {
               'halloformat': {}
@@ -69,10 +77,10 @@ a[typeof][about].organisation {background-color: #eff;}
                 console.info('decline event', event, ui);
             },
             select: function(event, ui){
-                x={};
-                x[ui.entityEnhancement.getUri()] = ui.entityEnhancement;
-                VIE.EntityManager.getByRDFJSON(x);
                 console.info('select event', event, ui);
+            },
+            remove: function(event, ui){
+                console.info('remove event', event, ui);
             }
 
         });

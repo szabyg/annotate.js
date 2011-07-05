@@ -131,12 +131,6 @@
         textContentOf(element).indexOf textContentOf(element).trim()
         # Correct small position errors
         start = ANTT.nearestPosition textContentOf(element), text, start
-        if not start
-            debugger
-            start = options.start +
-            textContentOf(element).indexOf textContentOf(element).trim()
-            # Correct small position errors
-            start = ANTT.nearestPosition textContentOf(element), text, start
         pos = 0
         while textContentOf(domEl).indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
             domEl = _(domEl.childNodes).detect (el) ->
@@ -153,13 +147,14 @@
             pos = start - pos
             len = text.length
             textToCut = textContentOf(domEl).substring(pos, pos+len)
-            if textToCut isnt text
-                debugger;
-            domEl.splitText pos + len
-            newElement = document.createElement options.createElement or 'span'
-            newElement.innerHTML = text
-            $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
-            return $ newElement
+            if textToCut is text
+                domEl.splitText pos + len
+                newElement = document.createElement options.createElement or 'span'
+                newElement.innerHTML = text
+                $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
+                $ newElement
+            else
+                console.warn "dom element creation problem: #{textToCut} isnt #{text}"
 
     # Find occurrence indexes of s in str
     ANTT.occurrences = (str, s) ->
@@ -190,7 +185,8 @@
             else arr[i1]
 
     ANTT.uriSuffix = (uri) ->
-        uri.substring uri.lastIndexOf("/") + 1
+        res = uri.substring uri.lastIndexOf("#") + 1
+        res.substring res.lastIndexOf("/") + 1
 
     # jquery events cloning method
     ANTT.cloneCopyEvent = (src, dest) ->
@@ -227,10 +223,42 @@
         _create: ->
             if @options.autoAnalyze
                 @enable()
+            widget = @
+            # logger can be turned on and off. It will show the real caller line in the log
             @_logger = if @options.debug then console else 
                 info: ->
                 warn: ->
                 error: ->
+            # widgetentityCache.get(uri, cb) will get and cache the entity from an entityhub
+            @entityCache = window.entityCache =
+                _entities: {}
+                get: (uri, scope, cb) ->
+                    # If entity is stored in the cache already just call cb
+                    if @_entities[uri] and @_entities[uri].status is "done"
+                        cb.apply scope, @_entities[uri]
+                    # If the entity is new to the cache
+                    else if not @_entities[uri]
+                        # create cache entry
+                        @_entities[uri] = 
+                            status: "pending"
+                            uri: uri
+                        cache = @
+                        # make a request to the entity hub
+#                        widget._logger.info "send request for", uri, @_entities[uri]
+                        widget.options.connector.queryEntityHub uri, (entity) ->
+                            if not entity.status
+                                if entity.id isnt uri
+                                    widget._logger.warn "wrong callback", uri, entity.id
+                                cache._entities[uri].entity = entity
+                                cache._entities[uri].status = "done"
+                                $(cache._entities[uri]).trigger "done", entity
+                            else
+                                widget._logger.warn "error getting entity", uri, entity
+                    if @_entities[uri] and @_entities[uri].status is "pending"
+                        $( @_entities[uri] )
+                        .bind "done", (event, entity) ->
+                            cb.apply scope, [entity]
+
         enable: ->
             analyzedNode = @element
             # the analyzedDocUri makes the connection between a document state and
@@ -275,12 +303,22 @@
                 start:   textEnh.getStart()
                 end:     textEnh.getEnd()
             sType = textEnh.getType()
+            widget = @
             el.addClass('entity')
             .addClass ANTT.uriSuffix(sType).toLowerCase()
             if textEnh.getEntityEnhancements().length
                 el.addClass "withSuggestions"
+            for eEnh in textEnh.getEntityEnhancements()
+                eEnhUri = eEnh.getUri()
+                @entityCache.get eEnhUri, eEnh, (entity) ->
+                    if this.getUri() isnt entity.id
+                        widget._logger.warn "wrong callback", entity.id, this.getUri()
+#                    widget._logger.info "entity for", textEnh.getSelectedText(), this.getUri(), entity
             # Create widget to select from the suggested entities
-            el.annotationSelector( @options )
+            options =
+                cache: @entityCache
+            $.extend options, @options
+            el.annotationSelector( options )
             .annotationSelector 'addTextEnhancement', textEnh
 
     ######################################################
@@ -292,6 +330,7 @@
         options:
             ns:
                 dbpedia:  "http://dbpedia.org/ontology/"
+                skos:     "http://www.w3.org/2004/02/skos/core#"
             getTypes: ->
                 [
                     uri:   "#{@ns.dbpedia}Place"
@@ -302,6 +341,9 @@
                 ,
                     uri:   "#{@ns.dbpedia}Organisation"
                     label: 'Organisation'
+                ,
+                    uri:   "#{@ns.skos}Concept"
+                    label: 'Concept'
                 ]
             getSources: ->
                 [
@@ -316,6 +358,7 @@
             @element.click =>
                 if not @dialog
                     @_createDialog()
+                    setTimeout((=> @dialog.open()), 220)
                     # Collect all EntityEnhancements for all the TextEnhancements
                     # on the selected node.
                     eEnhancements = []
@@ -336,7 +379,6 @@
                             false
                     @entityEnhancements = eEnhancements
 
-                    @_logger.info @entityEnhancements
                     @_createSearchbox()
                     if @entityEnhancements.length > 0
                         @_createMenu() if @menu is undefined
@@ -347,7 +389,6 @@
                 error: ->
 
         _destroy: ->
-            @_logger.info 'destroy', @
             @close()
             
         # Produce type label list out of a uri list.
@@ -377,7 +418,6 @@
             .addClass()
             .keydown( (event) =>
                 if not event.isDefaultPrevented() and event.keyCode and event.keyCode is $.ui.keyCode.ESCAPE
-                    @_logger.info "dialogEl ESCAPE key event -> close"
                     @close event
                     event.preventDefault()
             )
@@ -390,19 +430,22 @@
                 @close(event)
             )
             .appendTo( $("body")[0] )
+            widget = @
             dialogEl.dialog
                 width: 400
                 title: label
                 close: (event, ui) =>
                     @close(event)
+                autoOpen: false
+                open: (e, ui) ->
+                    $.data(this, 'dialog').uiDialog.position {
+                        of: widget.element
+                        my: "left top"
+                        at: "left bottom"
+                        collision: "none"}
             @dialog = dialogEl.data 'dialog'
             @dialog.uiDialogTitlebar.hide()
             @_logger.info "dialog widget:", @dialog
-            @dialog.uiDialog.position {
-                of: @element
-                my: "left top"
-                at: "left bottom"
-                collision: "none"}
             @dialog.element.focus(100)
             window.d = @dialog
             @_insertLink()
@@ -432,15 +475,19 @@
             if not @isAnnotated() and @textEnhancements
                 @_trigger 'decline', event,
                     textEnhancements: @textEnhancements
+            else
+                @_trigger 'remove', event,
+                    textEnhancement: @_acceptedTextEnhancement
+                    entityEnhancement: @_acceptedEntityEnhancement
+                    linkedEntity: @linkedEntity
             @destroy()
             if @element.qname().name isnt '#text'
                 @element.replaceWith document.createTextNode @element.text()
 
-        # 
+        # Remove the widget if not annotated.
         disable: ->
             if not @isAnnotated() and @element.qname().name isnt '#text'
                 @element.replaceWith document.createTextNode @element.text()
-            
 
         # tells if this is an annotated dom element (not a highlighted textEnhancement only)
         isAnnotated: ->
@@ -454,7 +501,7 @@
             # We ignore the old style classes
             # entityClass = @element.attr 'class'
             sType = entityEnhancement.getTextEnhancement().getType()
-            entityClass = 'entity ' + ANTT.uriSuffix sType
+            entityClass = 'entity ' + ANTT.uriSuffix(sType).toLowerCase()
             newElement = $ "<a href='#{entityUri}'
                 about='#{entityUri}'
                 typeof='#{entityType}'
@@ -466,10 +513,11 @@
                 label: entityEnhancement.getLabel()
             @element.replaceWith newElement
             @element = newElement.addClass styleClass
-            # TODO write the fact it's acknowledged into the VIE
-            @_logger.info "created enhancement in", @element
+            @_logger.info "created annotation in", @element
             @_updateTitle()
             @_insertLink()
+            @_acceptedTextEnhancement = entityEnhancement.getTextEnhancement()
+            @_acceptedEntityEnhancement = entityEnhancement
             @_trigger 'select', null,
                 linkedEntity: @linkedEntity
                 textEnhancement: entityEnhancement.getTextEnhancement()
@@ -503,8 +551,12 @@
                     @_logger.info "selected menu item", ui.item
                     @annotate ui.item.data('enhancement'), 'acknowledged'
                     @close(event)
-                blur: (event, ui) ->
+                blur: (event, ui) =>
                     @_logger.info 'menu.blur()', ui.item
+                focus: (event, ui) =>
+                    @_logger.info 'menu.focus()', ui.item
+                    # show preview
+                    @_entityPreview ui.item
             })
             .bind('blur', (event, ui) ->
                 @_logger.info 'menu blur', ui
@@ -521,7 +573,7 @@
             @_renderItem ul, enhancement for enhancement in entityEnhancements
             @_logger.info 'rendered menu for the elements', entityEnhancements
         _renderItem: (ul, eEnhancement) ->
-            label = eEnhancement.getLabel()
+            label = eEnhancement.getLabel().replace /^\"|\"$/g, ""
             type = @_typeLabels eEnhancement.getTypes()
             source = @_sourceLabel eEnhancement.getUri()
             active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
@@ -562,9 +614,18 @@
                 # An entity selected, annotate
                 select: (e, ui) =>
                     @annotate ui.item, "acknowledged"
-                    @_logger.info e.target
+                    @_logger.info "autocomplete.select", e.target, ui
+                focus: (e, ui) =>
+                    @_logger.info "autocomplete.focus", e.target, ui
+                    @_entityPreview ui.item
             .focus(200)
+            .blur (e, ui) =>
+                @_dialogCloseTimeout = setTimeout ( => @close()), 200
             @_logger.info "show searchbox"
+        # Show preview of a hovered item
+        _entityPreview: _.throttle(( (item) ->
+            @_logger.info "Show preview for", item
+        ), 1500)
 
         # add a textEnhancement that gets shown when the dialog is rendered
         addTextEnhancement: (textEnh) ->

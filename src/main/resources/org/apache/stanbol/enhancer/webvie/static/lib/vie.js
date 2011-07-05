@@ -257,7 +257,7 @@
         getByRDFJSON: function(rdfjson, options){
             VIE.EntityManager.initializeCollection();
             var entityInstance;
-            var simpleProperties = {};
+            var simpleProperties = {}, res = [];
 
             if (typeof rdfjson !== 'object') {
                 try {
@@ -268,10 +268,19 @@
             }
             
             _.each(rdfjson, function(properties, entityUri){
-                simpleProperties = {};
+                
                 // Simplify rdfjson
                 _(properties).each(function(propertyValues, key){
-                    key = '<' + key + '>';
+                    curie = key;
+                    _(VIE.RDFa.Namespaces).each(function(uri, prefix) {
+                        curie = curie.replace(uri, prefix + ":");
+                    });
+                    if(key === curie){
+                        key = '<' + key + '>';
+                    } else {
+                        key = curie;
+                    }
+                    
                     simpleProperties[key] = _(propertyValues).map(function(value){
                         return value.value;
                     });
@@ -291,9 +300,12 @@
                 entityInstance = new VIE.RDFEntity(simpleProperties);
                 entityInstance.id = entityUri;
                 
+                res.push(entityInstance);
+                
                 VIE.EntityManager.registerModel(entityInstance);
                 return entityInstance;
             })
+            return res;
         },
         
         // All new entities must be added to the `entities` collection.
@@ -448,11 +460,7 @@
                 attributeValue = instance.get(property);
                 if (attributeValue instanceof VIE.RDFEntityCollection) {
                     instanceLD[property] = attributeValue.map(function(referenceInstance) {
-                        if (referenceInstance.id) {	
-                            return VIE.RDFa._toReference(referenceInstance.id);
-                        } else {
-                            return referenceInstance.cid.replace('c', '_:bnode');
-                        }
+                        return referenceInstance.getSubject();
                     });
                 } else {
                     instanceLD[property] = attributeValue;
