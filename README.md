@@ -1,3 +1,7 @@
+# Annotate.js (coffeescript)
+## Introduction
+Annotate.js is the frontend widget for entity recognition back-end engines like Stanbol.
+
 ## Features
 
 * Text-Enhancement support
@@ -20,7 +24,7 @@
         $('#content').annotate({
             connector: stanbolConnector
         });
-## Additional planned features
+## Future features
 
 * Manual annotation - loosely coupled wysiwyg-editor enhancement?, needs selection-support
 * Connection to VIE - loosely coupled, easy integration
@@ -33,7 +37,16 @@
 * jQuery 1.5
 * jQuery UI 1.9m5
 * Backbone.js
-* a wysiwyg-editor with save() (here: hallo editor)
+* a wysiwyg-editor with save() (here: [hallo editor](https://github.com/bergie/hallo))
 * VIE, VIE^2 (optional)
 
+## Apache ProxyPass settings
+In order to use annotate.js on a different site other than where your stanbol instance is running you'll need a proxy for avoiding [cross-site scripting](http://en.wikipedia.org/wiki/Cross-site_scripting). One way of doing this is to set up your server to redirect requests e.g. going to `http://yoursite.com/stanbol/abc` to `http://stanbolsite.com:8080/abc`. On an apache server this could be done with the following configuration snippet put e.g. in `/etc/apache2/conf.d/stanbol`. (You'll also have to enable apache proxy modules)
+
+    <Proxy http://localhost:8080>
+        Order Allow,Deny
+        Allow from all
+    </Proxy>
+    ProxyPass /stanbol http://localhost:8080
+    ProxyPassReverse /stanbol http://localhost:8080
 
