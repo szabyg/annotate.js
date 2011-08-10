@@ -1,62 +1,39 @@
-VIE based Stanbol Enhancer UI
-=============================
+## Features
 
-Adapter to add a VIE based interface for the Stanbol Enhancer
+* Text-Enhancement support
+* Spell-checker - like interaction with annotation enhancements
+* Write RDFa into your content
+* Independent of any editor
+* One-line integration
+* Configurable Enhancement types
 
-Deploy
-------
+## Goals
 
-After building stanbol in a different folder you can build and deploy this bundle by using the following command:
+* Provide Text enhancement directly in your content
+* Provide another open source (MIT license), flexibly usable, easy to integrate tool for (semi-)automatic and manual semantic enhancement.
+* A tool that's fun to integrate
 
-    mvn install -DskipTests -PinstallBundle -Dsling.url=http://localhost:8080/system/console
+        var stanbolConnector = new StanbolConnector({
+            "enhancer_url" : "http://example.com/engines/",
+            "entityhub_url" : "http://example.com/entityhub/"
+        });
+        $('#content').annotate({
+            connector: stanbolConnector
+        });
+## Additional planned features
 
-Development Guide
-=================
+* Manual annotation - loosely coupled wysiwyg-editor enhancement?, needs selection-support
+* Connection to VIE - loosely coupled, easy integration
+* Clean up decoupling from the stanbol backend - schema mapping
+* Entity preview using client-side templating
+* Edit relationships
 
-The widget development is done in CoffeeScript. Use the following command to 
-automatically compile the script in the background
-    
-    coffee -c -w -o lib annotate.coffee
-    
-This will as well show you compile errors right after each save.
+## Dependencies
 
-To simplify work with the deep directory structure I created a directory for
-shortcuts to the most important directories called 'sc':
+* jQuery 1.5
+* jQuery UI 1.9m5
+* Backbone.js
+* a wysiwyg-editor with save() (here: hallo editor)
+* VIE, VIE^2 (optional)
 
-    ls -ln sc/
-    lrwxrwxrwx 1 1000 1000  52 2011-06-01 11:44 java -> ../src/main/java/org/apache/stanbol/enhancer/webvie/
-    lrwxrwxrwx 1 1000 1000  63 2011-06-01 11:43 static -> ../src/main/resources/org/apache/stanbol/enhancer/webvie/static
-    lrwxrwxrwx 1 1000 1000 135 2011-06-01 11:44 template -> ../src/main/resources/org/apache/stanbol/enhancer/webvie/templates/org/apache/stanbol/enhancer/webvie/resource/EnhancerVieRootResource/
-
-Annotate widget API
-===================
-Options:
---------
-
-Methods:
---------
-**enable**:
-    Analyze text and highlight TextAnnotations. Make TextAnnotations 
-    interactive.
-
-**disable**:
-    Remove TextAnnotation highlighting.
-
-Events
-------
-**select**:
-    Triggered on annotating a suggested TextEnhancement
-
-**decline**:
-    Triggered on declining a suggested TextEnhancement
-
-**remove**:
-    Triggered when an annotation is removed
-    
-    function (event, ui)
-    
-    The ui object has the following attributes:
-        `textEnhancement`,
-        `entityEnhancement`
-        `linkedEntity`
 
