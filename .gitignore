@@ -1,7 +1,4 @@
 .classpath
 .project
 .settings
-target/
-deploy.sh
-sc
 coffeecompile.sh
