@@ -47,12 +47,12 @@ The widget development is done in [CoffeeScript](http://jashkenas.github.com/cof
     $ coffee -c -w -o lib src/*.coffee
 
 ## Apache ProxyPass settings
-In order to use annotate.js on a different site other than where your stanbol instance is running you'll need a proxy for avoiding [cross-site scripting](http://en.wikipedia.org/wiki/Cross-site_scripting). One way of doing this is to set up your server to redirect requests e.g. going to `http://yoursite.com/stanbol/abc` to `http://stanbolsite.com:8080/abc`. On an apache server this could be done with the following configuration snippet put e.g. in `/etc/apache2/conf.d/stanbol`. (You'll also have to enable apache proxy modules)
+In order to use annotate.js on a different site other than where your stanbol instance is running you'll need a proxy for avoiding [cross-site scripting](http://en.wikipedia.org/wiki/Cross-site_scripting). One way of doing this is to set up your server to redirect requests e.g. going to `http://yoursite.com/stanbol/abc` to `http://stanbolsite.com:8080/abc`. On an apache server this could be done with the following configuration snippet put e.g. in `/etc/apache2/conf.d/stanbol`. (You'll also have to enable apache proxy modules) You can use the `dev.iks-project.eu:8080` stanbol instance for testing or replace the address with another stanbol installation your apache server has access to.
 
-    <Proxy http://localhost:8080>
+    <Proxy http://dev.iks-project.eu:8080>
         Order Allow,Deny
         Allow from all
     </Proxy>
-    ProxyPass /stanbol http://localhost:8080
-    ProxyPassReverse /stanbol http://localhost:8080
+    ProxyPass /stanbol http://dev.iks-project.eu:8080
+    ProxyPassReverse /stanbol http://dev.iks-project.eu:8080
 
