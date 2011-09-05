@@ -79,7 +79,7 @@
                 console.info('select event', event, ui);
                 var imageuri = ui.linkedEntity.uri.replace("data","www").replace("proxy/provider","portal/record")+".png";
                 var newImage = document.createElement("img");
-                $(newImage).attr("src", imageUri);
+                $(newImage).attr("src", imageuri);
                 $('#images').append(newImage);
             },
             remove: function(event, ui){
