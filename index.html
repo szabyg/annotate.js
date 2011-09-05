@@ -77,6 +77,10 @@
             },
             select: function(event, ui){
                 console.info('select event', event, ui);
+                var imageuri = ui.linkedEntity.uri.replace("data","www").replace("proxy/provider","portal/record")+".png";
+                var newImage = document.createElement("img");
+                $(newImage).attr("src", imageUri);
+                $('#images').append(newImage);
             },
             remove: function(event, ui){
                 console.info('remove event', event, ui);
@@ -140,6 +144,7 @@
                 </div>
             </article>
             <button class="enhanceButton">Enhance!</button>
+            <div id="images"></div>
         </div>
     </body>
 </html>
