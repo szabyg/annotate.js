@@ -298,10 +298,14 @@
             # the annotations to it. We have to clean up the annotations to any
             # old document state
 
-            @options.connector.analyze @element,
-                success: (rdf) =>
+            @options.vie.analyze( element: @element ).using(@options.vieServices)
+            .execute()
+            .success (enhancements) =>
+                    @_logger.info "rdfResult:", enhancements
                     # Get enhancements
-                    rdfJson = rdf.databank.dump()
+                    rdfJson = enhancements
+                    for ent in enhancements
+                        console.info ent, ent.get "rdfs:type"
 
                     textAnnotations = Stanbol.getTextAnnotations(rdfJson)
                     # Remove all textAnnotations without a selected text property
@@ -323,7 +327,10 @@
                     # trigger 'done' event with success = true
                     @_trigger "done", true
                     if typeof cb is "function"
-                        cb(true)
+                        cb true
+            .fail (xhr)->
+                cb false
+                console.error "analyze failed", xhr.responseText, xhr
         # Remove all not accepted text enhancement widgets
         disable: ->
             $( ':IKS-annotationSelector', @element ).each () ->
