@@ -65,14 +65,12 @@
         getEntityEnhancements: ->
             entityAnnotations = Stanbol.getEntityAnnotations @_enhList
             rawList = _(entityAnnotations ).filter (ann) =>
-                relations = ann.get "dc:relation"
-                if (relations.indexOf @_enhancement.getSubject()) isnt -1 then true
-                else false
+                ann.hasPropertyValue "dc:relation", @_enhancement.getSubject()
             _(rawList).map (ee) =>
                 new Stanbol.EntityEnhancement ee, @
         # The type of the entity suggested (e.g. person, location, organization)
         getType: ->
-            @_vals("dc:type")
+            @_uriTrim @_vals("dc:type")
         # Optional, not used
         getContext: ->
             @_vals("enhancer:selection-context")
@@ -88,6 +86,9 @@
             @_enhList[ciUri]["http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent"][0].value
         _vals: (key) ->
             @_enhancement.get key
+        _uriTrim: (uriRef) ->
+            _(_.flatten([uriRef])).map (ur) ->
+                ur.replace /^<|>$/g, ""
 
     # Generic API for an EntityEnhancement. This is the implementation for Stanbol
     Stanbol.EntityEnhancement = (ee, textEnh) ->
@@ -97,15 +98,21 @@
         getLabel: ->
             @_vals("enhancer:entity-label")
         getUri: ->
-            @_vals("enhancer:entity-reference")
+            @_uriTrim(@_vals("enhancer:entity-reference"))[0]
         getTextEnhancement: ->
             @_textEnhancement
         getTypes: ->
-            @_vals("enhancer:entity-type")
+            @_uriTrim @_vals("enhancer:entity-type")
         getConfidence: ->
             Number @_vals("enhancer:confidence")
         _vals: (key) ->
-            @_enhancement.get key
+            res = @get key
+            if res.pluck
+                res.pluck("@subject")
+            else res
+        _uriTrim: (uriRef) ->
+            _(_.flatten([uriRef])).map (ur) ->
+                ur.replace /^<|>$/g, ""
 
     # get or create a dom element containing only the occurrence of the found entity
     ANTT.getOrCreateDomElement = (element, text, options = {}) ->
@@ -263,7 +270,7 @@
                             uri: uri
                         cache = @
                         # make a request to the entity hub
-                        widget.options.connector.queryEntityHub uri, (entity) ->
+                        widget.options.vie.service('stanbol').connector.queryEntityHub uri, (entity) ->
                             if not entity.status
                                 if entity.id isnt uri
                                     widget._logger.warn "wrong callback", uri, entity.id
@@ -289,7 +296,6 @@
             @options.vie.analyze( element: @element ).using(@options.vieServices)
             .execute()
             .success (enhancements) =>
-                    @_logger.info "rdfResult:", enhancements
                     # Get enhancements
                     textAnnotations = Stanbol.getTextAnnotations(enhancements)
                     # Remove all textAnnotations without a selected text property
@@ -334,7 +340,8 @@
             sType = textEnh.getType() or "Other"
             widget = @
             el.addClass('entity')
-            .addClass ANTT.uriSuffix(sType).toLowerCase()
+            for type in sType
+                el.addClass ANTT.uriSuffix(type).toLowerCase()
             if textEnh.getEntityEnhancements().length
                 el.addClass "withSuggestions"
             for eEnh in textEnh.getEntityEnhancements()
@@ -539,7 +546,7 @@
             # We ignore the old style classes
             # entityClass = @element.attr 'class'
             sType = entityEnhancement.getTextEnhancement().getType() or ""
-            entityClass = 'entity ' + ANTT.uriSuffix(sType).toLowerCase()
+            entityClass = 'entity ' + ANTT.uriSuffix(sType[0]).toLowerCase()
             newElement = $ "<a href='#{entityUri}'
                 about='#{entityUri}'
                 typeof='#{entityType}'
