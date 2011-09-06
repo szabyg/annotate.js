@@ -17,33 +17,22 @@
     Stanbol = Stanbol or {}
 
     # filter for TextAnnotations
-    Stanbol.getTextAnnotations = (enhRdf) ->
-        res = _(enhRdf).map((obj, key) ->
-            obj.id = key
-            obj
-        )
+    Stanbol.getTextAnnotations = (enhList) ->
+        res = _(enhList)
         .filter (e) ->
-            e["#{ns.rdf}type"]
-            .map((x) -> x.value)
-            .indexOf("#{ns.enhancer}TextAnnotation") != -1
+            e.hasType "<#{ns.enhancer}TextAnnotation>"
         res = _(res).sortBy (e) ->
-            conf = Number e["#{ns.enhancer}confidence"][0].value if e["#{ns.enhancer}confidence"]
+            conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
             -1 * conf
 
-        _(res).map (s)->
-            new Stanbol.TextEnhancement s, enhRdf
+        _(res).map (enh)->
+            new Stanbol.TextEnhancement enh, enhList
 
     # filter the entityManager for TextAnnotations
-    Stanbol.getEntityAnnotations = (enhRdf) ->
-        _(enhRdf)
-        .map((obj, key) ->
-            obj.id = key
-            obj
-        )
+    Stanbol.getEntityAnnotations = (enhList) ->
+        _(enhList)
         .filter (e) ->
-            e["#{ns.rdf}type"]
-            .map((x) -> x.value)
-            .indexOf("#{ns.enhancer}EntityAnnotation") != -1
+            e.hasType "<#{ns.enhancer}EntityAnnotation>"
 
     # Get the label in the user's language or the first one from a VIE entity
     ANTT.getRightLabel = (entity) ->
@@ -61,45 +50,44 @@
     # A TextEnhancement object has the methods for getting generic
     # text-enhancement-specific properties.
     # TODO Place it into a global Stanbol object.
-    Stanbol.TextEnhancement = (enhancement, enhRdf) ->
+    Stanbol.TextEnhancement = (enhancement, enhList) ->
         @_enhancement = enhancement
-        @_enhRdf = enhRdf
-        @id = @_enhancement.id
+        @_enhList = enhList
+        @id = @_enhancement.getSubject()
     Stanbol.TextEnhancement.prototype =
         # the text the annotation is for
         getSelectedText: ->
-            @_vals("#{ns.enhancer}selected-text")[0]
+            @_vals("enhancer:selected-text")
         # confidence value
         getConfidence: ->
-            @_vals("#{ns.enhancer}confidence")[0]
+            @_vals("enhancer:confidence")
         # get Entities suggested for the text enhancement (if any)
         getEntityEnhancements: ->
-            rawList = _(Stanbol.getEntityAnnotations @_enhRdf ).filter (ann) =>
-                relations = _(ann["#{ns.dc}relation"])
-                .map (e) -> e.value
-                if (relations.indexOf @_enhancement.id) isnt -1 then true
+            entityAnnotations = Stanbol.getEntityAnnotations @_enhList
+            rawList = _(entityAnnotations ).filter (ann) =>
+                relations = ann.get "dc:relation"
+                if (relations.indexOf @_enhancement.getSubject()) isnt -1 then true
                 else false
             _(rawList).map (ee) =>
                 new Stanbol.EntityEnhancement ee, @
         # The type of the entity suggested (e.g. person, location, organization)
         getType: ->
-            @_vals("#{ns.dc}type")[0]
+            @_vals("dc:type")
         # Optional, not used
         getContext: ->
-            @_vals("#{ns.enhancer}selection-context")[0]
+            @_vals("enhancer:selection-context")
         # start position in the original text
         getStart: ->
-            Number @_vals("#{ns.enhancer}start")[0]
+            Number @_vals("enhancer:start")
         # end position in the original text
         getEnd: ->
-            Number @_vals("#{ns.enhancer}end")[0]
+            Number @_vals("enhancer:end")
         # Optional
         getOrigText: ->
-            ciUri = @_vals("#{ns.enhancer}extracted-from")[0]
-            @_enhRdf[ciUri]["http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent"][0].value
+            ciUri = @_vals("enhancer:extracted-from")
+            @_enhList[ciUri]["http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent"][0].value
         _vals: (key) ->
-            _(@_enhancement[key])
-            .map (x) -> x.value
+            @_enhancement.get key
 
     # Generic API for an EntityEnhancement. This is the implementation for Stanbol
     Stanbol.EntityEnhancement = (ee, textEnh) ->
@@ -107,17 +95,17 @@
         $.extend @, ee
     Stanbol.EntityEnhancement.prototype =
         getLabel: ->
-            @_vals("#{ns.enhancer}entity-label")[0]
+            @_vals("enhancer:entity-label")
         getUri: ->
-            @_vals("#{ns.enhancer}entity-reference")[0]
+            @_vals("enhancer:entity-reference")
         getTextEnhancement: ->
             @_textEnhancement
         getTypes: ->
-            @_vals("#{ns.enhancer}entity-type")
+            @_vals("enhancer:entity-type")
         getConfidence: ->
-            Number @_vals("#{ns.enhancer}confidence")[0]
+            Number @_vals("enhancer:confidence")
         _vals: (key) ->
-            _(@[key]).map (x) -> x.value
+            @_enhancement.get key
 
     # get or create a dom element containing only the occurrence of the found entity
     ANTT.getOrCreateDomElement = (element, text, options = {}) ->
@@ -303,11 +291,7 @@
             .success (enhancements) =>
                     @_logger.info "rdfResult:", enhancements
                     # Get enhancements
-                    rdfJson = enhancements
-                    for ent in enhancements
-                        console.info ent, ent.get "rdfs:type"
-
-                    textAnnotations = Stanbol.getTextAnnotations(rdfJson)
+                    textAnnotations = Stanbol.getTextAnnotations(enhancements)
                     # Remove all textAnnotations without a selected text property
                     textAnnotations = _(textAnnotations)
                     .filter (textEnh) ->
