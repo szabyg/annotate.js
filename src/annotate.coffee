@@ -39,7 +39,7 @@
         labelMap = {}
         for label in _(entity["#{ns.rdfs}label"]).flatten()
             cleanLabel = label.value
-            if cleanLabel.lastIndexOf "@" is cleanLabel.length - 3
+            if cleanLabel.lastIndexOf("@") is cleanLabel.length - 3
                 cleanLabel = cleanLabel.substring 0, cleanLabel.length - 3
             labelMap[label["xml:lang"]|| "_"] = cleanLabel
         userLang = window.navigator.language.split("-")[0]
@@ -633,7 +633,11 @@
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
                     widget._logger.info "req:", req
-                    widget.options.vie.service('stanbol').connector.findEntity "#{req.term}#{if req.term.length > 3 then '*'  else ''}", (entityList) ->
+                    widget.options.vie.find({term: "#{req.term}#{if req.term.length > 3 then '*'  else ''}"})
+                    .using('stanbol').execute()
+                    .fail (e) ->
+                        widget._logger.error "Something wrong happened at stanbol find:", e
+                    .success (entityList) ->
                         widget._logger.info "resp:", _(entityList).map (ent) ->
                             ent.id
                         res = for i, entity of entityList
