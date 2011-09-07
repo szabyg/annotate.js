@@ -50,7 +50,7 @@
         labelMap = {}
         for label in _(entity["#{ns.rdfs}label"]).flatten()
             cleanLabel = label.value
-            if cleanLabel.lastIndexOf "@" is cleanLabel.length - 3
+            if cleanLabel.lastIndexOf("@") is cleanLabel.length - 3
                 cleanLabel = cleanLabel.substring 0, cleanLabel.length - 3
             labelMap[label["xml:lang"]|| "_"] = cleanLabel
         userLang = window.navigator.language.split("-")[0]
