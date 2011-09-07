@@ -633,7 +633,7 @@
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
                     widget._logger.info "req:", req
-                    widget.options.connector.findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
+                    widget.options.vie.service('stanbol').connector.findEntity "#{req.term}#{if req.term.length > 3 then '*'  else ''}", (entityList) ->
                         widget._logger.info "resp:", _(entityList).map (ent) ->
                             ent.id
                         res = for i, entity of entityList
