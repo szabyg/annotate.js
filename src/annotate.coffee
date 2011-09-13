@@ -270,7 +270,7 @@
                             uri: uri
                         cache = @
                         # make a request to the entity hub
-                        widget.options.vie.service('stanbol').connector.queryEntityHub uri, (entity) ->
+                        widget.options.vie.service('stanbol').connector.load uri, (entity) ->
                             if not entity.status
                                 if entity.id isnt uri
                                     widget._logger.warn "wrong callback", uri, entity.id
