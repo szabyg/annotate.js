@@ -87,6 +87,11 @@
         _vals: (key) ->
             @_enhancement.get key
         _uriTrim: (uriRef) ->
+            return [] unless uriRef
+            if uriRef instanceof Backbone.Collection
+                bbColl = uriRef
+                return (mod.get("@subject").replace(/^<|>$/g, "") for mod in bbColl.models)
+            else
             _(_.flatten([uriRef])).map (ur) ->
                 ur.replace /^<|>$/g, ""
 
