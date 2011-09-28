@@ -7,17 +7,11 @@
     <script type="text/javascript" src="lib/underscore-min.js"></script>
     <script type="text/javascript" src="lib/backbone.js"></script>
 
-    <script type="text/javascript" src="lib/vie.js"></script>
-    <script type="text/javascript" src="lib/vie-containermanager.js"></script>
-    <script type="text/javascript" src="lib/vie-collectionmanager.js"></script>
-
     <script type="text/javascript" src="lib/hallo/hallo.js"></script>
     <script type="text/javascript" src="lib/hallo/format.js"></script>
 
     <script type="text/javascript" src="lib/jquery.rdfquery.debug.js"></script>
-    <script type="text/javascript" src="lib/vie2/vie2-latest.debug.js"></script>
-    <script type="text/javascript" src="lib/vie2/connector/stanbol.js"></script>
-    <script type="text/javascript" src="lib/vie2/mapping/person.js"></script>
+    <script type="text/javascript" src="lib/vie/vie-latest.debug.js"></script>
 
     <script type="text/javascript" src="lib/annotate.js"></script>
 
@@ -53,16 +47,11 @@
     </style>
 
     <script>
-    VIE2.logLevels=[];
     $(document).ready(function(){
-        VIE2.connectors['stanbol'].options({
-            "enhancer_url" : "/stanbol/engines/",
-            "entityhub_url" : "/stanbol/entityhub/"
-        });
+        var z = new VIE();
+        z.use(new z.StanbolService({url : "/stanbolfull"}));
 
-        $('article.active-enhancement').remove();
-
-        // make the content area editable
+        // make the content element editable
         $('#content').hallo({
             plugins: {
               'halloformat': {}
@@ -70,7 +59,8 @@
             editable: true
         });
         $('#content').annotate({
-            connector: VIE2.connectors['stanbol'],
+            vie: z,
+            vieServices: ["stanbol"],
             debug: true,
             decline: function(event, ui){
                 console.info('decline event', event, ui);
