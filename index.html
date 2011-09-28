@@ -11,7 +11,7 @@
     <script type="text/javascript" src="lib/hallo/format.js"></script>
 
     <script type="text/javascript" src="lib/jquery.rdfquery.debug.js"></script>
-    <script type="text/javascript" src="lib/vie/zart-latest.debug.js"></script>
+    <script type="text/javascript" src="lib/vie/vie-latest.debug.js"></script>
 
     <script type="text/javascript" src="lib/annotate.js"></script>
 
@@ -48,8 +48,8 @@
 
     <script>
     $(document).ready(function(){
-        var z = new Zart();
-        z.use(new z.StanbolService({url : "/stanbol"}));
+        var z = new VIE();
+        z.use(new z.StanbolService({url : "/stanbolfull"}));
 
         // make the content element editable
         $('#content').hallo({
