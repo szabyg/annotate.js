@@ -63,9 +63,9 @@
             @_vals("enhancer:confidence")
         # get Entities suggested for the text enhancement (if any)
         getEntityEnhancements: ->
-            entityAnnotations = Stanbol.getEntityAnnotations @_enhList
-            rawList = _(entityAnnotations ).filter (ann) =>
-                ann.hasPropertyValue "dc:relation", @_enhancement.getSubject()
+            rawList = @_enhancement.get("entityAnnotation")
+            return [] unless rawList
+            rawList = _.flatten [rawList]
             _(rawList).map (ee) =>
                 new Stanbol.EntityEnhancement ee, @
         # The type of the entity suggested (e.g. person, location, organization)
@@ -88,7 +88,7 @@
             @_enhancement.get key
         _uriTrim: (uriRef) ->
             return [] unless uriRef
-            if uriRef instanceof Backbone.Collection
+            if uriRef instanceof Backbone.Model or uriRef instanceof Backbone.Collection
                 bbColl = uriRef
                 return (mod.get("@subject").replace(/^<|>$/g, "") for mod in bbColl.models)
             else
@@ -97,8 +97,9 @@
 
     # Generic API for an EntityEnhancement. This is the implementation for Stanbol
     Stanbol.EntityEnhancement = (ee, textEnh) ->
+        @_enhancement = ee
         @_textEnhancement = textEnh
-        $.extend @, ee
+        @
     Stanbol.EntityEnhancement.prototype =
         getLabel: ->
             @_vals("enhancer:entity-label")
@@ -111,11 +112,19 @@
         getConfidence: ->
             Number @_vals("enhancer:confidence")
         _vals: (key) ->
-            res = @get key
+            res = @_enhancement.get key
+            return [] unless res
             if res.pluck
                 res.pluck("@subject")
             else res
         _uriTrim: (uriRef) ->
+            return [] unless uriRef
+            if uriRef instanceof Backbone.Collection
+                bbColl = uriRef
+                return (mod.getSubject().replace(/^<|>$/g, "") for mod in bbColl.models)
+            else if uriRef instanceof Backbone.Model
+                uriRef = uriRef.getSubject()
+
             _(_.flatten([uriRef])).map (ur) ->
                 ur.replace /^<|>$/g, ""
 
@@ -208,11 +217,12 @@
                 delete curData.handle
                 curData.events = {}
 
-                `for ( var type in events ) {
-                    for ( var i = 0, l = events[ type ].length; i < l; i++ ) {
-                        jQuery.event.add( dest, type + ( events[ type ][ i ].namespace ? "." : "" ) + events[ type ][ i ].namespace, events[ type ][ i ], events[ type ][ i ].data );
-                    }
-                }`
+                for type of events
+                    i = 0
+                    l = events[type].length
+                    while i < l
+                        jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
+                        i++
             null
 
     ######################################################
@@ -275,7 +285,8 @@
                             uri: uri
                         cache = @
                         # make a request to the entity hub
-                        widget.options.vie.service('stanbol').connector.load uri, (entity) ->
+                        ###
+                        widget.options.vie.load({entity: uri}).using('stanbol').execute().success (entity) ->
                             if not entity.status
                                 if entity.id isnt uri
                                     widget._logger.warn "wrong callback", uri, entity.id
@@ -284,6 +295,7 @@
                                 $(cache._entities[uri]).trigger "done", entity
                             else
                                 widget._logger.warn "error getting entity", uri, entity
+                        ###
                     if @_entities[uri] and @_entities[uri].status is "pending"
                         $( @_entities[uri] )
                         .bind "done", (event, entity) ->
@@ -301,28 +313,36 @@
             @options.vie.analyze( element: @element ).using(@options.vieServices)
             .execute()
             .success (enhancements) =>
-                    # Get enhancements
-                    textAnnotations = Stanbol.getTextAnnotations(enhancements)
-                    # Remove all textAnnotations without a selected text property
-                    textAnnotations = _(textAnnotations)
-                    .filter (textEnh) ->
-                        if textEnh.getSelectedText and textEnh.getSelectedText()
-                            true
-                        else
-                            false
-                    _(textAnnotations)
-                    .each (s) =>
-                        @_logger.info s._enhancement,
-                            'confidence', s.getConfidence(),
-                            'selectedText', s.getSelectedText(),
-                            'type', s.getType(),
-                            'EntityEnhancements', s.getEntityEnhancements()
-                        # Process the text enhancements
-                        @processTextEnhancement s, analyzedNode
-                    # trigger 'done' event with success = true
-                    @_trigger "done", true
-                    if typeof cb is "function"
-                        cb true
+              _.defer =>
+                # Link TextAnnotation entities to EntityAnnotations
+                entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
+                for entAnn in entityAnnotations
+                    textAnn = entAnn.get "dc:relation"
+                    _(_.flatten([textAnn])).each (ta) ->
+                        ta.set
+                            "entityAnnotation": entAnn.getSubject()
+                # Get enhancements
+                textAnnotations = Stanbol.getTextAnnotations(enhancements)
+                # Remove all textAnnotations without a selected text property
+                textAnnotations = _(textAnnotations)
+                .filter (textEnh) ->
+                    if textEnh.getSelectedText and textEnh.getSelectedText()
+                        true
+                    else
+                        false
+                _(textAnnotations)
+                .each (s) =>
+                    @_logger.info s._enhancement,
+                        'confidence', s.getConfidence(),
+                        'selectedText', s.getSelectedText(),
+                        'type', s.getType(),
+                        'EntityEnhancements', s.getEntityEnhancements()
+                    # Process the text enhancements
+                    @processTextEnhancement s, analyzedNode
+                # trigger 'done' event with success = true
+                @_trigger "done", true
+                if typeof cb is "function"
+                    cb true
             .fail (xhr)->
                 cb false
                 console.error "analyze failed", xhr.responseText, xhr
@@ -550,7 +570,8 @@
             entityHtml = @element.html()
             # We ignore the old style classes
             # entityClass = @element.attr 'class'
-            sType = entityEnhancement.getTextEnhancement().getType() or ""
+            sType = entityEnhancement.getTextEnhancement().getType()
+            sType = ["Other"] unless sType.length
             entityClass = 'entity ' + ANTT.uriSuffix(sType[0]).toLowerCase()
             newElement = $ "<a href='#{entityUri}'
                 about='#{entityUri}'
