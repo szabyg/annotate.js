@@ -43,11 +43,23 @@
 
 		.entity.organisation,
 		a[typeof][about].organisation {background-color: #eff;}
-
+        #loadingDiv {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
     </style>
 
     <script>
     $(document).ready(function(){
+        $('#loadingDiv')
+        .hide()  // hide it initially
+        .ajaxStart(function() {
+            $(this).show();
+        })
+        .ajaxStop(function() {
+            $(this).hide();
+        });
         var z = new VIE();
         z.use(new z.StanbolService({url : "/stanbolfull"}));
 
@@ -131,5 +143,6 @@
             </article>
             <button class="enhanceButton">Enhance!</button>
         </div>
+        <div id="loadingDiv"><img src="spinner.gif"/></div>
     </body>
 </html>
