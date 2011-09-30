@@ -318,6 +318,8 @@
                 entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
                 for entAnn in entityAnnotations
                     textAnn = entAnn.get "dc:relation"
+                    textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
+                    continue unless textAnn
                     _(_.flatten([textAnn])).each (ta) ->
                         ta.set
                             "entityAnnotation": entAnn.getSubject()
@@ -418,7 +420,9 @@
                 ]
 
         _create: ->
-            @element.click =>
+            @element.click (e) =>
+                console.log "click", e, e.isDefaultPrevented()
+                e.preventDefault()
                 if not @dialog
                     @_createDialog()
                     setTimeout((=> @dialog.open()), 220)
@@ -473,6 +477,8 @@
 
         # make a label for the entity source based on options.getSources()
         _sourceLabel: (src) ->
+            console.warn "No source" unless src
+            return "" unless src
             sources = @options.getSources()
             sourceObj = _(sources).detect (s) -> src.indexOf(s.uri) isnt -1
             if sourceObj
@@ -664,19 +670,24 @@
                     .fail (e) ->
                         widget._logger.error "Something wrong happened at stanbol find:", e
                     .success (entityList) ->
+                      _.defer =>
                         widget._logger.info "resp:", _(entityList).map (ent) ->
                             ent.id
-                        res = for i, entity of entityList
-                            {
-                            key: entity.id
-                            label: "#{ANTT.getRightLabel entity} @ #{widget._sourceLabel entity.id}"
-                            _label: ANTT.getRightLabel entity
-                            getLabel: -> @_label
-                            getUri: -> @key
-                            # To rethink: The type of the annotation (person, place, org)
-                            # should come from the search result, not from the first textEnhancement
-                            _tEnh: sugg
-                            getTextEnhancement: -> @_tEnh
+                        limit = 10
+                        entityList = _(entityList).filter (ent) ->
+                            return false if ent.id is "http://www.iks-project.eu/ontology/rick/query/QueryResultSet"
+                            return true
+                        res = _(entityList.slice(0, limit)).map (entity) ->
+                            return {
+                                key: entity.id
+                                label: "#{ANTT.getRightLabel entity} @ #{widget._sourceLabel entity.id}"
+                                _label: ANTT.getRightLabel entity
+                                getLabel: -> @_label
+                                getUri: -> @key
+                                # To rethink: The type of the annotation (person, place, org)
+                                # should come from the search result, not from the first textEnhancement
+                                _tEnh: sugg
+                                getTextEnhancement: -> @_tEnh
                             }
                         resp res
                 # An entity selected, annotate
