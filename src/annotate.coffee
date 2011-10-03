@@ -20,7 +20,7 @@
     Stanbol.getTextAnnotations = (enhList) ->
         res = _(enhList)
         .filter (e) ->
-            e.hasType "<#{ns.enhancer}TextAnnotation>"
+            e.isof "<#{ns.enhancer}TextAnnotation>"
         res = _(res).sortBy (e) ->
             conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
             -1 * conf
