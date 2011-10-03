@@ -12,6 +12,7 @@
         enhancer: 'http://fise.iks-project.eu/ontology/'
         dc:       'http://purl.org/dc/terms/'
         rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
+        skos:     'http://www.w3.org/2004/02/skos/core#'
 
     ANTT = ANTT or {}
     Stanbol = Stanbol or {}
@@ -570,7 +571,7 @@
             if @element.attr 'about' then true else false
 
         # Place the annotation on the DOM element (about and typeof attributes)
-        annotate: (entityEnhancement, styleClass) ->
+        annotate: (entityEnhancement, options) ->
             entityUri = entityEnhancement.getUri()
             entityType = entityEnhancement.getTextEnhancement().getType() or ""
             entityHtml = @element.html()
@@ -578,10 +579,12 @@
             # entityClass = @element.attr 'class'
             sType = entityEnhancement.getTextEnhancement().getType()
             sType = ["Other"] unless sType.length
+            rel = options.rel or "#{ns.skos}related"
             entityClass = 'entity ' + ANTT.uriSuffix(sType[0]).toLowerCase()
             newElement = $ "<a href='#{entityUri}'
                 about='#{entityUri}'
                 typeof='#{entityType}'
+                rel='#{rel}'
                 class='#{entityClass}'>#{entityHtml}</a>"
             ANTT.cloneCopyEvent @element[0], newElement[0]
             @linkedEntity =
@@ -589,7 +592,7 @@
                 type: entityType
                 label: entityEnhancement.getLabel()
             @element.replaceWith newElement
-            @element = newElement.addClass styleClass
+            @element = newElement.addClass options.styleClass
             @_logger.info "created annotation in", @element
             @_updateTitle()
             @_insertLink()
@@ -619,7 +622,7 @@
             .menu({
                 select: (event, ui) =>
                     @_logger.info "selected menu item", ui.item
-                    @annotate ui.item.data('enhancement'), 'acknowledged'
+                    @annotate ui.item.data('enhancement'), styleClass: 'acknowledged'
                     @close(event)
                 blur: (event, ui) =>
                     @_logger.info 'menu.blur()', ui.item
@@ -692,7 +695,7 @@
                         resp res
                 # An entity selected, annotate
                 select: (e, ui) =>
-                    @annotate ui.item, "acknowledged"
+                    @annotate ui.item, styleClass: "acknowledged"
                     @_logger.info "autocomplete.select", e.target, ui
                 focus: (e, ui) =>
                     @_logger.info "autocomplete.focus", e.target, ui
