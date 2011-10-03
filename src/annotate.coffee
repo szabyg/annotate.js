@@ -354,9 +354,16 @@
             $( ':IKS-annotationSelector', @element ).each () ->
                 $(@).annotationSelector 'disable' if $(@).data().annotationSelector
 
-        acceptAll: ->
+        acceptAll: (reportCallback) ->
+            report = {updated: [], accepted: 0}
             $( ':IKS-annotationSelector', @element ).each () ->
-                $(@).annotationSelector 'acceptBestCandidate' if $(@).data().annotationSelector
+                if $(@).data().annotationSelector
+                    res = $(@).annotationSelector 'acceptBestCandidate'
+                    if res
+                        report.updated.push @
+                        report.accepted++
+            reportCallback report
+
         # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
         processTextEnhancement: (textEnh, parentEl) ->
             if not textEnh.getSelectedText()
@@ -616,6 +623,7 @@
             return unless eEnhancements.length
             return if @isAnnotated()
             @annotate eEnhancements[0], styleClass: "acknowledged"
+            eEnhancements[0]
 
         # closing the widget
         close: ->
