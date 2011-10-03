@@ -354,6 +354,9 @@
             $( ':IKS-annotationSelector', @element ).each () ->
                 $(@).annotationSelector 'disable' if $(@).data().annotationSelector
 
+        acceptAll: ->
+            $( ':IKS-annotationSelector', @element ).each () ->
+                $(@).annotationSelector 'acceptBestCandidate' if $(@).data().annotationSelector
         # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
         processTextEnhancement: (textEnh, parentEl) ->
             if not textEnh.getSelectedText()
@@ -427,25 +430,8 @@
                 if not @dialog
                     @_createDialog()
                     setTimeout((=> @dialog.open()), 220)
-                    # Collect all EntityEnhancements for all the TextEnhancements
-                    # on the selected node.
-                    eEnhancements = []
-                    for textEnh in @textEnhancements
-                        for enhancement in textEnh.getEntityEnhancements()
-                            eEnhancements.push enhancement
-                    # filter enhancements with the same uri
-                    # this is necessary because of a bug in stanbol that creates
-                    # duplicate enhancements.
-                    # https://issues.apache.org/jira/browse/STANBOL-228
-                    _tempUris = []
-                    eEnhancements = _(eEnhancements).filter (eEnh) ->
-                        uri = eEnh.getUri()
-                        if _tempUris.indexOf(uri) is -1
-                            _tempUris.push uri
-                            true
-                        else
-                            false
-                    @entityEnhancements = eEnhancements
+
+                    @entityEnhancements = @_getEntityEnhancements()
 
                     @_createSearchbox()
                     if @entityEnhancements.length > 0
@@ -465,6 +451,28 @@
                 @dialog.element.remove()
                 @dialog.uiDialogTitlebar.remove()
                 delete @dialog
+
+        _getEntityEnhancements: ->
+            # Collect all EntityEnhancements for all the TextEnhancements
+            # on the selected node.
+            eEnhancements = []
+            for textEnh in @textEnhancements
+                for enhancement in textEnh.getEntityEnhancements()
+                    eEnhancements.push enhancement
+            # filter enhancements with the same uri
+            # this is necessary because of a bug in stanbol that creates
+            # duplicate enhancements.
+            # https://issues.apache.org/jira/browse/STANBOL-228
+            _tempUris = []
+            eEnhancements = _(eEnhancements).filter (eEnh) ->
+                uri = eEnh.getUri()
+                if _tempUris.indexOf(uri) is -1
+                    _tempUris.push uri
+                    true
+                else
+                    false
+            _(eEnhancements).sortBy (e) ->
+                -1 * e.getConfidence()
 
         # Produce type label list out of a uri list.
         # Filtered by the @options.types list
@@ -602,6 +610,13 @@
                 linkedEntity: @linkedEntity
                 textEnhancement: entityEnhancement.getTextEnhancement()
                 entityEnhancement: entityEnhancement
+
+        acceptBestCandidate: ->
+            eEnhancements = @_getEntityEnhancements()
+            return unless eEnhancements.length
+            return if @isAnnotated()
+            @annotate eEnhancements[0], styleClass: "acknowledged"
+
         # closing the widget
         close: ->
             @destroy()
