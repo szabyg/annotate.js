@@ -12,45 +12,35 @@
         enhancer: 'http://fise.iks-project.eu/ontology/'
         dc:       'http://purl.org/dc/terms/'
         rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
+        skos:     'http://www.w3.org/2004/02/skos/core#'
 
     ANTT = ANTT or {}
     Stanbol = Stanbol or {}
 
     # filter for TextAnnotations
-    Stanbol.getTextAnnotations = (enhRdf) ->
-        res = _(enhRdf).map((obj, key) ->
-            obj.id = key
-            obj
-        )
+    Stanbol.getTextAnnotations = (enhList) ->
+        res = _(enhList)
         .filter (e) ->
-            e["#{ns.rdf}type"]
-            .map((x) -> x.value)
-            .indexOf("#{ns.enhancer}TextAnnotation") != -1
+            e.isof "<#{ns.enhancer}TextAnnotation>"
         res = _(res).sortBy (e) ->
-            conf = Number e["#{ns.enhancer}confidence"][0].value if e["#{ns.enhancer}confidence"]
+            conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
             -1 * conf
 
-        _(res).map (s)->
-            new Stanbol.TextEnhancement s, enhRdf
+        _(res).map (enh)->
+            new Stanbol.TextEnhancement enh, enhList
 
     # filter the entityManager for TextAnnotations
-    Stanbol.getEntityAnnotations = (enhRdf) ->
-        _(enhRdf)
-        .map((obj, key) ->
-            obj.id = key
-            obj
-        )
+    Stanbol.getEntityAnnotations = (enhList) ->
+        _(enhList)
         .filter (e) ->
-            e["#{ns.rdf}type"]
-            .map((x) -> x.value)
-            .indexOf("#{ns.enhancer}EntityAnnotation") != -1
+            e.hasType "<#{ns.enhancer}EntityAnnotation>"
 
     # Get the label in the user's language or the first one from a VIE entity
     ANTT.getRightLabel = (entity) ->
         labelMap = {}
         for label in _(entity["#{ns.rdfs}label"]).flatten()
             cleanLabel = label.value
-            if cleanLabel.lastIndexOf "@" is cleanLabel.length - 3
+            if cleanLabel.lastIndexOf("@") is cleanLabel.length - 3
                 cleanLabel = cleanLabel.substring 0, cleanLabel.length - 3
             labelMap[label["xml:lang"]|| "_"] = cleanLabel
         userLang = window.navigator.language.split("-")[0]
@@ -61,63 +51,83 @@
     # A TextEnhancement object has the methods for getting generic
     # text-enhancement-specific properties.
     # TODO Place it into a global Stanbol object.
-    Stanbol.TextEnhancement = (enhancement, enhRdf) ->
+    Stanbol.TextEnhancement = (enhancement, enhList) ->
         @_enhancement = enhancement
-        @_enhRdf = enhRdf
-        @id = @_enhancement.id
+        @_enhList = enhList
+        @id = @_enhancement.getSubject()
     Stanbol.TextEnhancement.prototype =
         # the text the annotation is for
         getSelectedText: ->
-            @_vals("#{ns.enhancer}selected-text")[0]
+            @_vals("enhancer:selected-text")
         # confidence value
         getConfidence: ->
-            @_vals("#{ns.enhancer}confidence")[0]
+            @_vals("enhancer:confidence")
         # get Entities suggested for the text enhancement (if any)
         getEntityEnhancements: ->
-            rawList = _(Stanbol.getEntityAnnotations @_enhRdf ).filter (ann) =>
-                relations = _(ann["#{ns.dc}relation"])
-                .map (e) -> e.value
-                if (relations.indexOf @_enhancement.id) isnt -1 then true
-                else false
+            rawList = @_enhancement.get("entityAnnotation")
+            return [] unless rawList
+            rawList = _.flatten [rawList]
             _(rawList).map (ee) =>
                 new Stanbol.EntityEnhancement ee, @
         # The type of the entity suggested (e.g. person, location, organization)
         getType: ->
-            @_vals("#{ns.dc}type")[0]
+            @_uriTrim @_vals("dc:type")
         # Optional, not used
         getContext: ->
-            @_vals("#{ns.enhancer}selection-context")[0]
+            @_vals("enhancer:selection-context")
         # start position in the original text
         getStart: ->
-            Number @_vals("#{ns.enhancer}start")[0]
+            Number @_vals("enhancer:start")
         # end position in the original text
         getEnd: ->
-            Number @_vals("#{ns.enhancer}end")[0]
+            Number @_vals("enhancer:end")
         # Optional
         getOrigText: ->
-            ciUri = @_vals("#{ns.enhancer}extracted-from")[0]
-            @_enhRdf[ciUri]["http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent"][0].value
+            ciUri = @_vals("enhancer:extracted-from")
+            @_enhList[ciUri]["http://www.semanticdesktop.org/ontologies/2007/01/19/nie#plainTextContent"][0].value
         _vals: (key) ->
-            _(@_enhancement[key])
-            .map (x) -> x.value
+            @_enhancement.get key
+        _uriTrim: (uriRef) ->
+            return [] unless uriRef
+            if uriRef instanceof Backbone.Model or uriRef instanceof Backbone.Collection
+                bbColl = uriRef
+                return (mod.get("@subject").replace(/^<|>$/g, "") for mod in bbColl.models)
+            else
+            _(_.flatten([uriRef])).map (ur) ->
+                ur.replace /^<|>$/g, ""
 
     # Generic API for an EntityEnhancement. This is the implementation for Stanbol
     Stanbol.EntityEnhancement = (ee, textEnh) ->
+        @_enhancement = ee
         @_textEnhancement = textEnh
-        $.extend @, ee
+        @
     Stanbol.EntityEnhancement.prototype =
         getLabel: ->
-            @_vals("#{ns.enhancer}entity-label")[0]
+            @_vals("enhancer:entity-label")
         getUri: ->
-            @_vals("#{ns.enhancer}entity-reference")[0]
+            @_uriTrim(@_vals("enhancer:entity-reference"))[0]
         getTextEnhancement: ->
             @_textEnhancement
         getTypes: ->
-            @_vals("#{ns.enhancer}entity-type")
+            @_uriTrim @_vals("enhancer:entity-type")
         getConfidence: ->
-            Number @_vals("#{ns.enhancer}confidence")[0]
+            Number @_vals("enhancer:confidence")
         _vals: (key) ->
-            _(@[key]).map (x) -> x.value
+            res = @_enhancement.get key
+            return [] unless res
+            if res.pluck
+                res.pluck("@subject")
+            else res
+        _uriTrim: (uriRef) ->
+            return [] unless uriRef
+            if uriRef instanceof Backbone.Collection
+                bbColl = uriRef
+                return (mod.getSubject().replace(/^<|>$/g, "") for mod in bbColl.models)
+            else if uriRef instanceof Backbone.Model
+                uriRef = uriRef.getSubject()
+
+            _(_.flatten([uriRef])).map (ur) ->
+                ur.replace /^<|>$/g, ""
 
     # get or create a dom element containing only the occurrence of the found entity
     ANTT.getOrCreateDomElement = (element, text, options = {}) ->
@@ -208,11 +218,12 @@
                 delete curData.handle
                 curData.events = {}
 
-                `for ( var type in events ) {
-                    for ( var i = 0, l = events[ type ].length; i < l; i++ ) {
-                        jQuery.event.add( dest, type + ( events[ type ][ i ].namespace ? "." : "" ) + events[ type ][ i ].namespace, events[ type ][ i ], events[ type ][ i ].data );
-                    }
-                }`
+                for type of events
+                    i = 0
+                    l = events[type].length
+                    while i < l
+                        jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
+                        i++
             null
 
     ######################################################
@@ -275,7 +286,8 @@
                             uri: uri
                         cache = @
                         # make a request to the entity hub
-                        widget.options.connector.queryEntityHub uri, (entity) ->
+                        ###
+                        widget.options.vie.load({entity: uri}).using('stanbol').execute().success (entity) ->
                             if not entity.status
                                 if entity.id isnt uri
                                     widget._logger.warn "wrong callback", uri, entity.id
@@ -284,6 +296,7 @@
                                 $(cache._entities[uri]).trigger "done", entity
                             else
                                 widget._logger.warn "error getting entity", uri, entity
+                        ###
                     if @_entities[uri] and @_entities[uri].status is "pending"
                         $( @_entities[uri] )
                         .bind "done", (event, entity) ->
@@ -298,36 +311,58 @@
             # the annotations to it. We have to clean up the annotations to any
             # old document state
 
-            @options.connector.analyze @element,
-                success: (rdf) =>
-                    # Get enhancements
-                    rdfJson = rdf.databank.dump()
-
-                    textAnnotations = Stanbol.getTextAnnotations(rdfJson)
-                    # Remove all textAnnotations without a selected text property
-                    textAnnotations = _(textAnnotations)
-                    .filter (textEnh) ->
-                        if textEnh.getSelectedText and textEnh.getSelectedText()
-                            true
-                        else
-                            false
-                    _(textAnnotations)
-                    .each (s) =>
-                        @_logger.info s._enhancement,
-                            'confidence', s.getConfidence(),
-                            'selectedText', s.getSelectedText(),
-                            'type', s.getType(),
-                            'EntityEnhancements', s.getEntityEnhancements()
-                        # Process the text enhancements
-                        @processTextEnhancement s, analyzedNode
-                    # trigger 'done' event with success = true
-                    @_trigger "done", true
-                    if typeof cb is "function"
-                        cb(true)
+            @options.vie.analyze( element: @element ).using(@options.vieServices)
+            .execute()
+            .success (enhancements) =>
+              _.defer =>
+                # Link TextAnnotation entities to EntityAnnotations
+                entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
+                for entAnn in entityAnnotations
+                    textAnn = entAnn.get "dc:relation"
+                    textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
+                    continue unless textAnn
+                    _(_.flatten([textAnn])).each (ta) ->
+                        ta.set
+                            "entityAnnotation": entAnn.getSubject()
+                # Get enhancements
+                textAnnotations = Stanbol.getTextAnnotations(enhancements)
+                # Remove all textAnnotations without a selected text property
+                textAnnotations = _(textAnnotations)
+                .filter (textEnh) ->
+                    if textEnh.getSelectedText and textEnh.getSelectedText()
+                        true
+                    else
+                        false
+                _(textAnnotations)
+                .each (s) =>
+                    @_logger.info s._enhancement,
+                        'confidence', s.getConfidence(),
+                        'selectedText', s.getSelectedText(),
+                        'type', s.getType(),
+                        'EntityEnhancements', s.getEntityEnhancements()
+                    # Process the text enhancements
+                    @processTextEnhancement s, analyzedNode
+                # trigger 'done' event with success = true
+                @_trigger "done", true
+                if typeof cb is "function"
+                    cb true
+            .fail (xhr)->
+                cb false
+                console.error "analyze failed", xhr.responseText, xhr
         # Remove all not accepted text enhancement widgets
         disable: ->
             $( ':IKS-annotationSelector', @element ).each () ->
                 $(@).annotationSelector 'disable' if $(@).data().annotationSelector
+
+        acceptAll: (reportCallback) ->
+            report = {updated: [], accepted: 0}
+            $( ':IKS-annotationSelector', @element ).each () ->
+                if $(@).data().annotationSelector
+                    res = $(@).annotationSelector 'acceptBestCandidate'
+                    if res
+                        report.updated.push @
+                        report.accepted++
+            reportCallback report
 
         # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
         processTextEnhancement: (textEnh, parentEl) ->
@@ -343,7 +378,8 @@
             sType = textEnh.getType() or "Other"
             widget = @
             el.addClass('entity')
-            .addClass ANTT.uriSuffix(sType).toLowerCase()
+            for type in sType
+                el.addClass ANTT.uriSuffix(type).toLowerCase()
             if textEnh.getEntityEnhancements().length
                 el.addClass "withSuggestions"
             for eEnh in textEnh.getEntityEnhancements()
@@ -395,29 +431,14 @@
                 ]
 
         _create: ->
-            @element.click =>
+            @element.click (e) =>
+                console.log "click", e, e.isDefaultPrevented()
+                e.preventDefault()
                 if not @dialog
                     @_createDialog()
                     setTimeout((=> @dialog.open()), 220)
-                    # Collect all EntityEnhancements for all the TextEnhancements
-                    # on the selected node.
-                    eEnhancements = []
-                    for textEnh in @textEnhancements
-                        for enhancement in textEnh.getEntityEnhancements()
-                            eEnhancements.push enhancement
-                    # filter enhancements with the same uri
-                    # this is necessary because of a bug in stanbol that creates
-                    # duplicate enhancements.
-                    # https://issues.apache.org/jira/browse/STANBOL-228
-                    _tempUris = []
-                    eEnhancements = _(eEnhancements).filter (eEnh) ->
-                        uri = eEnh.getUri()
-                        if _tempUris.indexOf(uri) is -1
-                            _tempUris.push uri
-                            true
-                        else
-                            false
-                    @entityEnhancements = eEnhancements
+
+                    @entityEnhancements = @_getEntityEnhancements()
 
                     @_createSearchbox()
                     if @entityEnhancements.length > 0
@@ -438,6 +459,28 @@
                 @dialog.uiDialogTitlebar.remove()
                 delete @dialog
 
+        _getEntityEnhancements: ->
+            # Collect all EntityEnhancements for all the TextEnhancements
+            # on the selected node.
+            eEnhancements = []
+            for textEnh in @textEnhancements
+                for enhancement in textEnh.getEntityEnhancements()
+                    eEnhancements.push enhancement
+            # filter enhancements with the same uri
+            # this is necessary because of a bug in stanbol that creates
+            # duplicate enhancements.
+            # https://issues.apache.org/jira/browse/STANBOL-228
+            _tempUris = []
+            eEnhancements = _(eEnhancements).filter (eEnh) ->
+                uri = eEnh.getUri()
+                if _tempUris.indexOf(uri) is -1
+                    _tempUris.push uri
+                    true
+                else
+                    false
+            _(eEnhancements).sortBy (e) ->
+                -1 * e.getConfidence()
+
         # Produce type label list out of a uri list.
         # Filtered by the @options.types list
         _typeLabels: (types) ->
@@ -450,6 +493,8 @@
 
         # make a label for the entity source based on options.getSources()
         _sourceLabel: (src) ->
+            console.warn "No source" unless src
+            return "" unless src
             sources = @options.getSources()
             sourceObj = _(sources).detect (s) -> src.indexOf(s.uri) isnt -1
             if sourceObj
@@ -541,17 +586,20 @@
             if @element.attr 'about' then true else false
 
         # Place the annotation on the DOM element (about and typeof attributes)
-        annotate: (entityEnhancement, styleClass) ->
+        annotate: (entityEnhancement, options) ->
             entityUri = entityEnhancement.getUri()
             entityType = entityEnhancement.getTextEnhancement().getType() or ""
             entityHtml = @element.html()
             # We ignore the old style classes
             # entityClass = @element.attr 'class'
-            sType = entityEnhancement.getTextEnhancement().getType() or ""
-            entityClass = 'entity ' + ANTT.uriSuffix(sType).toLowerCase()
+            sType = entityEnhancement.getTextEnhancement().getType()
+            sType = ["Other"] unless sType.length
+            rel = options.rel or "#{ns.skos}related"
+            entityClass = 'entity ' + ANTT.uriSuffix(sType[0]).toLowerCase()
             newElement = $ "<a href='#{entityUri}'
                 about='#{entityUri}'
                 typeof='#{entityType}'
+                rel='#{rel}'
                 class='#{entityClass}'>#{entityHtml}</a>"
             ANTT.cloneCopyEvent @element[0], newElement[0]
             @linkedEntity =
@@ -559,7 +607,7 @@
                 type: entityType
                 label: entityEnhancement.getLabel()
             @element.replaceWith newElement
-            @element = newElement.addClass styleClass
+            @element = newElement.addClass options.styleClass
             @_logger.info "created annotation in", @element
             @_updateTitle()
             @_insertLink()
@@ -569,6 +617,14 @@
                 linkedEntity: @linkedEntity
                 textEnhancement: entityEnhancement.getTextEnhancement()
                 entityEnhancement: entityEnhancement
+
+        acceptBestCandidate: ->
+            eEnhancements = @_getEntityEnhancements()
+            return unless eEnhancements.length
+            return if @isAnnotated()
+            @annotate eEnhancements[0], styleClass: "acknowledged"
+            eEnhancements[0]
+
         # closing the widget
         close: ->
             @destroy()
@@ -589,7 +645,7 @@
             .menu({
                 select: (event, ui) =>
                     @_logger.info "selected menu item", ui.item
-                    @annotate ui.item.data('enhancement'), 'acknowledged'
+                    @annotate ui.item.data('enhancement'), styleClass: 'acknowledged'
                     @close(event)
                 blur: (event, ui) =>
                     @_logger.info 'menu.blur()', ui.item
@@ -635,25 +691,34 @@
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
                     widget._logger.info "req:", req
-                    widget.options.connector.findEntity "#{req.term}#{'*' if req.term.length > 3}", (entityList) ->
+                    widget.options.vie.find({term: "#{req.term}#{if req.term.length > 3 then '*'  else ''}"})
+                    .using('stanbol').execute()
+                    .fail (e) ->
+                        widget._logger.error "Something wrong happened at stanbol find:", e
+                    .success (entityList) ->
+                      _.defer =>
                         widget._logger.info "resp:", _(entityList).map (ent) ->
                             ent.id
-                        res = for i, entity of entityList
-                            {
-                            key: entity.id
-                            label: "#{ANTT.getRightLabel entity} @ #{widget._sourceLabel entity.id}"
-                            _label: ANTT.getRightLabel entity
-                            getLabel: -> @_label
-                            getUri: -> @key
-                            # To rethink: The type of the annotation (person, place, org)
-                            # should come from the search result, not from the first textEnhancement
-                            _tEnh: sugg
-                            getTextEnhancement: -> @_tEnh
+                        limit = 10
+                        entityList = _(entityList).filter (ent) ->
+                            return false if ent.id is "http://www.iks-project.eu/ontology/rick/query/QueryResultSet"
+                            return true
+                        res = _(entityList.slice(0, limit)).map (entity) ->
+                            return {
+                                key: entity.id
+                                label: "#{ANTT.getRightLabel entity} @ #{widget._sourceLabel entity.id}"
+                                _label: ANTT.getRightLabel entity
+                                getLabel: -> @_label
+                                getUri: -> @key
+                                # To rethink: The type of the annotation (person, place, org)
+                                # should come from the search result, not from the first textEnhancement
+                                _tEnh: sugg
+                                getTextEnhancement: -> @_tEnh
                             }
                         resp res
                 # An entity selected, annotate
                 select: (e, ui) =>
-                    @annotate ui.item, "acknowledged"
+                    @annotate ui.item, styleClass: "acknowledged"
                     @_logger.info "autocomplete.select", e.target, ui
                 focus: (e, ui) =>
                     @_logger.info "autocomplete.focus", e.target, ui

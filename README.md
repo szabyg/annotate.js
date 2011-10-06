@@ -11,6 +11,13 @@ Annotate.js is the frontend widget for entity recognition back-end engines like 
 * One-line integration
 * Configurable Enhancement types
 
+## Methods
+* 'enable' gets enhancements from backend and visualizes them on the analized dom element.
+* 'disable' hides all the text enhancements that are not accepted by the user.
+* 'acceptAll' goes through all text enhancements and accepts the best candidate
+automatically.
+
+
 ## Goals
 
 * Provide Text enhancement directly in your content
