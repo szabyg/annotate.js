@@ -61,7 +61,10 @@
             $(this).hide();
         });
         var z = new VIE();
-        z.use(new z.StanbolService({url : "/stanbol"}));
+        z.use(new z.StanbolService({
+            url : "http://dev.iks-project.eu:8081", 
+            proxyDisabled: true
+        }));
 
         // make the content element editable
         $('#content').hallo({
