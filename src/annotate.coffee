@@ -163,7 +163,7 @@
         textContentOf = (element) -> $(element).text().replace(/\n/g, " ")
         # find the text node
         if textContentOf(element).indexOf(text) is -1
-            throw "'#{text}' doesn't appear in the text block."
+            console.error "'#{text}' doesn't appear in the text block."
             return $()
         start = options.start +
         textContentOf(element).indexOf textContentOf(element).trim()
@@ -318,12 +318,13 @@
                 # Link TextAnnotation entities to EntityAnnotations
                 entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
                 for entAnn in entityAnnotations
-                    textAnn = entAnn.get "dc:relation"
-                    textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
-                    continue unless textAnn
-                    _(_.flatten([textAnn])).each (ta) ->
-                        ta.set
-                            "entityAnnotation": entAnn.getSubject()
+                    textAnns = entAnn.get "dc:relation"
+                    for textAnn in _.flatten([textAnns])
+                        textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
+                        continue unless textAnn
+                        _(_.flatten([textAnn])).each (ta) ->
+                            ta.set
+                                "entityAnnotation": entAnn.getSubject()
                 # Get enhancements
                 textAnnotations = Stanbol.getTextAnnotations(enhancements)
                 # Remove all textAnnotations without a selected text property
