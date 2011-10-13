@@ -42,7 +42,7 @@
             cleanLabel = label.value
             if cleanLabel.lastIndexOf("@") is cleanLabel.length - 3
                 cleanLabel = cleanLabel.substring 0, cleanLabel.length - 3
-            labelMap[label["xml:lang"]|| "_"] = cleanLabel
+            labelMap[label["lang"]|| "_"] = cleanLabel
         userLang = window.navigator.language.split("-")[0]
         # Return the first best label
         labelMap[userLang] or labelMap["_"] or labelMap["en"]
@@ -103,7 +103,7 @@
         @
     Stanbol.EntityEnhancement.prototype =
         getLabel: ->
-            @_vals("enhancer:entity-label")
+            @_vals("enhancer:entity-label").replace(/(^\"*|\"*@..$)/g,"")
         getUri: ->
             @_uriTrim(@_vals("enhancer:entity-reference"))[0]
         getTextEnhancement: ->
