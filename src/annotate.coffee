@@ -347,9 +347,9 @@
                 @_trigger "done", true
                 if typeof cb is "function"
                     cb true
-            .fail (xhr)->
+            .fail (xhr)=>
                 cb false
-                console.error "analyze failed", xhr.responseText, xhr
+                @_logger.error "analyze failed", xhr.responseText, xhr
         # Remove all not accepted text enhancement widgets
         disable: ->
             $( ':IKS-annotationSelector', @element ).each () ->
@@ -368,7 +368,7 @@
         # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
         processTextEnhancement: (textEnh, parentEl) ->
             if not textEnh.getSelectedText()
-                console.warn "textEnh", textEnh, "doesn't have selected-text!"
+                @_logger.warn "textEnh", textEnh, "doesn't have selected-text!"
                 return
             el = $ ANTT.getOrCreateDomElement parentEl[0], textEnh.getSelectedText(),
                 createElement: 'span'
@@ -433,7 +433,7 @@
 
         _create: ->
             @element.click (e) =>
-                console.log "click", e, e.isDefaultPrevented()
+                @_logger.log "click", e, e.isDefaultPrevented()
                 e.preventDefault()
                 if not @dialog
                     @_createDialog()
