@@ -33,7 +33,7 @@
     Stanbol.getEntityAnnotations = (enhList) ->
         _(enhList)
         .filter (e) ->
-            e.hasType "<#{ns.enhancer}EntityAnnotation>"
+            e.isof "<#{ns.enhancer}EntityAnnotation>"
 
     # Get the label in the user's language or the first one from a VIE entity
     ANTT.getRightLabel = (entity) ->
@@ -676,7 +676,7 @@
             active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
                     " class='ui-state-active'"
                 else ""
-            $("<li#{active}><a href='#'>#{label} <small>(#{type} from #{source})</small></a></li>")
+            $("<li#{active}><a>#{label} <small>(#{type} from #{source})</small></a></li>")
             .data('enhancement', eEnhancement)
             .appendTo ul
 
