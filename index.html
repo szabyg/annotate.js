@@ -2,6 +2,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="lib/Smoothness/jquery.ui.all.css" />
+    <link rel="stylesheet" href="annotate.css" />
 
     <script type="text/javascript" src="lib/jquery-1.5.1.js"></script>
     <script type="text/javascript" src="lib/jquery-ui.1.9m5.js"></script>
@@ -20,30 +21,6 @@
 		article {
 			padding: 10px;
 		}
-		span.entity,
-		a[typeof][about] {
-			z-index: -1;
-			margin: -3px;
-			padding: 1px;
-			background-color: #E0E0E0;
-			/* box-shadow: 2px 2px 5px grey;*/
-			border-radius: 3px;
-			border: outset rgba(0, 0, 0, 0.1);
-			white-space: nowrap;
-			border-width:2px;
-		}
-		a[typeof][about] {border-radius:1px;border-width:1px;}
-		a[typeof][about] {color: black}
-		.entity.withSuggestions {border-color: rgba(0, 0, 0, 0.5);}
-
-		.entity.person, 
-		a[typeof][about].person       {background-color: #ffe;}
-
-		.entity.place,
-		a[typeof][about].place        {background-color: #fef;}
-
-		.entity.organisation,
-		a[typeof][about].organisation {background-color: #eff;}
         #loadingDiv {
             position: absolute;
             top: 10px;
