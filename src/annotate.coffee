@@ -239,6 +239,7 @@
             ns:
                 dbpedia:  "http://dbpedia.org/ontology/"
                 skos:     "http://www.w3.org/2004/02/skos/core#"
+            typeFilter: null
             # Give a label to your expected enhancement types
             getTypes: ->
                 [
@@ -327,6 +328,7 @@
                                 "entityAnnotation": entAnn.getSubject()
                 # Get enhancements
                 textAnnotations = Stanbol.getTextAnnotations(enhancements)
+                textAnnotations = @_filterByType textAnnotations
                 # Remove all textAnnotations without a selected text property
                 textAnnotations = _(textAnnotations)
                 .filter (textEnh) ->
@@ -395,6 +397,12 @@
             $.extend options, @options
             el.annotationSelector( options )
             .annotationSelector 'addTextEnhancement', textEnh
+        _filterByType: (textAnnotations) ->
+            return textAnnotations unless @options.typeFilter
+            _.filter textAnnotations, (ta) =>
+                return yes if @options.typeFilter in ta.getType()
+                for type in @options.typeFilter
+                    return yes if type in ta.getType()
 
     ######################################################
     # AnnotationSelector widget

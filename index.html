@@ -54,6 +54,7 @@
         $('.content').annotate({
             vie: z,
             vieServices: ["stanbol"],
+            // typeFilter: ["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"],
             debug: true,
             decline: function(event, ui){
                 console.info('decline event', event, ui);
