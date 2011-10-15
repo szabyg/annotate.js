@@ -11,12 +11,28 @@ Annotate.js is the frontend widget for entity recognition back-end engines like 
 * One-line integration
 * Configurable Enhancement types
 
+## Options
+* 'vie': VIE instance to use. Default is a simple VIE instance with Stanbol service 
+configured to connect http://dev.iks-project.eu:8080 which is the actual demo stable launcher.
+* 'vieServices': defines which services to use for the annotation. Default ['stanbol']
+* 'autoAnalyze': fire analyze on initialization
+* 'typeFilter': Annotation Type(s) to filter for. Default empty. Example: 
+["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"]
+* 'debug': Shows console messages about what's happening
+* 'ns': map of relevant namespaces. Default is dbPedia and skos namesoace definitions.
+
 ## Methods
 * 'enable' gets enhancements from backend and visualizes them on the analized dom element.
 * 'disable' hides all the text enhancements that are not accepted by the user.
 * 'acceptAll' goes through all text enhancements and accepts the best candidate
 automatically.
 
+## Events
+* 'success': finished loading annotations
+* 'error': error loading annotations
+* 'select': User selected an annotation
+* 'decline': User declined a suggestion
+* 'remove': User removed a previously selected annotation
 
 ## Goals
 
