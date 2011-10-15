@@ -14,6 +14,13 @@
         rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
         skos:     'http://www.w3.org/2004/02/skos/core#'
 
+    vie = new VIE()
+    vie.use(new vie.StanbolService({
+        url : "http://dev.iks-project.eu:8080",
+        proxyDisabled: true
+    }));
+
+
     ANTT = ANTT or {}
     Stanbol = Stanbol or {}
 
@@ -233,6 +240,8 @@
     jQuery.widget 'IKS.annotate',
         __widgetName: "IKS.annotate"
         options:
+            vie: vie
+            vieServices: ["stanbol"]
             autoAnalyze: false
             debug: false
             # namespaces necessary for the widget configuration
@@ -346,11 +355,11 @@
                     # Process the text enhancements
                     @processTextEnhancement s, analyzedNode
                 # trigger 'done' event with success = true
-                @_trigger "done", true
-                if typeof cb is "function"
-                    cb true
-            .fail (xhr)=>
-                cb false
+                @_trigger "success", true
+                cb true if typeof cb is "function"
+            .fail (xhr) =>
+                cb false, xhr if typeof cb is "function"
+                @_trigger 'error', xhr
                 @_logger.error "analyze failed", xhr.responseText, xhr
         # Remove all not accepted text enhancement widgets
         disable: ->

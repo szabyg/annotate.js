@@ -53,9 +53,9 @@
         });
         $('.content').annotate({
             vie: z,
-            vieServices: ["stanbol"],
             // typeFilter: ["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"],
             debug: true,
+            autoAnalyze: false,
             decline: function(event, ui){
                 console.info('decline event', event, ui);
             },
@@ -64,8 +64,13 @@
             },
             remove: function(event, ui){
                 console.info('remove event', event, ui);
+            },
+            success: function(event, ui){
+                console.info('success event', event, ui);
+            },
+            error: function(event, ui){
+                console.info('error event', event, ui);
             }
-
         });
 
         $('.acceptAllButton')
