@@ -23,6 +23,7 @@
 
     ANTT = ANTT or {}
     Stanbol = Stanbol or {}
+    window.entityCache = {}
 
     # filter for TextAnnotations
     Stanbol.getTextAnnotations = (enhList) ->
@@ -281,36 +282,52 @@
                 warn: ->
                 error: ->
             # widget.entityCache.get(uri, cb) will get and cache the entity from an entityhub
-            @entityCache = window.entityCache =
-                _entities: {}
+            @entityCache = 
+                _entities: -> window.entityCache
                 # calling the get with a scope and callback will call cb(entity) with the scope as soon it's available.'
-                get: (uri, scope, cb) ->
+                get: (uri, scope, success, error) ->
                     # If entity is stored in the cache already just call cb
-                    if @_entities[uri] and @_entities[uri].status is "done"
-                        cb.apply scope, [@_entities[uri].entity]
+                    if @_entities()[uri] and @_entities()[uri].status is "done"
+                        if typeof success is "function"
+                            success.apply scope, [@_entities()[uri].entity]
+                    else if @_entities()[uri] and @_entities()[uri].status is "error"
+                        if typeof error is "function"
+                            error.apply scope, ["error"]
                     # If the entity is new to the cache
-                    else if not @_entities[uri]
+                    else if not @_entities()[uri]
                         # create cache entry
-                        @_entities[uri] = 
+                        @_entities()[uri] = 
                             status: "pending"
                             uri: uri
                         cache = @
                         # make a request to the entity hub
-                        ###
-                        widget.options.vie.load({entity: uri}).using('stanbol').execute().success (entity) ->
-                            if not entity.status
-                                if entity.id isnt uri
-                                    widget._logger.warn "wrong callback", uri, entity.id
-                                cache._entities[uri].entity = entity
-                                cache._entities[uri].status = "done"
-                                $(cache._entities[uri]).trigger "done", entity
-                            else
-                                widget._logger.warn "error getting entity", uri, entity
-                        ###
-                    if @_entities[uri] and @_entities[uri].status is "pending"
-                        $( @_entities[uri] )
+                        widget.options.vie.load({entity: uri}).using('stanbol').execute().success (entityArr) =>
+                            _.defer =>
+                                cacheEntry = @_entities()[uri]
+                                entity = _.detect entityArr, (e) ->
+                                    true if e.getSubject() is "<#{uri}>"
+                                if entity
+                                    cacheEntry.entity = entity
+                                    cacheEntry.status = "done"
+                                    $(cacheEntry).trigger "done", entity
+                                else
+                                    widget._logger.warn "couldn''t load #{uri}", entityArr
+                                    cacheEntry.status = "not found"
+                        .fail (e) =>
+                            _.defer =>
+                                widget._logger.error "couldn't load #{uri}"
+                                cacheEntry = @_entities()[uri]
+                                cacheEntry.status = "error"
+                                $(cacheEntry).trigger "fail", e
+
+                    if @_entities()[uri] and @_entities()[uri].status is "pending"
+                        $( @_entities()[uri] )
                         .bind "done", (event, entity) ->
-                            cb.apply scope, [entity]
+                            if typeof success is "function"
+                                success.apply scope, [entity]
+                        .bind "fail", (event, error) ->
+                            if typeof error is "function"
+                                error.apply scope, [error]
             if @options.autoAnalyze
                 @enable()
 
@@ -333,7 +350,7 @@
                         textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
                         continue unless textAnn
                         _(_.flatten([textAnn])).each (ta) ->
-                            ta.set
+                            ta.setOrAdd
                                 "entityAnnotation": entAnn.getSubject()
                 # Get enhancements
                 textAnnotations = Stanbol.getTextAnnotations(enhancements)
@@ -396,14 +413,15 @@
                 el.addClass "withSuggestions"
             for eEnh in textEnh.getEntityEnhancements()
                 eEnhUri = eEnh.getUri()
-                @entityCache.get eEnhUri, eEnh, (entity) ->
-                    if this.getUri() isnt entity.id
-                        widget._logger.warn "wrong callback", entity.id, this.getUri()
-#                    widget._logger.info "entity for", textEnh.getSelectedText(), this.getUri(), entity
+                @entityCache.get eEnhUri, eEnh, (entity) =>
+                    if "<#{eEnhUri}>" is entity.getSubject()
+                        @_logger.info "entity #{eEnhUri} is loaded:",
+                            entity.as "JSON"
+                    else
+                        widget._logger.warn "wrong callback", entity.getSubject(), eEnhUri
             # Create widget to select from the suggested entities
-            options =
-                cache: @entityCache
-            $.extend options, @options
+            options = @options
+            options.cache = @entityCache
             el.annotationSelector( options )
             .annotationSelector 'addTextEnhancement', textEnh
         _filterByType: (textAnnotations) ->
@@ -656,6 +674,7 @@
 
         # create menu and add to the dialog
         _createMenu: ->
+            widget = @
             ul = $('<ul></ul>')
             .appendTo( @dialog.element )
             @_renderMenu ul, @entityEnhancements
@@ -667,11 +686,19 @@
                     @close(event)
                 blur: (event, ui) =>
                     @_logger.info 'menu.blur()', ui.item
-                focus: (event, ui) =>
-                    @_logger.info 'menu.focus()', ui.item
-                    # show preview
-                    @_entityPreview ui.item
             })
+            .tooltip
+                items: ".ui-menu-item"
+                hide: 
+                    effect: "hide"
+                    delay: 50
+                show:
+                    effect: "show"
+                    delay: 50
+                content: (response) ->
+                    uri = jQuery( @ ).attr "entityuri"
+                    widget._createPreview uri, response
+                    "loading..."
             .bind('blur', (event, ui) ->
                 @_logger.info 'menu blur', ui
             )
@@ -680,6 +707,27 @@
             )
             .focus(150)
             .data 'menu'
+        _createPreview: (uri, response) ->
+            success = (cacheEntity) =>
+                html = ""
+                if cacheEntity.get('foaf:depiction')
+                    depictionUrl = _(cacheEntity.get('foaf:depiction')).detect (uri) ->
+                        true if uri.indexOf("thumb") isnt -1
+                    html += "<img width='200' style='float:left;padding: 5px;' src='#{depictionUrl.substring 1, depictionUrl.length-1}'/>"
+                if cacheEntity.get('rdfs:comment')
+                    descr = cacheEntity.get('rdfs:comment').replace /(^\"*|\"*@..$)/g, ""
+                    html += "<div style='padding 5px;width:300px;float:left;'><small>#{descr}</small></div>"
+                @_logger.info "tooltip for #{uri}: cacheEntry loaded", cacheEntity
+                setTimeout ->
+                    response html
+                , 200
+
+            fail = (e) =>
+                @_logger.error "error loading #{uri}", e
+                response "error loading entity for #{uri}"
+
+            @options.cache.get uri, @, success, fail
+
 
         # Rendering menu for the EntityEnhancements suggested for the selected text
         _renderMenu: (ul, entityEnhancements) ->
@@ -693,7 +741,7 @@
             active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
                     " class='ui-state-active'"
                 else ""
-            $("<li#{active}><a>#{label} <small>(#{type} from #{source})</small></a></li>")
+            item = $("<li#{active} entityuri='#{eEnhancement.getUri()}'><a>#{label} <small>(#{type} from #{source})</small></a></li>")
             .data('enhancement', eEnhancement)
             .appendTo ul
 
@@ -734,21 +782,30 @@
                                 getTextEnhancement: -> @_tEnh
                             }
                         resp res
+                open: (e, ui) ->
+                    widget._logger.info "autocomplete.open", e, ui
+                    $(this).data().autocomplete.menu.activeMenu
+                    .tooltip
+                        items: ".ui-menu-item"
+                        hide: 
+                            effect: "hide"
+                            delay: 50
+                        show:
+                            effect: "show"
+                            delay: 50
+                        content: (response) ->
+                            uri = $( @ ).data()["item.autocomplete"].getUri()
+                            widget._createPreview uri, response
+                            "loading..."
+
                 # An entity selected, annotate
                 select: (e, ui) =>
                     @annotate ui.item, styleClass: "acknowledged"
                     @_logger.info "autocomplete.select", e.target, ui
-                focus: (e, ui) =>
-                    @_logger.info "autocomplete.focus", e.target, ui
-                    @_entityPreview ui.item
             .focus(200)
             .blur (e, ui) =>
                 @_dialogCloseTimeout = setTimeout ( => @close()), 200
             @_logger.info "show searchbox"
-        # Show preview of a hovered item
-        _entityPreview: _.throttle(( (item) ->
-            @_logger.info "Show preview for", item
-        ), 1500)
 
         # add a textEnhancement that gets shown when the dialog is rendered
         addTextEnhancement: (textEnh) ->
