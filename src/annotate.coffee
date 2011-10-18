@@ -244,6 +244,7 @@
             vie: vie
             vieServices: ["stanbol"]
             autoAnalyze: false
+            showTooltip: true
             debug: false
             # namespaces necessary for the widget configuration
             ns:
@@ -484,6 +485,8 @@
                 info: ->
                 warn: ->
                 error: ->
+            if @isAnnotated()
+                @_initTooltip()
         _destroy: ->
             if @menu
                 @menu.destroy()
@@ -494,6 +497,22 @@
                 @dialog.element.remove()
                 @dialog.uiDialogTitlebar.remove()
                 delete @dialog
+        _initTooltip: ->
+            widget = @
+            if @options.showTooltip
+                jQuery(@element).tooltip
+                    items: "[about]"
+                    hide: 
+                        effect: "hide"
+                        delay: 50
+                    show:
+                        effect: "show"
+                        delay: 50
+                    content: (response) =>
+                        uri = @linkedEntity.uri
+                        @_logger.info "ttooltip uri:", uri
+                        widget._createPreview uri, response
+                        "loading..."
 
         _getEntityEnhancements: ->
             # Collect all EntityEnhancements for all the TextEnhancements
@@ -600,6 +619,7 @@
         # element with the plain text and close the dialog
         remove: (event) ->
             el = @element.parent()
+            @element.toolbar "destroy"
             if not @isAnnotated() and @textEnhancements
                 @_trigger 'decline', event,
                     textEnhancements: @textEnhancements
@@ -653,6 +673,7 @@
                 linkedEntity: @linkedEntity
                 textEnhancement: entityEnhancement.getTextEnhancement()
                 entityEnhancement: entityEnhancement
+            @_initTooltip()
 
         acceptBestCandidate: ->
             eEnhancements = @_getEntityEnhancements()
@@ -664,6 +685,7 @@
         # closing the widget
         close: ->
             @destroy()
+            jQuery(".ui-tooltip").remove()
         _updateTitle: ->
             if @dialog
                 if @isAnnotated()
@@ -713,7 +735,7 @@
                 if cacheEntity.get('foaf:depiction')
                     depictionUrl = _(cacheEntity.get('foaf:depiction')).detect (uri) ->
                         true if uri.indexOf("thumb") isnt -1
-                    html += "<img width='200' style='float:left;padding: 5px;' src='#{depictionUrl.substring 1, depictionUrl.length-1}'/>"
+                    html += "<img style='float:left;padding: 5px;width: 200px' src='#{depictionUrl.substring 1, depictionUrl.length-1}'/>"
                 if cacheEntity.get('rdfs:comment')
                     descr = cacheEntity.get('rdfs:comment').replace /(^\"*|\"*@..$)/g, ""
                     html += "<div style='padding 5px;width:300px;float:left;'><small>#{descr}</small></div>"
@@ -725,7 +747,7 @@
             fail = (e) =>
                 @_logger.error "error loading #{uri}", e
                 response "error loading entity for #{uri}"
-
+            jQuery(".ui-tooltip").remove()
             @options.cache.get uri, @, success, fail
 
 

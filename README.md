@@ -16,6 +16,7 @@ Annotate.js is the frontend widget for entity recognition back-end engines like 
 configured to connect http://dev.iks-project.eu:8080 which is the actual demo stable launcher.
 * 'vieServices': defines which services to use for the annotation. Default ['stanbol']
 * 'autoAnalyze': fire analyze on initialization
+* 'showTooltip': (don't) show a preview tooltip when mouseovering an already annotated word.
 * 'typeFilter': Annotation Type(s) to filter for. Default empty. Example: 
 ["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"]
 * 'debug': Shows console messages about what's happening
