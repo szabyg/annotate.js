@@ -470,7 +470,7 @@
         _create: ->
             @element.click (e) =>
                 @_logger.log "click", e, e.isDefaultPrevented()
-                e.preventDefault()
+#                e.preventDefault()
                 if not @dialog
                     @_createDialog()
                     setTimeout((=> @dialog.open()), 220)
@@ -487,6 +487,19 @@
                 error: ->
             if @isAnnotated()
                 @_initTooltip()
+                @linkedEntity =
+                    uri: @element.attr "about"
+                    type: @element.attr "typeof"
+                @options.cache.get @linkedEntity.uri, @, (cachedEntity) =>
+                    userLang = window.navigator.language.split("-")[0]
+                    @linkedEntity.label = _(cachedEntity.get("rdfs:label"))
+                    .detect((label) =>
+                        if label.indexOf("@#{userLang}") > -1
+                            @_logger.info "figure me out:", label
+                            true
+                    )
+                    .replace /(^\"*|\"*@..$)/g, ""
+                    @_logger.info "did I figure out?", @linkedEntity.label
         _destroy: ->
             if @menu
                 @menu.destroy()
@@ -509,7 +522,7 @@
                         effect: "show"
                         delay: 50
                     content: (response) =>
-                        uri = @linkedEntity.uri
+                        uri = @element.attr "about"
                         @_logger.info "ttooltip uri:", uri
                         widget._createPreview uri, response
                         "loading..."
@@ -619,7 +632,7 @@
         # element with the plain text and close the dialog
         remove: (event) ->
             el = @element.parent()
-            @element.toolbar "destroy"
+            @element.tooltip "destroy"
             if not @isAnnotated() and @textEnhancements
                 @_trigger 'decline', event,
                     textEnhancements: @textEnhancements
