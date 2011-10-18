@@ -709,18 +709,6 @@
                 blur: (event, ui) =>
                     @_logger.info 'menu.blur()', ui.item
             })
-            .tooltip
-                items: ".ui-menu-item"
-                hide: 
-                    effect: "hide"
-                    delay: 50
-                show:
-                    effect: "show"
-                    delay: 50
-                content: (response) ->
-                    uri = jQuery( @ ).attr "entityuri"
-                    widget._createPreview uri, response
-                    "loading..."
             .bind('blur', (event, ui) ->
                 @_logger.info 'menu blur', ui
             )
@@ -728,7 +716,20 @@
                 @_logger.info 'menu menublur', ui.item
             )
             .focus(150)
-            .data 'menu'
+            if @options.showTooltip
+                @menu.tooltip
+                    items: ".ui-menu-item"
+                    hide: 
+                        effect: "hide"
+                        delay: 50
+                    show:
+                        effect: "show"
+                        delay: 50
+                    content: (response) ->
+                        uri = jQuery( @ ).attr "entityuri"
+                        widget._createPreview uri, response
+                        "loading..."
+            @menu = @menu.data 'menu'
         _createPreview: (uri, response) ->
             success = (cacheEntity) =>
                 html = ""
@@ -806,19 +807,20 @@
                         resp res
                 open: (e, ui) ->
                     widget._logger.info "autocomplete.open", e, ui
-                    $(this).data().autocomplete.menu.activeMenu
-                    .tooltip
-                        items: ".ui-menu-item"
-                        hide: 
-                            effect: "hide"
-                            delay: 50
-                        show:
-                            effect: "show"
-                            delay: 50
-                        content: (response) ->
-                            uri = $( @ ).data()["item.autocomplete"].getUri()
-                            widget._createPreview uri, response
-                            "loading..."
+                    if widget.options.showTooltip
+                        $(this).data().autocomplete.menu.activeMenu
+                        .tooltip
+                            items: ".ui-menu-item"
+                            hide: 
+                                effect: "hide"
+                                delay: 50
+                            show:
+                                effect: "show"
+                                delay: 50
+                            content: (response) ->
+                                uri = $( @ ).data()["item.autocomplete"].getUri()
+                                widget._createPreview uri, response
+                                "loading..."
 
                 # An entity selected, annotate
                 select: (e, ui) =>
