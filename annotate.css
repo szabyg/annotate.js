@@ -29,4 +29,6 @@ a[typeof][about].organisation {background-color: #eff;}
     top: 10px;
     right: 10px;
 }
-
+.ui-dialog, .ui-tooltip {
+    font-size: 95%;
+}
