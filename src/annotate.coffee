@@ -747,12 +747,14 @@
             success = (cacheEntity) =>
                 html = ""
                 if cacheEntity.get('foaf:depiction')
+                    picSize = 90
                     depictionUrl = _(cacheEntity.get('foaf:depiction')).detect (uri) ->
                         true if uri.indexOf("thumb") isnt -1
-                    html += "<img style='float:left;padding: 5px;width: 200px' src='#{depictionUrl.substring 1, depictionUrl.length-1}'/>"
+                    .replace "200px", "#{picSize}px"
+                    html += "<img style='float:left;padding: 5px;width: #{picSize}px' src='#{depictionUrl.substring 1, depictionUrl.length-1}'/>"
                 if cacheEntity.get('rdfs:comment')
                     descr = cacheEntity.get('rdfs:comment').replace /(^\"*|\"*@..$)/g, ""
-                    html += "<div style='padding 5px;width:300px;float:left;'><small>#{descr}</small></div>"
+                    html += "<div style='padding 5px;width:250px;float:left;'><small>#{descr}</small></div>"
                 @_logger.info "tooltip for #{uri}: cacheEntry loaded", cacheEntity
                 setTimeout ->
                     response html
@@ -788,7 +790,7 @@
             .appendTo @dialog.element
             sugg = @textEnhancements[0]
             widget = @
-            $( '.search', @searchEntryField )
+            @searchbox = $( '.search', @searchEntryField )
             .autocomplete
                 # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
@@ -834,7 +836,6 @@
                                 uri = $( @ ).data()["item.autocomplete"].getUri()
                                 widget._createPreview uri, response
                                 "loading..."
-
                 # An entity selected, annotate
                 select: (e, ui) =>
                     @annotate ui.item, styleClass: "acknowledged"
@@ -842,6 +843,14 @@
             .focus(200)
             .blur (e, ui) =>
                 @_dialogCloseTimeout = setTimeout ( => @close()), 200
+                
+            if not @entityEnhancements.length and not @isAnnotated()
+                setTimeout =>
+                    label = @element.html()
+                    @searchbox.val label
+                    @searchbox.autocomplete "search", label
+                , 300
+                
             @_logger.info "show searchbox"
 
         # add a textEnhancement that gets shown when the dialog is rendered
