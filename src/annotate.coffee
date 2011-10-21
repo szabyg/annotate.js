@@ -877,11 +877,11 @@
                             ent.id
                         limit = 10
                         entityList = _(entityList).filter (ent) ->
-                            return false if ent.id is "http://www.iks-project.eu/ontology/rick/query/QueryResultSet"
+                            return false if ent.getSubject().replace(/^<|>$/g, "") is "http://www.iks-project.eu/ontology/rick/query/QueryResultSet"
                             return true
                         res = _(entityList.slice(0, limit)).map (entity) ->
                             return {
-                                key: entity.id
+                                key: entity.getSubject().replace /^<|>$/g, ""
                                 label: "#{widget._getLabel entity} @ #{widget._sourceLabel entity.id}"
                                 _label: widget._getLabel entity
                                 getLabel: -> @_label
