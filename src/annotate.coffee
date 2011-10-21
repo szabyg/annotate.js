@@ -43,18 +43,6 @@
         .filter (e) ->
             e.isof "<#{ns.enhancer}EntityAnnotation>"
 
-    # Get the label in the user's language or the first one from a VIE entity
-    ANTT.getRightLabel = (entity) ->
-        labelMap = {}
-        for label in _(entity["#{ns.rdfs}label"]).flatten()
-            cleanLabel = label.value
-            if cleanLabel.lastIndexOf("@") is cleanLabel.length - 3
-                cleanLabel = cleanLabel.substring 0, cleanLabel.length - 3
-            labelMap[label["lang"]|| "_"] = cleanLabel
-        userLang = window.navigator.language.split("-")[0]
-        # Return the first best label
-        labelMap[userLang] or labelMap["_"] or labelMap["en"]
-
     # Generic API for a TextEnhancement
     # A TextEnhancement object has the methods for getting generic
     # text-enhancement-specific properties.
@@ -324,6 +312,7 @@
                 _entities: -> window.entityCache
                 # calling the get with a scope and callback will call cb(entity) with the scope as soon it's available.'
                 get: (uri, scope, success, error) ->
+                    uri = uri.replace /^<|>$/g, ""
                     # If entity is stored in the cache already just call cb
                     if @_entities()[uri] and @_entities()[uri].status is "done"
                         if typeof success is "function"
@@ -893,8 +882,8 @@
                         res = _(entityList.slice(0, limit)).map (entity) ->
                             return {
                                 key: entity.id
-                                label: "#{ANTT.getRightLabel entity} @ #{widget._sourceLabel entity.id}"
-                                _label: ANTT.getRightLabel entity
+                                label: "#{widget._getLabel entity} @ #{widget._sourceLabel entity.id}"
+                                _label: widget._getLabel entity
                                 getLabel: -> @_label
                                 getUri: -> @key
                                 # To rethink: The type of the annotation (person, place, org)
