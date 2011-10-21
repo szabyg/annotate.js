@@ -246,6 +246,43 @@
             autoAnalyze: false
             showTooltip: true
             debug: false
+            depictionProperties: [
+                "foaf:depiction"
+            ]
+            labelProperties: [
+                "rdfs:label"
+                "skos:prefLabel"
+                "schema:name"
+                "foaf:name"
+            ]
+            descriptionProperties: [
+                "rdfs:comment"
+                "skos:note"
+                "schema:description"
+                "skos:definition"
+                    property: "skos:broader"
+                    makeLabel: (propertyValueArr) ->
+                        labels = _(propertyValueArr).map (termUri) ->
+                            # extract the last part of the uri
+                            termUri
+                            .replace(/<.*[\/#](.*)>/, "$1")
+                            .replace /_/g, "&nbsp;"
+                        "Subcategory of #{labels.join ', '}."
+                ,
+                    property: "dc:subject"
+                    makeLabel: (propertyValueArr) ->
+                        labels = _(propertyValueArr).map (termUri) ->
+                            # extract the last part of the uri
+                            termUri
+                            .replace(/<.*[\/#](.*)>/, "$1")
+                            .replace /_/g, "&nbsp;"
+                        "Subject(s): #{labels.join ', '}."
+                        
+                        
+                        
+
+            ]
+            defaultLanguage: "en"
             # namespaces necessary for the widget configuration
             ns:
                 dbpedia:  "http://dbpedia.org/ontology/"
@@ -495,7 +532,6 @@
                     @linkedEntity.label = _(cachedEntity.get("rdfs:label"))
                     .detect((label) =>
                         if label.indexOf("@#{userLang}") > -1
-                            @_logger.info "figure me out:", label
                             true
                     )
                     .replace /(^\"*|\"*@..$)/g, ""
@@ -746,16 +782,17 @@
         _createPreview: (uri, response) ->
             success = (cacheEntity) =>
                 html = ""
-                if cacheEntity.get('foaf:depiction')
-                    picSize = 90
-                    depictionUrl = _(cacheEntity.get('foaf:depiction')).detect (uri) ->
-                        true if uri.indexOf("thumb") isnt -1
-                    .replace "200px", "#{picSize}px"
+                picSize = 100
+                depictionUrl = @_getDepiction cacheEntity, picSize
+                if depictionUrl
                     html += "<img style='float:left;padding: 5px;width: #{picSize}px' src='#{depictionUrl.substring 1, depictionUrl.length-1}'/>"
-                if cacheEntity.get('rdfs:comment')
-                    descr = cacheEntity.get('rdfs:comment').replace /(^\"*|\"*@..$)/g, ""
-                    html += "<div style='padding 5px;width:250px;float:left;'><small>#{descr}</small></div>"
+                descr = @_getDescription cacheEntity
+                unless descr
+                    @_logger.warn "No description found for", cacheEntity
+                    descr = "No description found."
+                html += "<div style='padding 5px;width:250px;float:left;'><small>#{descr}</small></div>"
                 @_logger.info "tooltip for #{uri}: cacheEntry loaded", cacheEntity
+                # workaround for a tooltip widget bug
                 setTimeout ->
                     response html
                 , 200
@@ -766,6 +803,52 @@
             jQuery(".ui-tooltip").remove()
             @options.cache.get uri, @, success, fail
 
+        _getUserLang: ->
+            window.navigator.language.split("-")[0]
+        _getDepiction: (entity, picSize) ->
+            preferredFields = @options.depictionProperties
+            # field is the first property name with a value
+            field = _(preferredFields).detect (field) ->
+                true if entity.get field
+            # fieldValue is an array of at least one value
+            if field && fieldValue = _([entity.get field]).flatten()
+                # 
+                depictionUrl = _(fieldValue).detect (uri) ->
+                    true if uri.indexOf("thumb") isnt -1
+                .replace /[0-9]{2..3}px/, "#{picSize}px"
+                depictionUrl
+
+        _getLabel: (entity) ->
+            preferredFields = @options.labelProperties
+            preferredLanguages = [@_getUserLang(), @options.defaultLanguage]
+            @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
+
+        _getDescription: (entity) ->
+            preferredFields = @options.descriptionProperties
+            preferredLanguages = [@_getUserLang(), @options.defaultLanguage]
+            @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
+
+        _getPreferredLangForPreferredProperty: (entity, preferredFields, preferredLanguages) ->
+            # Try to find a label in the preferred language
+            for lang in preferredLanguages
+                for property in preferredFields
+                    # property can be a string e.g. "skos:prefLabel"
+                    if typeof property is "string" and entity.get property
+                        labelArr = _.flatten [entity.get property]
+                        # select the label in the user's language
+                        label = _(labelArr).detect (label) =>
+                            true if label.indexOf("@#{lang}") > -1
+                        if label
+                            return label.replace /(^\"*|\"*@..$)/g, ""
+                    
+                    
+                    # property can be an object like {property: "skos:broader", makeLabel: function(propertyValueArr){return "..."}}
+                    else if typeof property is "object" and entity.get property.property
+                        valueArr = _.flatten [entity.get property.property]
+                        valueArr = _(valueArr).map (termUri) ->
+                            if termUri.isEntity then termUri.getSubject() else termUri
+                        return property.makeLabel valueArr
+            ""
 
         # Rendering menu for the EntityEnhancements suggested for the selected text
         _renderMenu: (ul, entityEnhancements) ->
