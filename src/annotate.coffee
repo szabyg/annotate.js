@@ -21,8 +21,8 @@
     }));
 
 
-    ANTT = ANTT or {}
-    Stanbol = Stanbol or {}
+    ANTT ?= {}
+    Stanbol ?= {}
     window.entityCache = {}
 
     # filter for TextAnnotations
@@ -265,10 +265,6 @@
                             .replace(/<.*[\/#](.*)>/, "$1")
                             .replace /_/g, "&nbsp;"
                         "Subject(s): #{labels.join ', '}."
-                        
-                        
-                        
-
             ]
             defaultLanguage: "en"
             # namespaces necessary for the widget configuration
@@ -829,8 +825,6 @@
                             true if label.indexOf("@#{lang}") > -1
                         if label
                             return label.replace /(^\"*|\"*@..$)/g, ""
-                    
-                    
                     # property can be an object like {property: "skos:broader", makeLabel: function(propertyValueArr){return "..."}}
                     else if typeof property is "object" and entity.get property.property
                         valueArr = _.flatten [entity.get property.property]
@@ -915,14 +909,12 @@
             .focus(200)
             .blur (e, ui) =>
                 @_dialogCloseTimeout = setTimeout ( => @close()), 200
-                
             if not @entityEnhancements.length and not @isAnnotated()
                 setTimeout =>
                     label = @element.html()
                     @searchbox.val label
                     @searchbox.autocomplete "search", label
                 , 300
-                
             @_logger.info "show searchbox"
 
         # add a textEnhancement that gets shown when the dialog is rendered
