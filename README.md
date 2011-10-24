@@ -20,7 +20,8 @@ configured to connect http://dev.iks-project.eu:8080 which is the actual demo st
 * 'typeFilter': Annotation Type(s) to filter for. Default empty. Example: 
 ["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"]
 * 'debug': Shows console messages about what's happening
-* 'ns': map of relevant namespaces. Default is dbPedia and skos namesoace definitions.
+* 'ns': map of relevant namespaces. Default is DBpedia and SKOS namespace definitions.
+* 'fallbackLanguage': 
 
 ## Methods
 * 'enable' gets enhancements from backend and visualizes them on the analized dom element.

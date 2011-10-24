@@ -236,6 +236,7 @@
             debug: false
             depictionProperties: [
                 "foaf:depiction"
+                "schema:thumbnail"
             ]
             labelProperties: [
                 "rdfs:label"
@@ -266,7 +267,7 @@
                             .replace /_/g, "&nbsp;"
                         "Subject(s): #{labels.join ', '}."
             ]
-            defaultLanguage: "en"
+            fallbackLanguage: "en"
             # namespaces necessary for the widget configuration
             ns:
                 dbpedia:  "http://dbpedia.org/ontology/"
@@ -805,12 +806,12 @@
 
         _getLabel: (entity) ->
             preferredFields = @options.labelProperties
-            preferredLanguages = [@_getUserLang(), @options.defaultLanguage]
+            preferredLanguages = [@_getUserLang(), @options.fallbackLanguage]
             @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
 
         _getDescription: (entity) ->
             preferredFields = @options.descriptionProperties
-            preferredLanguages = [@_getUserLang(), @options.defaultLanguage]
+            preferredLanguages = [@_getUserLang(), @options.fallbackLanguage]
             @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
 
         _getPreferredLangForPreferredProperty: (entity, preferredFields, preferredLanguages) ->
