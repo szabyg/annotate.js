@@ -41,14 +41,14 @@
         });
         var z = new VIE();
         z.use(new z.StanbolService({
-            url : "http://dev.iks-project.eu:8081",
+            url : "http://dev.iks-project.eu/stanbolfull",
             proxyDisabled: true
         }));
 
         // make the content element editable
         $('.content').hallo({
             plugins: {
-              'halloformat': {}
+//              'halloformat': {}
             },
             editable: true
         });
