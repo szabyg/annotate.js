@@ -20,22 +20,71 @@
         proxyDisabled: true
     }));
 
-
-    ANTT ?= {}
     Stanbol ?= {}
-    window.entityCache = {}
+
+    # calling the get with a scope and callback will call cb(entity) with the scope as soon it's available.'
+    class EntityCache
+        constructor: (opts) ->
+            @vie = opts.vie
+            @logger = opts.logger
+            window.entityCache ?= {}
+        _entities: -> window.entityCache
+        get: (uri, scope, success, error) ->
+            uri = uri.replace /^<|>$/g, ""
+            # If entity is stored in the cache already just call cb
+            if @_entities()[uri] and @_entities()[uri].status is "done"
+                if typeof success is "function"
+                    success.apply scope, [@_entities()[uri].entity]
+            else if @_entities()[uri] and @_entities()[uri].status is "error"
+                if typeof error is "function"
+                    error.apply scope, ["error"]
+            # If the entity is new to the cache
+            else if not @_entities()[uri]
+                # create cache entry
+                @_entities()[uri] = 
+                    status: "pending"
+                    uri: uri
+                cache = @
+                # make a request to the entity hub
+                @vie.load({entity: uri}).using('stanbol').execute().success (entityArr) =>
+                    _.defer =>
+                        cacheEntry = @_entities()[uri]
+                        entity = _.detect entityArr, (e) ->
+                            true if e.getSubject() is "<#{uri}>"
+                        if entity
+                            cacheEntry.entity = entity
+                            cacheEntry.status = "done"
+                            $(cacheEntry).trigger "done", entity
+                        else
+                            @logger.warn "couldn''t load #{uri}", entityArr
+                            cacheEntry.status = "not found"
+                .fail (e) =>
+                    _.defer =>
+                        @logger.error "couldn't load #{uri}"
+                        cacheEntry = @_entities()[uri]
+                        cacheEntry.status = "error"
+                        $(cacheEntry).trigger "fail", e
+
+            if @_entities()[uri] and @_entities()[uri].status is "pending"
+                $( @_entities()[uri] )
+                .bind "done", (event, entity) ->
+                    if typeof success is "function"
+                        success.apply scope, [entity]
+                .bind "fail", (event, error) ->
+                    if typeof error is "function"
+                        error.apply scope, [error]
 
     # filter for TextAnnotations
     Stanbol.getTextAnnotations = (enhList) ->
-        res = _(enhList)
-        .filter (e) ->
-            e.isof "<#{ns.enhancer}TextAnnotation>"
-        res = _(res).sortBy (e) ->
-            conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
-            -1 * conf
+            res = _(enhList)
+            .filter (e) ->
+                e.isof "<#{ns.enhancer}TextAnnotation>"
+            res = _(res).sortBy (e) ->
+                conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
+                -1 * conf
 
-        _(res).map (enh)->
-            new Stanbol.TextEnhancement enh, enhList
+            _(res).map (enh)->
+                new Stanbol.TextEnhancement enh, enhList
 
     # filter the entityManager for TextAnnotations
     Stanbol.getEntityAnnotations = (enhList) ->
@@ -46,12 +95,11 @@
     # Generic API for a TextEnhancement
     # A TextEnhancement object has the methods for getting generic
     # text-enhancement-specific properties.
-    # TODO Place it into a global Stanbol object.
-    Stanbol.TextEnhancement = (enhancement, enhList) ->
-        @_enhancement = enhancement
-        @_enhList = enhList
-        @id = @_enhancement.getSubject()
-    Stanbol.TextEnhancement.prototype =
+    class Stanbol.TextEnhancement
+        constructor: (enhancement, enhList) ->
+            @_enhancement = enhancement
+            @_enhList = enhList
+            @id = @_enhancement.getSubject()
         # the text the annotation is for
         getSelectedText: ->
             @_vals("enhancer:selected-text")
@@ -93,11 +141,11 @@
                 ur.replace /^<|>$/g, ""
 
     # Generic API for an EntityEnhancement. This is the implementation for Stanbol
-    Stanbol.EntityEnhancement = (ee, textEnh) ->
-        @_enhancement = ee
-        @_textEnhancement = textEnh
-        @
-    Stanbol.EntityEnhancement.prototype =
+    class Stanbol.EntityEnhancement
+        constructor: (ee, textEnh) ->
+            @_enhancement = ee
+            @_textEnhancement = textEnh
+            @
         getLabel: ->
             @_vals("enhancer:entity-label").replace(/(^\"*|\"*@..$)/g,"")
         getUri: ->
@@ -125,102 +173,10 @@
             _(_.flatten([uriRef])).map (ur) ->
                 ur.replace /^<|>$/g, ""
 
-    # get or create a dom element containing only the occurrence of the found entity
-    ANTT.getOrCreateDomElement = (element, text, options = {}) ->
-        # Find occurrence indexes of s in str
-        occurrences = (str, s) ->
-            res = []
-            last = 0
-            while str.indexOf(s, last + 1) isnt -1
-                next = str.indexOf s, last+1
-                res.push next
-                last = next
-
-        # Find the nearest number among the 
-        nearest = (arr, nr) ->
-            _(arr).sortedIndex nr
-
-        # Nearest position
-        nearestPosition = (str, s, ind) ->
-            arr = occurrences(str,s)
-            i1 = nearest arr, ind
-            if arr.length is 1
-                arr[0]
-            else if i1 is arr.length
-                arr[i1-1]
-            else
-                i0 = i1-1
-                d0 = ind - arr[i0]
-                d1 = arr[i1] - ind
-                if d1 > d0 then arr[i0]
-                else arr[i1]
-
-        domEl = element
-        textContentOf = (element) -> $(element).text().replace(/\n/g, " ")
-        # find the text node
-        if textContentOf(element).indexOf(text) is -1
-            console.error "'#{text}' doesn't appear in the text block."
-            return $()
-        start = options.start +
-        textContentOf(element).indexOf textContentOf(element).trim()
-        # Correct small position errors
-        start = nearestPosition textContentOf(element), text, start
-        pos = 0
-        while textContentOf(domEl).indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
-            domEl = _(domEl.childNodes).detect (el) ->
-                p = textContentOf(el).lastIndexOf text
-                if p >= start - pos
-                    true
-                else
-                    pos += textContentOf(el).length
-                    false
-
-        if options.createMode is "existing" and textContentOf($(domEl).parent()) is text
-            return $(domEl).parent()[0]
-        else
-            pos = start - pos
-            len = text.length
-            textToCut = textContentOf(domEl).substring(pos, pos+len)
-            if textToCut is text
-                domEl.splitText pos + len
-                newElement = document.createElement options.createElement or 'span'
-                newElement.innerHTML = text
-                $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
-                $ newElement
-            else
-                console.warn "dom element creation problem: #{textToCut} isnt #{text}"
-
     # Give back the last part of a uri for fallback label creation
-    ANTT.uriSuffix = (uri) ->
+    uriSuffix = (uri) ->
         res = uri.substring uri.lastIndexOf("#") + 1
         res.substring res.lastIndexOf("/") + 1
-
-    # jquery events cloning method
-    ANTT.cloneCopyEvent = (src, dest) ->
-        if dest.nodeType isnt 1 or not jQuery.hasData src
-            return
-
-        internalKey = $.expando
-        oldData = $.data src
-        curData = $.data dest, oldData
-
-        # Switch to use the internal data object, if it exists, for the next
-        # stage of data copying
-        if oldData = oldData[internalKey]
-            events = oldData.events
-            curData = curData[ internalKey ] = jQuery.extend({}, oldData);
-
-            if events
-                delete curData.handle
-                curData.events = {}
-
-                for type of events
-                    i = 0
-                    l = events[type].length
-                    while i < l
-                        jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
-                        i++
-            null
 
     ######################################################
     # Annotate widget
@@ -305,53 +261,9 @@
                 warn: ->
                 error: ->
             # widget.entityCache.get(uri, cb) will get and cache the entity from an entityhub
-            @entityCache = 
-                _entities: -> window.entityCache
-                # calling the get with a scope and callback will call cb(entity) with the scope as soon it's available.'
-                get: (uri, scope, success, error) ->
-                    uri = uri.replace /^<|>$/g, ""
-                    # If entity is stored in the cache already just call cb
-                    if @_entities()[uri] and @_entities()[uri].status is "done"
-                        if typeof success is "function"
-                            success.apply scope, [@_entities()[uri].entity]
-                    else if @_entities()[uri] and @_entities()[uri].status is "error"
-                        if typeof error is "function"
-                            error.apply scope, ["error"]
-                    # If the entity is new to the cache
-                    else if not @_entities()[uri]
-                        # create cache entry
-                        @_entities()[uri] = 
-                            status: "pending"
-                            uri: uri
-                        cache = @
-                        # make a request to the entity hub
-                        widget.options.vie.load({entity: uri}).using('stanbol').execute().success (entityArr) =>
-                            _.defer =>
-                                cacheEntry = @_entities()[uri]
-                                entity = _.detect entityArr, (e) ->
-                                    true if e.getSubject() is "<#{uri}>"
-                                if entity
-                                    cacheEntry.entity = entity
-                                    cacheEntry.status = "done"
-                                    $(cacheEntry).trigger "done", entity
-                                else
-                                    widget._logger.warn "couldn''t load #{uri}", entityArr
-                                    cacheEntry.status = "not found"
-                        .fail (e) =>
-                            _.defer =>
-                                widget._logger.error "couldn't load #{uri}"
-                                cacheEntry = @_entities()[uri]
-                                cacheEntry.status = "error"
-                                $(cacheEntry).trigger "fail", e
-
-                    if @_entities()[uri] and @_entities()[uri].status is "pending"
-                        $( @_entities()[uri] )
-                        .bind "done", (event, entity) ->
-                            if typeof success is "function"
-                                success.apply scope, [entity]
-                        .bind "fail", (event, error) ->
-                            if typeof error is "function"
-                                error.apply scope, [error]
+            @entityCache = new EntityCache 
+                vie: @options.vie
+                logger: @_logger
             if @options.autoAnalyze
                 @enable()
 
@@ -422,7 +334,7 @@
             if not textEnh.getSelectedText()
                 @_logger.warn "textEnh", textEnh, "doesn't have selected-text!"
                 return
-            el = $ ANTT.getOrCreateDomElement parentEl[0], textEnh.getSelectedText(),
+            el = $ @_getOrCreateDomElement parentEl[0], textEnh.getSelectedText(),
                 createElement: 'span'
                 createMode: 'existing'
                 context: textEnh.getContext()
@@ -432,7 +344,7 @@
             widget = @
             el.addClass('entity')
             for type in sType
-                el.addClass ANTT.uriSuffix(type).toLowerCase()
+                el.addClass uriSuffix(type).toLowerCase()
             if textEnh.getEntityEnhancements().length
                 el.addClass "withSuggestions"
             for eEnh in textEnh.getEntityEnhancements()
@@ -455,11 +367,76 @@
                 for type in @options.typeFilter
                     return yes if type in ta.getType()
 
+        # get or create a dom element containing only the occurrence of the found entity
+        _getOrCreateDomElement: (element, text, options = {}) ->
+            # Find occurrence indexes of s in str
+            occurrences = (str, s) ->
+                res = []
+                last = 0
+                while str.indexOf(s, last + 1) isnt -1
+                    next = str.indexOf s, last+1
+                    res.push next
+                    last = next
+
+            # Find the nearest number among the 
+            nearest = (arr, nr) ->
+                _(arr).sortedIndex nr
+
+            # Nearest position
+            nearestPosition = (str, s, ind) ->
+                arr = occurrences(str,s)
+                i1 = nearest arr, ind
+                if arr.length is 1
+                    arr[0]
+                else if i1 is arr.length
+                    arr[i1-1]
+                else
+                    i0 = i1-1
+                    d0 = ind - arr[i0]
+                    d1 = arr[i1] - ind
+                    if d1 > d0 then arr[i0]
+                    else arr[i1]
+
+            domEl = element
+            textContentOf = (element) -> $(element).text().replace(/\n/g, " ")
+            # find the text node
+            if textContentOf(element).indexOf(text) is -1
+                console.error "'#{text}' doesn't appear in the text block."
+                return $()
+            start = options.start +
+            textContentOf(element).indexOf textContentOf(element).trim()
+            # Correct small position errors
+            start = nearestPosition textContentOf(element), text, start
+            pos = 0
+            while textContentOf(domEl).indexOf(text) isnt -1 and domEl.nodeName isnt '#text'
+                domEl = _(domEl.childNodes).detect (el) ->
+                    p = textContentOf(el).lastIndexOf text
+                    if p >= start - pos
+                        true
+                    else
+                        pos += textContentOf(el).length
+                        false
+
+            if options.createMode is "existing" and textContentOf($(domEl).parent()) is text
+                return $(domEl).parent()[0]
+            else
+                pos = start - pos
+                len = text.length
+                textToCut = textContentOf(domEl).substring(pos, pos+len)
+                if textToCut is text
+                    domEl.splitText pos + len
+                    newElement = document.createElement options.createElement or 'span'
+                    newElement.innerHTML = text
+                    $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
+                    $ newElement
+                else
+                    console.warn "dom element creation problem: #{textToCut} isnt #{text}"
+
+
     ######################################################
     # AnnotationSelector widget
     # the annotationSelector makes an annotated word interactive
     ######################################################
-    ANTT.annotationSelector =
     jQuery.widget 'IKS.annotationSelector',
         # just for debugging and understanding
         __widgetName: "IKS.annotationSelector"
@@ -686,13 +663,13 @@
             sType = entityEnhancement.getTextEnhancement().getType()
             sType = ["Other"] unless sType.length
             rel = options.rel or "#{ns.skos}related"
-            entityClass = 'entity ' + ANTT.uriSuffix(sType[0]).toLowerCase()
+            entityClass = 'entity ' + uriSuffix(sType[0]).toLowerCase()
             newElement = $ "<a href='#{entityUri}'
                 about='#{entityUri}'
                 typeof='#{entityType}'
                 rel='#{rel}'
                 class='#{entityClass}'>#{entityHtml}</a>"
-            ANTT.cloneCopyEvent @element[0], newElement[0]
+            @_cloneCopyEvent @element[0], newElement[0]
             @linkedEntity =
                 uri: entityUri
                 type: entityType
@@ -716,6 +693,12 @@
             return if @isAnnotated()
             @annotate eEnhancements[0], styleClass: "acknowledged"
             eEnhancements[0]
+
+        # add a textEnhancement that gets shown when the dialog is rendered
+        addTextEnhancement: (textEnh) ->
+            @options.textEnhancements = @options.textEnhancements or []
+            @options.textEnhancements.push textEnh
+            @textEnhancements = @options.textEnhancements
 
         # closing the widget
         close: ->
@@ -859,7 +842,6 @@
             widget = @
             @searchbox = $( '.search', @searchEntryField )
             .autocomplete
-                # Define source method. TODO make independent from stanbol.
                 source: (req, resp) ->
                     widget._logger.info "req:", req
                     widget.options.vie.find({term: "#{req.term}#{if req.term.length > 3 then '*'  else ''}"})
@@ -918,11 +900,30 @@
                 , 300
             @_logger.info "show searchbox"
 
-        # add a textEnhancement that gets shown when the dialog is rendered
-        addTextEnhancement: (textEnh) ->
-            @options.textEnhancements = @options.textEnhancements or []
-            @options.textEnhancements.push textEnh
-            @textEnhancements = @options.textEnhancements
+        # jquery events cloning method
+        _cloneCopyEvent: (src, dest) ->
+            if dest.nodeType isnt 1 or not jQuery.hasData src
+                return
 
-    window.ANTT = ANTT
+            internalKey = $.expando
+            oldData = $.data src
+            curData = $.data dest, oldData
+
+            # Switch to use the internal data object, if it exists, for the next
+            # stage of data copying
+            if oldData = oldData[internalKey]
+                events = oldData.events
+                curData = curData[ internalKey ] = jQuery.extend({}, oldData);
+
+                if events
+                    delete curData.handle
+                    curData.events = {}
+
+                    for type of events
+                        i = 0
+                        l = events[type].length
+                        while i < l
+                            jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
+                            i++
+                null
 ) jQuery

@@ -30,7 +30,7 @@
     </style>
 
     <script>
-    $(document).ready(function(){
+    $(document).ready(function(){ _.defer(function(){
         $('#loadingDiv')
         .hide()  // hide it initially
         .ajaxStart(function() {
@@ -136,7 +136,7 @@
                 .hide()
             }
         });
-    });
+    });});
     </script>
   </head>
   <body  xmlns:sioc     = "http://rdfs.org/sioc/ns#"
