@@ -327,7 +327,7 @@
                     if res
                         report.updated.push @
                         report.accepted++
-            reportCallback report
+            reportCallback? report
 
         # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
         processTextEnhancement: (textEnh, parentEl) ->
