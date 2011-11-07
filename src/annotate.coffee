@@ -358,6 +358,7 @@
             # Create widget to select from the suggested entities
             options = @options
             options.cache = @entityCache
+            options.annotateElement = @element
             el.annotationSelector( options )
             .annotationSelector 'addTextEnhancement', textEnh
         _filterByType: (textAnnotations) ->
@@ -681,11 +682,15 @@
             @_insertLink()
             @_acceptedTextEnhancement = entityEnhancement.getTextEnhancement()
             @_acceptedEntityEnhancement = entityEnhancement
-            @_trigger 'select', null,
+            ui =
                 linkedEntity: @linkedEntity
                 textEnhancement: entityEnhancement.getTextEnhancement()
                 entityEnhancement: entityEnhancement
+            @select ui
             @_initTooltip()
+        select: (ui) ->
+            @_trigger 'select', null, ui
+            jQuery(@options.annotateElement).trigger "annotateselect", ui
 
         acceptBestCandidate: ->
             eEnhancements = @_getEntityEnhancements()
