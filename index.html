@@ -52,28 +52,31 @@
             },
             editable: true
         });
-        $('.content').annotate({
-            vie: z,
-            // typeFilter: ["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"],
-            debug: true,
-            //autoAnalyze: true,
-            showTooltip: true,
-            decline: function(event, ui){
-                console.info('decline event', event, ui);
-            },
-            select: function(event, ui){
-                console.info('select event', event, ui);
-            },
-            remove: function(event, ui){
-                console.info('remove event', event, ui);
-            },
-            success: function(event, ui){
-                console.info('success event', event, ui);
-            },
-            error: function(event, ui){
-                console.info('error event', event, ui);
-            }
-        });
+        function instantiate(){
+            $('.content').annotate({
+                vie: z,
+                // typeFilter: ["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"],
+                debug: true,
+                //autoAnalyze: true,
+                showTooltip: true,
+                decline: function(event, ui){
+                    console.info('decline event', event, ui);
+                },
+                select: function(event, ui){
+                    console.info('select event', event, ui);
+                },
+                remove: function(event, ui){
+                    console.info('remove event', event, ui);
+                },
+                success: function(event, ui){
+                    console.info('success event', event, ui);
+                },
+                error: function(event, ui){
+                    console.info('error event', event, ui);
+                }
+            });
+        }
+        instantiate();
 
         $('.acceptAllButton')
         .button()
@@ -136,6 +139,10 @@
                 .hide()
             }
         });
+        jQuery('.instantiate').button().click(instantiate);
+        jQuery('.destroy').button().click(function(){
+            jQuery('.content').annotate('destroy');
+        });
     });});
     </script>
   </head>
@@ -165,6 +172,11 @@ The country's official language is Turkish, whereas Kurdish and Zazaki languages
             </article>
             <button class="enhanceButton">Enhance!</button>
             <button class="acceptAllButton" style="display:none;">Accept all</button>
+        </div>
+        <div>
+            <h2>debug</h2>
+            <button class="destroy">Destroy</button>
+            <button class="instantiate">Instantiate</button>
         </div>
         <div id="loadingDiv"><img src="spinner.gif"/></div>
     </body>
