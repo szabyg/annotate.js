@@ -174,7 +174,7 @@ jQuery.widget 'IKS.annotationSelector',
                     delay: 50
                 content: (response) =>
                     uri = @element.attr "about"
-                    @_logger.info "ttooltip uri:", uri
+                    @_logger.info "tooltip uri:", uri
                     widget._createPreview uri, response
                     "loading..."
 
