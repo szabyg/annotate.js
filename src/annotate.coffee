@@ -21,8 +21,7 @@ class EntityCache
     constructor: (opts) ->
         @vie = opts.vie
         @logger = opts.logger
-        window.entityCache ?= {}
-    _entities: -> window.entityCache
+    _entities: -> window.entityCache ?= {}
     get: (uri, scope, success, error) ->
         uri = uri.replace /^<|>$/g, ""
         # If entity is stored in the cache already just call cb
@@ -80,21 +79,28 @@ uriSuffix = (uri) ->
 jQuery.widget 'IKS.annotate',
     __widgetName: "IKS.annotate"
     options:
+        # VIE instance to use for (backend) enhancement
         vie: vie
         vieServices: ["stanbol"]
+        # Do analyze on instantiation
         autoAnalyze: false
+        # Tooltip can be disabled
         showTooltip: true
+        # Debug can be enabled
         debug: false
+        # Define Entity properties for finding depiction
         depictionProperties: [
             "foaf:depiction"
             "schema:thumbnail"
         ]
+        # Define Entity properties for finding the label
         labelProperties: [
             "rdfs:label"
             "skos:prefLabel"
             "schema:name"
             "foaf:name"
         ]
+        # Define Entity properties for finding the description
         descriptionProperties: [
             "rdfs:comment"
             "skos:note"
@@ -118,11 +124,14 @@ jQuery.widget 'IKS.annotate',
                         .replace /_/g, "&nbsp;"
                     "Subject(s): #{labels.join ', '}."
         ]
+        # If label and description is not available in the user's language 
+        # look for a fallback.
         fallbackLanguage: "en"
         # namespaces necessary for the widget configuration
         ns:
             dbpedia:  "http://dbpedia.org/ontology/"
             skos:     "http://www.w3.org/2004/02/skos/core#"
+        # List of enhancement types to filter for
         typeFilter: null
         # Give a label to your expected enhancement types
         getTypes: ->
@@ -148,6 +157,7 @@ jQuery.widget 'IKS.annotate',
                 uri: "http://sws.geonames.org/"
                 label: "geonames"
             ]
+
     _create: ->
         widget = @
         # logger can be turned on and off. It will show the real caller line in the log
@@ -155,6 +165,7 @@ jQuery.widget 'IKS.annotate',
             info: ->
             warn: ->
             error: ->
+            log: ->
         # widget.entityCache.get(uri, cb) will get and cache the entity from an entityhub
         @entityCache = new EntityCache 
             vie: @options.vie
@@ -209,11 +220,13 @@ jQuery.widget 'IKS.annotate',
             cb false, xhr if typeof cb is "function"
             @_trigger 'error', xhr
             @_logger.error "analyze failed", xhr.responseText, xhr
+
     # Remove all not accepted text enhancement widgets
     disable: ->
         $( ':IKS-annotationSelector', @element ).each () ->
             $(@).annotationSelector 'disable' if $(@).data().annotationSelector
 
+    # call `acceptBestCandidate` on each contained annotation selector
     acceptAll: (reportCallback) ->
         report = {updated: [], accepted: 0}
         $( ':IKS-annotationSelector', @element ).each () ->
@@ -249,13 +262,14 @@ jQuery.widget 'IKS.annotate',
                     @_logger.info "entity #{eEnhUri} is loaded:",
                         entity.as "JSON"
                 else
-                    widget._logger.warn "wrong callback", entity.getSubject(), eEnhUri
+                    widget._logger.info "forwarded entity for #{eEnhUri} loaded:", entity.getSubject()
         # Create widget to select from the suggested entities
         options = @options
         options.cache = @entityCache
         options.annotateElement = @element
         el.annotationSelector( options )
         .annotationSelector 'addTextEnhancement', textEnh
+
     _filterByType: (textAnnotations) ->
         return textAnnotations unless @options.typeFilter
         _.filter textAnnotations, (ta) =>

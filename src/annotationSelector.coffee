@@ -50,6 +50,7 @@ jQuery.widget 'IKS.annotationSelector',
             info: ->
             warn: ->
             error: ->
+            log: ->
         if @isAnnotated()
             @_initTooltip()
             @linkedEntity =
@@ -74,6 +75,92 @@ jQuery.widget 'IKS.annotationSelector',
             @dialog.element.remove()
             @dialog.uiDialogTitlebar.remove()
             delete @dialog
+
+    # remove textEnhancement/annotation, replace the separate html
+    # element with the plain text and close the dialog
+    remove: (event) ->
+        el = @element.parent()
+        @element.tooltip "destroy"
+        if not @isAnnotated() and @textEnhancements
+            @_trigger 'decline', event,
+                textEnhancements: @textEnhancements
+        else
+            @_trigger 'remove', event,
+                textEnhancement: @_acceptedTextEnhancement
+                entityEnhancement: @_acceptedEntityEnhancement
+                linkedEntity: @linkedEntity
+        @destroy()
+        if @element.qname().name isnt '#text'
+            @element.replaceWith document.createTextNode @element.text()
+
+    # Remove the widget if not annotated.
+    disable: ->
+        if not @isAnnotated() and @element.qname().name isnt '#text'
+            @element.replaceWith document.createTextNode @element.text()
+
+    # tells if this is an annotated dom element (not a highlighted textEnhancement only)
+    isAnnotated: ->
+        if @element.attr 'about' then true else false
+
+    # Place the annotation on the DOM element (about and typeof attributes)
+    annotate: (entityEnhancement, options) ->
+        entityUri = entityEnhancement.getUri()
+        entityType = entityEnhancement.getTextEnhancement().getType() or ""
+        entityHtml = @element.html()
+        # We ignore the old style classes
+        # entityClass = @element.attr 'class'
+        sType = entityEnhancement.getTextEnhancement().getType()
+        sType = ["Other"] unless sType.length
+        rel = options.rel or "#{ns.skos}related"
+        entityClass = 'entity ' + uriSuffix(sType[0]).toLowerCase()
+        newElement = $ "<a href='#{entityUri}'
+            about='#{entityUri}'
+            typeof='#{entityType}'
+            rel='#{rel}'
+            class='#{entityClass}'>#{entityHtml}</a>"
+        @_cloneCopyEvent @element[0], newElement[0]
+        @linkedEntity =
+            uri: entityUri
+            type: entityType
+            label: entityEnhancement.getLabel()
+        @element.replaceWith newElement
+        @element = newElement.addClass options.styleClass
+        @_logger.info "created annotation in", @element
+        @_updateTitle()
+        @_insertLink()
+        @_acceptedTextEnhancement = entityEnhancement.getTextEnhancement()
+        @_acceptedEntityEnhancement = entityEnhancement
+        ui =
+            linkedEntity: @linkedEntity
+            textEnhancement: entityEnhancement.getTextEnhancement()
+            entityEnhancement: entityEnhancement
+        @select ui
+        @_initTooltip()
+
+    # triggering select event on the enclosing annotate element
+    select: (ui) ->
+        @_trigger 'select', null, ui
+        jQuery(@options.annotateElement).trigger "annotateselect", ui
+
+    # Accept first (best) entity enhancement (if any)
+    acceptBestCandidate: ->
+        eEnhancements = @_getEntityEnhancements()
+        return unless eEnhancements.length
+        return if @isAnnotated()
+        @annotate eEnhancements[0], styleClass: "acknowledged"
+        eEnhancements[0]
+
+    # add a textEnhancement that gets shown when the dialog is rendered
+    addTextEnhancement: (textEnh) ->
+        @options.textEnhancements = @options.textEnhancements or []
+        @options.textEnhancements.push textEnh
+        @textEnhancements = @options.textEnhancements
+
+    # closing the widget
+    close: ->
+        @destroy()
+        jQuery(".ui-tooltip").remove()
+
     _initTooltip: ->
         widget = @
         if @options.showTooltip
@@ -192,87 +279,6 @@ jQuery.widget 'IKS.annotationSelector',
             Cancel: =>
                 @close()
 
-    # remove textEnhancement/annotation, replace the separate html
-    # element with the plain text and close the dialog
-    remove: (event) ->
-        el = @element.parent()
-        @element.tooltip "destroy"
-        if not @isAnnotated() and @textEnhancements
-            @_trigger 'decline', event,
-                textEnhancements: @textEnhancements
-        else
-            @_trigger 'remove', event,
-                textEnhancement: @_acceptedTextEnhancement
-                entityEnhancement: @_acceptedEntityEnhancement
-                linkedEntity: @linkedEntity
-        @destroy()
-        if @element.qname().name isnt '#text'
-            @element.replaceWith document.createTextNode @element.text()
-
-    # Remove the widget if not annotated.
-    disable: ->
-        if not @isAnnotated() and @element.qname().name isnt '#text'
-            @element.replaceWith document.createTextNode @element.text()
-
-    # tells if this is an annotated dom element (not a highlighted textEnhancement only)
-    isAnnotated: ->
-        if @element.attr 'about' then true else false
-
-    # Place the annotation on the DOM element (about and typeof attributes)
-    annotate: (entityEnhancement, options) ->
-        entityUri = entityEnhancement.getUri()
-        entityType = entityEnhancement.getTextEnhancement().getType() or ""
-        entityHtml = @element.html()
-        # We ignore the old style classes
-        # entityClass = @element.attr 'class'
-        sType = entityEnhancement.getTextEnhancement().getType()
-        sType = ["Other"] unless sType.length
-        rel = options.rel or "#{ns.skos}related"
-        entityClass = 'entity ' + uriSuffix(sType[0]).toLowerCase()
-        newElement = $ "<a href='#{entityUri}'
-            about='#{entityUri}'
-            typeof='#{entityType}'
-            rel='#{rel}'
-            class='#{entityClass}'>#{entityHtml}</a>"
-        @_cloneCopyEvent @element[0], newElement[0]
-        @linkedEntity =
-            uri: entityUri
-            type: entityType
-            label: entityEnhancement.getLabel()
-        @element.replaceWith newElement
-        @element = newElement.addClass options.styleClass
-        @_logger.info "created annotation in", @element
-        @_updateTitle()
-        @_insertLink()
-        @_acceptedTextEnhancement = entityEnhancement.getTextEnhancement()
-        @_acceptedEntityEnhancement = entityEnhancement
-        ui =
-            linkedEntity: @linkedEntity
-            textEnhancement: entityEnhancement.getTextEnhancement()
-            entityEnhancement: entityEnhancement
-        @select ui
-        @_initTooltip()
-    select: (ui) ->
-        @_trigger 'select', null, ui
-        jQuery(@options.annotateElement).trigger "annotateselect", ui
-
-    acceptBestCandidate: ->
-        eEnhancements = @_getEntityEnhancements()
-        return unless eEnhancements.length
-        return if @isAnnotated()
-        @annotate eEnhancements[0], styleClass: "acknowledged"
-        eEnhancements[0]
-
-    # add a textEnhancement that gets shown when the dialog is rendered
-    addTextEnhancement: (textEnh) ->
-        @options.textEnhancements = @options.textEnhancements or []
-        @options.textEnhancements.push textEnh
-        @textEnhancements = @options.textEnhancements
-
-    # closing the widget
-    close: ->
-        @destroy()
-        jQuery(".ui-tooltip").remove()
     _updateTitle: ->
         if @dialog
             if @isAnnotated()
@@ -495,3 +501,4 @@ jQuery.widget 'IKS.annotationSelector',
                         jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
                         i++
             null
+

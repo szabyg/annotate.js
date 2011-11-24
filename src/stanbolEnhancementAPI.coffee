@@ -1,5 +1,5 @@
+# Stanbol Enhancement API specific classes
 Stanbol ?= {}
-
 # filter for TextAnnotations
 Stanbol.getTextAnnotations = (enhList) ->
         res = _(enhList)
