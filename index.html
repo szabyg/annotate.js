@@ -52,6 +52,28 @@
             },
             editable: true
         });
+        function enable(){
+            $('.content')
+            .each(function(){
+                $(this)
+                .annotate('enable', function(success){
+                    if(success){
+                        $('.enhanceButton')
+                        .button('enable')
+                        .button('option', 'label', 'Done');
+
+                        $('.acceptAllButton')
+                        .show()
+                        .button('enable')
+                    } else {
+                        $('.enhanceButton')
+                        .button('enable')
+                        .button('option', 'label', 'error, see the log.. Try to enhance again!');
+                    }
+                });
+            });
+        }
+
         function instantiate(){
             $('.content').annotate({
                 vie: z,
@@ -105,25 +127,8 @@
                 try {
                     console.info(".content", $('.content'));
 
-                    $('.content')
-                    .each(function(){
-                        $(this)
-                        .annotate('enable', function(success){
-                            if(success){
-                                $('.enhanceButton')
-                                .button('enable')
-                                .button('option', 'label', 'Done');
+                    enable()
 
-                                $('.acceptAllButton')
-                                .show()
-                                .button('enable')
-                            } else {
-                                $('.enhanceButton')
-                                .button('enable')
-                                .button('option', 'label', 'error, see the log.. Try to enhance again!');
-                            }
-                        });
-                    });
                     $('.enhanceButton')
                     .button('disable')
                     .button('option', 'label', 'in progress...')
@@ -142,6 +147,12 @@
         jQuery('.instantiate').button().click(instantiate);
         jQuery('.destroy').button().click(function(){
             jQuery('.content').annotate('destroy');
+        });
+        jQuery('.enable').button().click(function(){
+            enable();
+        });
+        jQuery('.disable').button().click(function(){
+            jQuery('.content').annotate('disable');
         });
     });});
     </script>
@@ -177,6 +188,8 @@ The country's official language is Turkish, whereas Kurdish and Zazaki languages
             <h2>debug</h2>
             <button class="destroy">Destroy</button>
             <button class="instantiate">Instantiate</button>
+            <button class="enable">Enable</button>
+            <button class="disable">Disable</button>
         </div>
         <div id="loadingDiv"><img src="spinner.gif"/></div>
     </body>
