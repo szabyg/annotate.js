@@ -33,19 +33,7 @@ jQuery.widget 'IKS.annotationSelector',
             ]
 
     _create: ->
-        @element.click (e) =>
-            @_logger.log "click", e, e.isDefaultPrevented()
-#                e.preventDefault()
-            if not @dialog
-                @_createDialog()
-                setTimeout((=> @dialog.open()), 220)
-
-                @entityEnhancements = @_getEntityEnhancements()
-
-                @_createSearchbox()
-                if @entityEnhancements.length > 0
-                    @_createMenu() if @menu is undefined
-            else @searchEntryField.find('.search').focus 100
+        do @enableEditing
         @_logger = if @options.debug then console else 
             info: ->
             warn: ->
@@ -65,7 +53,24 @@ jQuery.widget 'IKS.annotationSelector',
                 )
                 .replace /(^\"*|\"*@..$)/g, ""
                 @_logger.info "did I figure out?", @linkedEntity.label
+    enableEditing: ->
+        @element.click (e) =>
+            @_logger.log "click", e, e.isDefaultPrevented()
+#                e.preventDefault()
+            if not @dialog
+                @_createDialog()
+                setTimeout((=> @dialog.open()), 220)
+
+                @entityEnhancements = @_getEntityEnhancements()
+
+                @_createSearchbox()
+                if @entityEnhancements.length > 0
+                    @_createMenu() if @menu is undefined
+            else @searchEntryField.find('.search').focus 100
+    disableEditing: ->
+        @_logger.info "TODO: remove click handler"
     _destroy: ->
+        do @disableEditing
         if @menu
             @menu.destroy()
             @menu.element.remove()
@@ -97,6 +102,8 @@ jQuery.widget 'IKS.annotationSelector',
     disable: ->
         if not @isAnnotated() and @element.qname().name isnt '#text'
             @element.replaceWith document.createTextNode @element.text()
+        else
+            @disableEditing()
 
     # tells if this is an annotated dom element (not a highlighted textEnhancement only)
     isAnnotated: ->
@@ -302,12 +309,6 @@ jQuery.widget 'IKS.annotationSelector',
             blur: (event, ui) =>
                 @_logger.info 'menu.blur()', ui.item
         })
-        .bind('blur', (event, ui) ->
-            @_logger.info 'menu blur', ui
-        )
-        .bind('menublur', (event, ui) ->
-            @_logger.info 'menu menublur', ui.item
-        )
         .focus(150)
         if @options.showTooltip
             @menu.tooltip

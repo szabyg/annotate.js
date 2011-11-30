@@ -172,6 +172,10 @@ jQuery.widget 'IKS.annotate',
             logger: @_logger
         if @options.autoAnalyze
             @enable()
+    _destroy: ->
+        do @disable
+        $( ':IKS-annotationSelector', @element ).each () ->
+            $(@).annotationSelector 'destroy' if $(@).data().annotationSelector
 
     # analyze the widget element and show text enhancements
     enable: (cb) ->

@@ -32,18 +32,7 @@ the annotationSelector makes an annotated word interactive</p>
             <span class="p">]</span>
 
     <span class="nv">_create: </span><span class="o">-&gt;</span>
-        <span class="nx">@element</span><span class="p">.</span><span class="nx">click</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
-            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">log</span> <span class="s2">&quot;click&quot;</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">isDefaultPrevented</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <pre><code>           e.preventDefault()
-</code></pre>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="k">if</span> <span class="o">not</span> <span class="nx">@dialog</span>
-                <span class="nx">@_createDialog</span><span class="p">()</span>
-                <span class="nx">setTimeout</span><span class="p">((</span><span class="o">=&gt;</span> <span class="nx">@dialog</span><span class="p">.</span><span class="nx">open</span><span class="p">()),</span> <span class="mi">220</span><span class="p">)</span>
-
-                <span class="vi">@entityEnhancements = </span><span class="nx">@_getEntityEnhancements</span><span class="p">()</span>
-
-                <span class="nx">@_createSearchbox</span><span class="p">()</span>
-                <span class="k">if</span> <span class="nx">@entityEnhancements</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
-                    <span class="nx">@_createMenu</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@menu</span> <span class="o">is</span> <span class="kc">undefined</span>
-            <span class="k">else</span> <span class="nx">@searchEntryField</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;.search&#39;</span><span class="p">).</span><span class="nx">focus</span> <span class="mi">100</span>
+        <span class="nx">do</span> <span class="nx">@enableEditing</span>
         <span class="vi">@_logger = </span><span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">debug</span> <span class="k">then</span> <span class="nx">console</span> <span class="k">else</span> 
             <span class="nv">info: </span><span class="o">-&gt;</span>
             <span class="nv">warn: </span><span class="o">-&gt;</span>
@@ -63,7 +52,23 @@ the annotationSelector makes an annotated word interactive</p>
                 <span class="p">)</span>
                 <span class="p">.</span><span class="nx">replace</span> <span class="sr">/(^\&quot;*|\&quot;*@..$)/g</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
                 <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;did I figure out?&quot;</span><span class="p">,</span> <span class="nx">@linkedEntity</span><span class="p">.</span><span class="nx">label</span>
+    <span class="nv">enableEditing: </span><span class="o">-&gt;</span>
+        <span class="nx">@element</span><span class="p">.</span><span class="nx">click</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">log</span> <span class="s2">&quot;click&quot;</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">isDefaultPrevented</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <pre><code>           e.preventDefault()
+</code></pre>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="k">if</span> <span class="o">not</span> <span class="nx">@dialog</span>
+                <span class="nx">@_createDialog</span><span class="p">()</span>
+                <span class="nx">setTimeout</span><span class="p">((</span><span class="o">=&gt;</span> <span class="nx">@dialog</span><span class="p">.</span><span class="nx">open</span><span class="p">()),</span> <span class="mi">220</span><span class="p">)</span>
+
+                <span class="vi">@entityEnhancements = </span><span class="nx">@_getEntityEnhancements</span><span class="p">()</span>
+
+                <span class="nx">@_createSearchbox</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nx">@entityEnhancements</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                    <span class="nx">@_createMenu</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@menu</span> <span class="o">is</span> <span class="kc">undefined</span>
+            <span class="k">else</span> <span class="nx">@searchEntryField</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;.search&#39;</span><span class="p">).</span><span class="nx">focus</span> <span class="mi">100</span>
+    <span class="nv">disableEditing: </span><span class="o">-&gt;</span>
+        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;TODO: remove click handler&quot;</span>
     <span class="nv">_destroy: </span><span class="o">-&gt;</span>
+        <span class="nx">do</span> <span class="nx">@disableEditing</span>
         <span class="k">if</span> <span class="nx">@menu</span>
             <span class="nx">@menu</span><span class="p">.</span><span class="nx">destroy</span><span class="p">()</span>
             <span class="nx">@menu</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span>
@@ -88,7 +93,9 @@ element with the plain text and close the dialog</p>             </td>          
         <span class="k">if</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">qname</span><span class="p">().</span><span class="nx">name</span> <span class="o">isnt</span> <span class="s1">&#39;#text&#39;</span>
             <span class="nx">@element</span><span class="p">.</span><span class="nx">replaceWith</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">text</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>Remove the widget if not annotated.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">disable: </span><span class="o">-&gt;</span>
         <span class="k">if</span> <span class="o">not</span> <span class="nx">@isAnnotated</span><span class="p">()</span> <span class="o">and</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">qname</span><span class="p">().</span><span class="nx">name</span> <span class="o">isnt</span> <span class="s1">&#39;#text&#39;</span>
-            <span class="nx">@element</span><span class="p">.</span><span class="nx">replaceWith</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">text</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>tells if this is an annotated dom element (not a highlighted textEnhancement only)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">isAnnotated: </span><span class="o">-&gt;</span>
+            <span class="nx">@element</span><span class="p">.</span><span class="nx">replaceWith</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">text</span><span class="p">()</span>
+        <span class="k">else</span>
+            <span class="nx">@disableEditing</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>tells if this is an annotated dom element (not a highlighted textEnhancement only)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">isAnnotated: </span><span class="o">-&gt;</span>
         <span class="k">if</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">attr</span> <span class="s1">&#39;about&#39;</span> <span class="k">then</span> <span class="kc">true</span> <span class="k">else</span> <span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>Place the annotation on the DOM element (about and typeof attributes)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">annotate: </span><span class="nf">(entityEnhancement, options) -&gt;</span>
         <span class="nv">entityUri = </span><span class="nx">entityEnhancement</span><span class="p">.</span><span class="nx">getUri</span><span class="p">()</span>
         <span class="nv">entityType = </span><span class="nx">entityEnhancement</span><span class="p">.</span><span class="nx">getTextEnhancement</span><span class="p">().</span><span class="nx">getType</span><span class="p">()</span> <span class="o">or</span> <span class="s2">&quot;&quot;</span>
@@ -146,7 +153,7 @@ entityClass = @element.attr 'class'</p>             </td>             <td class=
                     <span class="nv">delay: </span><span class="mi">50</span>
                 <span class="nv">content: </span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="o">=&gt;</span>
                     <span class="nv">uri = </span><span class="nx">@element</span><span class="p">.</span><span class="nx">attr</span> <span class="s2">&quot;about&quot;</span>
-                    <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;ttooltip uri:&quot;</span><span class="p">,</span> <span class="nx">uri</span>
+                    <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;tooltip uri:&quot;</span><span class="p">,</span> <span class="nx">uri</span>
                     <span class="nx">widget</span><span class="p">.</span><span class="nx">_createPreview</span> <span class="nx">uri</span><span class="p">,</span> <span class="nx">response</span>
                     <span class="s2">&quot;loading...&quot;</span>
 
@@ -253,12 +260,6 @@ Filtered by the @options.types list</p>             </td>             <td class=
             <span class="nv">blur: </span><span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">ui</span><span class="p">)</span> <span class="o">=&gt;</span>
                 <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s1">&#39;menu.blur()&#39;</span><span class="p">,</span> <span class="nx">ui</span><span class="p">.</span><span class="nx">item</span>
         <span class="p">})</span>
-        <span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;blur&#39;</span><span class="p">,</span> <span class="nf">(event, ui) -&gt;</span>
-            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s1">&#39;menu blur&#39;</span><span class="p">,</span> <span class="nx">ui</span>
-        <span class="p">)</span>
-        <span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="s1">&#39;menublur&#39;</span><span class="p">,</span> <span class="nf">(event, ui) -&gt;</span>
-            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s1">&#39;menu menublur&#39;</span><span class="p">,</span> <span class="nx">ui</span><span class="p">.</span><span class="nx">item</span>
-        <span class="p">)</span>
         <span class="p">.</span><span class="nx">focus</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span>
         <span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">showTooltip</span>
             <span class="nx">@menu</span><span class="p">.</span><span class="nx">tooltip</span>
