@@ -6,7 +6,7 @@
 ns =
     rdf:      'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
     enhancer: 'http://fise.iks-project.eu/ontology/'
-    dc:       'http://purl.org/dc/terms/'
+    dcterms:       'http://purl.org/dc/terms/'
     rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
     skos:     'http://www.w3.org/2004/02/skos/core#'
 
@@ -115,7 +115,7 @@ jQuery.widget 'IKS.annotate',
                         .replace /_/g, "&nbsp;"
                     "Subcategory of #{labels.join ', '}."
             ,
-                property: "dc:subject"
+                property: "dcterms:subject"
                 makeLabel: (propertyValueArr) ->
                     labels = _(propertyValueArr).map (termUri) ->
                         # extract the last part of the uri
@@ -191,7 +191,7 @@ jQuery.widget 'IKS.annotate',
             # Link TextAnnotation entities to EntityAnnotations
             entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
             for entAnn in entityAnnotations
-                textAnns = entAnn.get "dc:relation"
+                textAnns = entAnn.get "dcterms:relation"
                 for textAnn in _.flatten([textAnns])
                     textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
                     continue unless textAnn
