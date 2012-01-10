@@ -4,7 +4,7 @@ Annotate may be freely distributed under the MIT license
 </code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>define namespaces</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">ns =</span>
     <span class="nv">rdf: </span>     <span class="s1">&#39;http://www.w3.org/1999/02/22-rdf-syntax-ns#&#39;</span>
     <span class="nv">enhancer: </span><span class="s1">&#39;http://fise.iks-project.eu/ontology/&#39;</span>
-    <span class="nv">dc: </span>      <span class="s1">&#39;http://purl.org/dc/terms/&#39;</span>
+    <span class="nv">dcterms: </span>      <span class="s1">&#39;http://purl.org/dc/terms/&#39;</span>
     <span class="nv">rdfs: </span>    <span class="s1">&#39;http://www.w3.org/2000/01/rdf-schema#&#39;</span>
     <span class="nv">skos: </span>    <span class="s1">&#39;http://www.w3.org/2004/02/skos/core#&#39;</span>
 
@@ -82,7 +82,7 @@ makes a content dom element interactively annotatable</p>
                         <span class="p">.</span><span class="nx">replace</span> <span class="sr">/_/g</span><span class="p">,</span> <span class="s2">&quot;&amp;nbsp;&quot;</span>
                     <span class="s2">&quot;Subcategory of #{labels.join &#39;, &#39;}.&quot;</span>
             <span class="p">,</span>
-                <span class="nv">property: </span><span class="s2">&quot;dc:subject&quot;</span>
+                <span class="nv">property: </span><span class="s2">&quot;dcterms:subject&quot;</span>
                 <span class="nv">makeLabel: </span><span class="nf">(propertyValueArr) -&gt;</span>
                     <span class="nv">labels = </span><span class="nx">_</span><span class="p">(</span><span class="nx">propertyValueArr</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(termUri) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>extract the last part of the uri</p>             </td>             <td class="code">               <div class="highlight"><pre>                        <span class="nx">termUri</span>
                         <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&lt;.*[\/#](.*)&gt;/</span><span class="p">,</span> <span class="s2">&quot;$1&quot;</span><span class="p">)</span>
@@ -134,7 +134,10 @@ old document state</p>             </td>             <td class="code">          
         <span class="p">.</span><span class="nx">success</span> <span class="p">(</span><span class="nx">enhancements</span><span class="p">)</span> <span class="o">=&gt;</span>
           <span class="nx">_</span><span class="p">.</span><span class="nx">defer</span> <span class="o">=&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-28">&#182;</a>               </div>               <p>Link TextAnnotation entities to EntityAnnotations</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">entityAnnotations = </span><span class="nx">Stanbol</span><span class="p">.</span><span class="nx">getEntityAnnotations</span><span class="p">(</span><span class="nx">enhancements</span><span class="p">)</span>
             <span class="k">for</span> <span class="nx">entAnn</span> <span class="k">in</span> <span class="nx">entityAnnotations</span>
-                <span class="nv">textAnns = </span><span class="nx">entAnn</span><span class="p">.</span><span class="nx">get</span> <span class="s2">&quot;dc:relation&quot;</span>
+                <span class="nv">textAnns = </span><span class="nx">entAnn</span><span class="p">.</span><span class="nx">get</span> <span class="s2">&quot;dcterms:relation&quot;</span>
+                <span class="nx">unless</span> <span class="nx">textAnns</span>
+                    <span class="nx">@_logger</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;For #{entAnn.getSubject()} dcterms:relation is not set! This makes this EntityAnnotation unusable!&quot;</span><span class="p">,</span> <span class="nx">entAnn</span>
+                    <span class="k">continue</span>
                 <span class="k">for</span> <span class="nx">textAnn</span> <span class="k">in</span> <span class="nx">_</span><span class="p">.</span><span class="nx">flatten</span><span class="p">([</span><span class="nx">textAnns</span><span class="p">])</span>
                     <span class="nv">textAnn = </span><span class="nx">entAnn</span><span class="p">.</span><span class="nx">vie</span><span class="p">.</span><span class="nx">entities</span><span class="p">.</span><span class="nx">get</span> <span class="nx">textAnn</span> <span class="nx">unless</span> <span class="nx">textAnn</span> <span class="k">instanceof</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span>
                     <span class="k">continue</span> <span class="nx">unless</span> <span class="nx">textAnn</span>
