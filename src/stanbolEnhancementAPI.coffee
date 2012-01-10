@@ -41,7 +41,7 @@ class Stanbol.TextEnhancement
             new Stanbol.EntityEnhancement ee, @
     # The type of the entity suggested (e.g. person, location, organization)
     getType: ->
-        @_uriTrim @_vals("dc:type")
+        @_uriTrim @_vals("dcterms:type")
     # Optional, not used
     getContext: ->
         @_vals("enhancer:selection-context")

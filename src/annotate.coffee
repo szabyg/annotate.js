@@ -192,6 +192,9 @@ jQuery.widget 'IKS.annotate',
             entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
             for entAnn in entityAnnotations
                 textAnns = entAnn.get "dcterms:relation"
+                unless textAnns
+                    @_logger.error "For #{entAnn.getSubject()} dcterms:relation is not set! This makes this EntityAnnotation unusable!", entAnn
+                    continue
                 for textAnn in _.flatten([textAnns])
                     textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
                     continue unless textAnn
