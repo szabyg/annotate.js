@@ -6,15 +6,25 @@
 ns =
     rdf:      'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
     enhancer: 'http://fise.iks-project.eu/ontology/'
-    dcterms:       'http://purl.org/dc/terms/'
+    dcterms:  'http://purl.org/dc/terms/'
     rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
     skos:     'http://www.w3.org/2004/02/skos/core#'
+
+root = this
+jQuery = root.jQuery
+Backbone = root.Backbone
+_ = root._
+VIE = root.VIE
 
 vie = new VIE()
 vie.use(new vie.StanbolService({
     url : "http://dev.iks-project.eu:8080",
     proxyDisabled: true
 }));
+
+# In Internet Explorer String.trim is not defined but we're going to use it.
+String.prototype.trim ?= ->
+    @replace /^\s+|\s+$/g, ''
 
 # calling the get with a scope and callback will call cb(entity) with the scope as soon it's available.'
 class EntityCache
@@ -93,14 +103,14 @@ jQuery.widget 'IKS.annotate',
             "foaf:depiction"
             "schema:thumbnail"
         ]
-        # Define Entity properties for finding the label
+        # Lookup for a label will inspect these properties of an entity
         labelProperties: [
             "rdfs:label"
             "skos:prefLabel"
             "schema:name"
             "foaf:name"
         ]
-        # Define Entity properties for finding the description
+        # Lookup for a description will inspect these properties of an entity
         descriptionProperties: [
             "rdfs:comment"
             "skos:note"
@@ -157,7 +167,7 @@ jQuery.widget 'IKS.annotate',
                 uri: "http://sws.geonames.org/"
                 label: "geonames"
             ]
-
+    # widget specific constructor
     _create: ->
         widget = @
         # logger can be turned on and off. It will show the real caller line in the log
@@ -219,7 +229,7 @@ jQuery.widget 'IKS.annotate',
                     'type', s.getType(),
                     'EntityEnhancements', s.getEntityEnhancements()
                 # Process the text enhancements
-                @processTextEnhancement s, analyzedNode
+                @_processTextEnhancement s, analyzedNode
             # trigger 'done' event with success = true
             @_trigger "success", true
             cb true if typeof cb is "function"
@@ -227,13 +237,12 @@ jQuery.widget 'IKS.annotate',
             cb false, xhr if typeof cb is "function"
             @_trigger 'error', xhr
             @_logger.error "analyze failed", xhr.responseText, xhr
-
     # Remove all not accepted text enhancement widgets
     disable: ->
         $( ':IKS-annotationSelector', @element ).each () ->
             $(@).annotationSelector 'disable' if $(@).data().annotationSelector
 
-    # call `acceptBestCandidate` on each contained annotation selector
+    # accept the best (first) suggestion for all text enhancement.
     acceptAll: (reportCallback) ->
         report = {updated: [], accepted: 0}
         $( ':IKS-annotationSelector', @element ).each () ->
@@ -242,10 +251,12 @@ jQuery.widget 'IKS.annotate',
                 if res
                     report.updated.push @
                     report.accepted++
-        reportCallback? report
+        reportCallback report
+
+    # Internal methods
 
     # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
-    processTextEnhancement: (textEnh, parentEl) ->
+    _processTextEnhancement: (textEnh, parentEl) ->
         if not textEnh.getSelectedText()
             @_logger.warn "textEnh", textEnh, "doesn't have selected-text!"
             return

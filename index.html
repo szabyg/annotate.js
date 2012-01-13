@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="lib/Smoothness/jquery.ui.all.css" />
     <link rel="stylesheet" href="annotate.css" />
 
-    <script type="text/javascript" src="lib/jquery-1.5.1.js"></script>
+    <script type="text/javascript" src="lib/jquery/jquery-1.7.1.js"></script>
     <script type="text/javascript" src="lib/jquery-ui.1.9m5.js"></script>
     <script type="text/javascript" src="lib/underscore-min.js"></script>
     <script type="text/javascript" src="lib/backbone.js"></script>
@@ -30,6 +30,9 @@
     </style>
 
     <script>
+    if (window.JSON === undefined ) { 
+        document.write('<' + 'script src="lib/json/json2.js">/script>"></' + 'script>');
+    }
     $(document).ready(function(){ _.defer(function(){
         $('#loadingDiv')
         .hide()  // hide it initially

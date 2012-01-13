@@ -1,16 +1,17 @@
-# Stanbol Enhancement API specific classes
+# Stanbool Enhancement API
+
 Stanbol ?= {}
 # filter for TextAnnotations
 Stanbol.getTextAnnotations = (enhList) ->
-        res = _(enhList)
-        .filter (e) ->
-            e.isof "<#{ns.enhancer}TextAnnotation>"
-        res = _(res).sortBy (e) ->
-            conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
-            -1 * conf
+    res = _(enhList)
+    .filter (e) ->
+        e.isof "<#{ns.enhancer}TextAnnotation>"
+    res = _(res).sortBy (e) ->
+        conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
+        -1 * conf
 
-        _(res).map (enh)->
-            new Stanbol.TextEnhancement enh, enhList
+    _(res).map (enh)->
+        new Stanbol.TextEnhancement enh, enhList
 
 # filter the entityManager for TextAnnotations
 Stanbol.getEntityAnnotations = (enhList) ->

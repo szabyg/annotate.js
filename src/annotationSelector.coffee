@@ -1,7 +1,8 @@
 ######################################################
 # AnnotationSelector widget
 # the annotationSelector makes an annotated word interactive
-######################################################
+# This widget is instantiated by the IKS.annotate widget for the 
+# text enhancements and RDFa annotated elements.######################################################
 jQuery.widget 'IKS.annotationSelector',
     # just for debugging and understanding
     __widgetName: "IKS.annotationSelector"
@@ -45,7 +46,8 @@ jQuery.widget 'IKS.annotationSelector',
                 uri: @element.attr "about"
                 type: @element.attr "typeof"
             @options.cache.get @linkedEntity.uri, @, (cachedEntity) =>
-                userLang = window.navigator.language.split("-")[0]
+                navigatorLanguage = window.navigator.language || window.navigator.userLanguage
+                userLang = navigatorLanguage.split("-")[0]
                 @linkedEntity.label = _(cachedEntity.get("rdfs:label"))
                 .detect((label) =>
                     if label.indexOf("@#{userLang}") > -1
@@ -199,7 +201,7 @@ jQuery.widget 'IKS.annotationSelector',
         _tempUris = []
         eEnhancements = _(eEnhancements).filter (eEnh) ->
             uri = eEnh.getUri()
-            if _tempUris.indexOf(uri) is -1
+            if _.indexOf(_tempUris, uri) is -1
                 _tempUris.push uri
                 true
             else
@@ -349,7 +351,8 @@ jQuery.widget 'IKS.annotationSelector',
         @options.cache.get uri, @, success, fail
 
     _getUserLang: ->
-        window.navigator.language.split("-")[0]
+        navigatorLanguage = window.navigator.language || window.navigator.userLanguage
+        navigatorLanguage.split("-")[0]
     _getDepiction: (entity, picSize) ->
         preferredFields = @options.depictionProperties
         # field is the first property name with a value
@@ -418,6 +421,7 @@ jQuery.widget 'IKS.annotationSelector',
         widget = @
         @searchbox = $( '.search', @searchEntryField )
         .autocomplete
+            # Define source method. TODO make independent from stanbol.
             source: (req, resp) ->
                 widget._logger.info "req:", req
                 widget.options.vie.find({term: "#{req.term}#{if req.term.length > 3 then '*'  else ''}"})
