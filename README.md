@@ -42,10 +42,7 @@ automatically.
 * Provide another open source (MIT license), flexibly usable, easy to integrate tool for (semi-)automatic and manual semantic enhancement.
 * A tool that's fun to integrate
 
-        var stanbolConnector = new StanbolConnector({
-            "enhancer_url" : "http://example.com/engines/",
-            "entityhub_url" : "http://example.com/entityhub/"
-        });
+        var stanbolConnector = new StanbolConnector();
         $('#content').annotate({
             connector: stanbolConnector
         });
