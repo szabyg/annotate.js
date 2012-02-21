@@ -1,7 +1,7 @@
-#     Annotate - a text enhancement interaction jQuery UI widget
+###   Annotate - a text enhancement interaction jQuery UI widget
 #     (c) 2011 Szaby Gruenwald, IKS Consortium
 #     Annotate may be freely distributed under the MIT license
-
+###
 # define namespaces
 ns =
     rdf:      'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
