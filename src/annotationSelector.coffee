@@ -82,11 +82,14 @@ jQuery.widget 'IKS.annotationSelector',
             @dialog.element.remove()
             @dialog.uiDialogTitlebar.remove()
             delete @dialog
+        @_logger.info "destroy tooltip"
+        @element.tooltip "destroy" if @element.data().tooltip
 
     # remove textEnhancement/annotation, replace the separate html
     # element with the plain text and close the dialog
     remove: (event) ->
         el = @element.parent()
+        @_logger.info "destroy tooltip"
         @element.tooltip "destroy" if @element.data().tooltip
         if not @isAnnotated() and @textEnhancements
             @_trigger 'decline', event,
@@ -145,6 +148,7 @@ jQuery.widget 'IKS.annotationSelector',
             entityEnhancement: entityEnhancement
         @select ui
         @_initTooltip()
+        jQuery(newElement).annotationSelector @options
 
     # triggering select event on the enclosing annotate element
     select: (ui) ->
@@ -167,12 +171,13 @@ jQuery.widget 'IKS.annotationSelector',
 
     # closing the widget
     close: ->
-        @destroy()
+        @dialog?.close?()
         jQuery(".ui-tooltip").remove()
 
     _initTooltip: ->
         widget = @
         if @options.showTooltip
+            @_logger.info "init tooltip for", @element
             jQuery(@element).tooltip
                 items: "[about]"
                 hide: 
