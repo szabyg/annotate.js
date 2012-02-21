@@ -87,7 +87,7 @@ jQuery.widget 'IKS.annotationSelector',
     # element with the plain text and close the dialog
     remove: (event) ->
         el = @element.parent()
-        @element.tooltip "destroy"
+        @element.tooltip "destroy" if @element.data().tooltip
         if not @isAnnotated() and @textEnhancements
             @_trigger 'decline', event,
                 textEnhancements: @textEnhancements

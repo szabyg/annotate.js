@@ -81,7 +81,7 @@ text enhancements and RDFa annotated elements.##################################
             <span class="k">delete</span> <span class="nx">@dialog</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>remove textEnhancement/annotation, replace the separate html
 element with the plain text and close the dialog</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">remove: </span><span class="nf">(event) -&gt;</span>
         <span class="nv">el = </span><span class="nx">@element</span><span class="p">.</span><span class="nx">parent</span><span class="p">()</span>
-        <span class="nx">@element</span><span class="p">.</span><span class="nx">tooltip</span> <span class="s2">&quot;destroy&quot;</span>
+        <span class="nx">@element</span><span class="p">.</span><span class="nx">tooltip</span> <span class="s2">&quot;destroy&quot;</span> <span class="k">if</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">data</span><span class="p">().</span><span class="nx">tooltip</span>
         <span class="k">if</span> <span class="o">not</span> <span class="nx">@isAnnotated</span><span class="p">()</span> <span class="o">and</span> <span class="nx">@textEnhancements</span>
             <span class="nx">@_trigger</span> <span class="s1">&#39;decline&#39;</span><span class="p">,</span> <span class="nx">event</span><span class="p">,</span>
                 <span class="nv">textEnhancements: </span><span class="nx">@textEnhancements</span>
