@@ -70,7 +70,7 @@ jQuery.widget 'IKS.annotationSelector',
                     @_createMenu() if @menu is undefined
             else @searchEntryField.find('.search').focus 100
     disableEditing: ->
-        @_logger.info "TODO: remove click handler"
+        jQuery(@element).off 'click'
     _destroy: ->
         do @disableEditing
         if @menu
@@ -480,8 +480,14 @@ jQuery.widget 'IKS.annotationSelector',
             , 300
         @_logger.info "show searchbox"
 
-    # jquery events cloning method
     _cloneCopyEvent: (src, dest) ->
+        if _(jQuery().jquery).contains "1.6"
+            return @_cloneCopyEvent1_6 src, dest
+        else 
+            return @_cloneCopyEvent1_7 src, dest
+
+    # jquery events cloning method
+    _cloneCopyEvent1_6: (src, dest) ->
         if dest.nodeType isnt 1 or not jQuery.hasData src
             return
 
@@ -507,3 +513,23 @@ jQuery.widget 'IKS.annotationSelector',
                         i++
             null
 
+    _cloneCopyEvent1_7: (src, dest) ->
+      return  if dest.nodeType isnt 1 or not jQuery.hasData(src)
+      type = undefined
+      i = undefined
+      l = undefined
+      oldData = jQuery._data(src)
+      curData = jQuery._data(dest, oldData)
+      events = oldData.events
+      if events
+        delete curData.handle
+
+        curData.events = {}
+        for type of events
+          i = 0
+          l = events[type].length
+
+          while i < l
+            jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
+            i++
+      curData.data = jQuery.extend({}, curData.data)  if curData.data

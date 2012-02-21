@@ -67,7 +67,7 @@ text enhancements and RDFa annotated elements.##################################
                     <span class="nx">@_createMenu</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@menu</span> <span class="o">is</span> <span class="kc">undefined</span>
             <span class="k">else</span> <span class="nx">@searchEntryField</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;.search&#39;</span><span class="p">).</span><span class="nx">focus</span> <span class="mi">100</span>
     <span class="nv">disableEditing: </span><span class="o">-&gt;</span>
-        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;TODO: remove click handler&quot;</span>
+        <span class="nx">jQuery</span><span class="p">(</span><span class="nx">@element</span><span class="p">).</span><span class="kc">off</span> <span class="s1">&#39;click&#39;</span>
     <span class="nv">_destroy: </span><span class="o">-&gt;</span>
         <span class="nx">do</span> <span class="nx">@disableEditing</span>
         <span class="k">if</span> <span class="nx">@menu</span>
@@ -398,7 +398,13 @@ should come from the search result, not from the first textEnhancement</p>      
                 <span class="nx">@searchbox</span><span class="p">.</span><span class="nx">val</span> <span class="nx">label</span>
                 <span class="nx">@searchbox</span><span class="p">.</span><span class="nx">autocomplete</span> <span class="s2">&quot;search&quot;</span><span class="p">,</span> <span class="nx">label</span>
             <span class="p">,</span> <span class="mi">300</span>
-        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;show searchbox&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-35">&#182;</a>               </div>               <p>jquery events cloning method</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">_cloneCopyEvent: </span><span class="nf">(src, dest) -&gt;</span>
+        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;show searchbox&quot;</span>
+
+    <span class="nv">_cloneCopyEvent: </span><span class="nf">(src, dest) -&gt;</span>
+        <span class="k">if</span> <span class="nx">_</span><span class="p">(</span><span class="nx">jQuery</span><span class="p">().</span><span class="nx">jquery</span><span class="p">).</span><span class="nx">contains</span> <span class="s2">&quot;1.6&quot;</span>
+            <span class="k">return</span> <span class="nx">@_cloneCopyEvent1_6</span> <span class="nx">src</span><span class="p">,</span> <span class="nx">dest</span>
+        <span class="k">else</span> 
+            <span class="k">return</span> <span class="nx">@_cloneCopyEvent1_7</span> <span class="nx">src</span><span class="p">,</span> <span class="nx">dest</span></pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-35">&#182;</a>               </div>               <p>jquery events cloning method</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">_cloneCopyEvent1_6: </span><span class="nf">(src, dest) -&gt;</span>
         <span class="k">if</span> <span class="nx">dest</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">isnt</span> <span class="mi">1</span> <span class="o">or</span> <span class="o">not</span> <span class="nx">jQuery</span><span class="p">.</span><span class="nx">hasData</span> <span class="nx">src</span>
             <span class="k">return</span>
 
@@ -420,5 +426,26 @@ stage of data copying</p>             </td>             <td class="code">       
                         <span class="nx">jQuery</span><span class="p">.</span><span class="nx">event</span><span class="p">.</span><span class="nx">add</span> <span class="nx">dest</span><span class="p">,</span> <span class="nx">type</span> <span class="o">+</span> <span class="p">(</span><span class="k">if</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">].</span><span class="nx">namespace</span> <span class="k">then</span> <span class="s2">&quot;.&quot;</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">].</span><span class="nx">namespace</span><span class="p">,</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">],</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">].</span><span class="nx">data</span>
                         <span class="nx">i</span><span class="o">++</span>
             <span class="kc">null</span>
+
+    <span class="nv">_cloneCopyEvent1_7: </span><span class="nf">(src, dest) -&gt;</span>
+      <span class="k">return</span>  <span class="k">if</span> <span class="nx">dest</span><span class="p">.</span><span class="nx">nodeType</span> <span class="o">isnt</span> <span class="mi">1</span> <span class="o">or</span> <span class="o">not</span> <span class="nx">jQuery</span><span class="p">.</span><span class="nx">hasData</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span>
+      <span class="nv">type = </span><span class="kc">undefined</span>
+      <span class="nv">i = </span><span class="kc">undefined</span>
+      <span class="nv">l = </span><span class="kc">undefined</span>
+      <span class="nv">oldData = </span><span class="nx">jQuery</span><span class="p">.</span><span class="nx">_data</span><span class="p">(</span><span class="nx">src</span><span class="p">)</span>
+      <span class="nv">curData = </span><span class="nx">jQuery</span><span class="p">.</span><span class="nx">_data</span><span class="p">(</span><span class="nx">dest</span><span class="p">,</span> <span class="nx">oldData</span><span class="p">)</span>
+      <span class="nv">events = </span><span class="nx">oldData</span><span class="p">.</span><span class="nx">events</span>
+      <span class="k">if</span> <span class="nx">events</span>
+        <span class="k">delete</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">handle</span>
+
+        <span class="nv">curData.events = </span><span class="p">{}</span>
+        <span class="k">for</span> <span class="nx">type</span> <span class="k">of</span> <span class="nx">events</span>
+          <span class="nv">i = </span><span class="mi">0</span>
+          <span class="nv">l = </span><span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">].</span><span class="nx">length</span>
+
+          <span class="k">while</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">l</span>
+            <span class="nx">jQuery</span><span class="p">.</span><span class="nx">event</span><span class="p">.</span><span class="nx">add</span> <span class="nx">dest</span><span class="p">,</span> <span class="nx">type</span> <span class="o">+</span> <span class="p">(</span><span class="k">if</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">].</span><span class="nx">namespace</span> <span class="k">then</span> <span class="s2">&quot;.&quot;</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">].</span><span class="nx">namespace</span><span class="p">,</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">],</span> <span class="nx">events</span><span class="p">[</span><span class="nx">type</span><span class="p">][</span><span class="nx">i</span><span class="p">].</span><span class="nx">data</span>
+            <span class="nx">i</span><span class="o">++</span>
+      <span class="nv">curData.data = </span><span class="nx">jQuery</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>  <span class="k">if</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
