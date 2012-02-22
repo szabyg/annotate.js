@@ -367,6 +367,7 @@ jQuery.widget 'IKS.annotationSelector',
         if field && fieldValue = _([entity.get field]).flatten()
             # 
             depictionUrl = _(fieldValue).detect (uri) ->
+                uri = uri.getSubject() or uri
                 true if uri.indexOf("thumb") isnt -1
             .replace /[0-9]{2..3}px/, "#{picSize}px"
             depictionUrl
