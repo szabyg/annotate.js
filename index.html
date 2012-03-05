@@ -44,7 +44,8 @@
         });
         var z = new VIE();
         z.use(new z.StanbolService({
-            url : "http://dev.iks-project.eu:8081",
+//            url : "http://dev.iks-project.eu:8081",
+            url : "http://localhost:8081",
             proxyDisabled: true
         }));
 
@@ -161,16 +162,15 @@
     </script>
   </head>
   <body  xmlns:sioc     = "http://rdfs.org/sioc/ns#"
-         xmlns:schema   = "http://www.schema.org/"
-         xmlns:enhancer = "http://fise.iks-project.eu/ontology/"
-         xmlns:dc       = "http://purl.org/dc/terms/">
+         xmlns:skos     = "http://www.w3.org/2004/02/skos/core#"
+         xmlns:schema   = "http://www.schema.org/">
         <div class="panel" id="webview">
             <h2>Test annotate.js on itself</h2>
             <button class="enhanceButton">Enhance!</button>
             <button class="acceptAllButton" style="display:none;">Accept all</button>
             <article typeof="schema:CreativeWork" about="http://stanbol.apache.org/enhancertest">
                 <div property="sioc:content" class="content">
-        Turkey, known officially as the Republic of Turkey, is a Eurasian country that stretches across the Anatolian peninsula in western Asia and Thrace in the Balkan region of southeastern Europe. Turkey is one of the six independent Turkic states. Turkey is bordered by eight countries: Bulgaria to the northwest; Greece to the west; Georgia to the northeast; Armenia, Azerbaijan and Iran to the east; and Iraq and Syria to the southeast. The Mediterranean Sea and Cyprus are to the south; the Aegean Sea to the west; and the Black Sea is to the north. The Sea of Marmara, the Bosphorus and the Dardanelles (which together form the Turkish <a href="http://dbpedia.org/resource/Strait" about="http://dbpedia.org/resource/Strait" typeof="" rel="http://www.w3.org/2004/02/skos/core#related" class="entity other acknowledged" title="">Straits</a>) demarcate the boundary between Eastern Thrace and Anatolia; they also separate Europe and Asia. Turks began migrating into the area now called Turkey ("land of the Turks") in the eleventh century. 
+        Turkey, known officially as the Republic of Turkey, is a Eurasian country that stretches across the Anatolian peninsula in western Asia and Thrace in the Balkan region of southeastern Europe. Turkey is one of the six independent Turkic states. Turkey is bordered by eight countries: Bulgaria to the northwest; Greece to the west; Georgia to the northeast; Armenia, Azerbaijan and Iran to the east; and Iraq and Syria to the southeast. The Mediterranean Sea and Cyprus are to the south; the Aegean Sea to the west; and the Black Sea is to the north. The Sea of Marmara, the Bosphorus and the Dardanelles (which together form the Turkish <a href="http://dbpedia.org/resource/Strait" about="http://dbpedia.org/resource/Strait" typeof="" rel="skos:related" class="entity other acknowledged" title="">Straits</a>) demarcate the boundary between Eastern Thrace and Anatolia; they also separate Europe and Asia. Turks began migrating into the area now called Turkey ("land of the Turks") in the eleventh century. 
 <!--
 </div><div>
 -->
@@ -194,6 +194,6 @@ The country's official language is Turkish, whereas Kurdish and Zazaki languages
             <button class="enable">Enable</button>
             <button class="disable">Disable</button>
         </div>
-        <div id="loadingDiv" style="display:none;"><img src="css/spinner.gif"/></div>
+        <div id="loadingDiv" style="display:none;"><img src="spinner.gif"/></div>
     </body>
 </html>

@@ -29,7 +29,11 @@ class Stanbol.TextEnhancement
         @id = @_enhancement.getSubject()
     # the text the annotation is for
     getSelectedText: ->
-        @_vals("enhancer:selected-text")
+        res = @_vals("enhancer:selected-text")
+        if typeof res is "string"
+            return res
+        if typeof res is "object"
+            return res.toString()
     # confidence value
     getConfidence: ->
         @_vals("enhancer:confidence")
@@ -74,7 +78,10 @@ class Stanbol.EntityEnhancement
         @_textEnhancement = textEnh
         @
     getLabel: ->
-        @_vals("enhancer:entity-label").replace(/(^\"*|\"*@..$)/g,"")
+        @_vals("enhancer:entity-label")
+        .toString()
+        # for compatibility with stanbol before 0.9
+        .replace(/(^\"*|\"*@..$)/g,"")
     getUri: ->
         @_uriTrim(@_vals("enhancer:entity-reference"))[0]
     getTextEnhancement: ->

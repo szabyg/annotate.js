@@ -1,5 +1,6 @@
 appFiles  = [
     'src/annotate.coffee'
+    'src/annotationInteraction.coffee'
     'src/annotationSelector.coffee'
     'src/stanbolEnhancementAPI.coffee'
 ]

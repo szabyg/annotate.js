@@ -123,7 +123,8 @@ jQuery.widget 'IKS.annotationSelector',
         # entityClass = @element.attr 'class'
         sType = entityEnhancement.getTextEnhancement().getType()
         sType = ["Other"] unless sType.length
-        rel = options.rel or "#{ns.skos}related"
+        @element.attr 'xmlns:skos', ns.skos
+        rel = options.rel or "skos:related"
         entityClass = 'entity ' + uriSuffix(sType[0]).toLowerCase()
         newElement = $ "<a href='#{entityUri}'
             about='#{entityUri}'
@@ -391,9 +392,14 @@ jQuery.widget 'IKS.annotationSelector',
                     labelArr = _.flatten [entity.get property]
                     # select the label in the user's language
                     label = _(labelArr).detect (label) =>
-                        true if label.indexOf("@#{lang}") > -1
+                        # for compatibility with stanbol before 0.9
+                        true if typeof label is "string" and label.indexOf("@#{lang}") > -1
+                        true if typeof label is "object" and label["@lang"] is lang
                     if label
-                        return label.replace /(^\"*|\"*@..$)/g, ""
+                        return label
+                        .toString()
+                        # for compatibility with stanbol before 0.9
+                        .replace /(^\"*|\"*@..$)/g, ""
                 # property can be an object like {property: "skos:broader", makeLabel: function(propertyValueArr){return "..."}}
                 else if typeof property is "object" and entity.get property.property
                     valueArr = _.flatten [entity.get property.property]
@@ -414,7 +420,7 @@ jQuery.widget 'IKS.annotationSelector',
         active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
                 " class='ui-state-active'"
             else ""
-        item = $("<li#{active} entityuri='#{eEnhancement.getUri()}'><a>#{label} <small>(#{type} from #{source})</small></a></li>")
+        item = $("<li#{active} entityuri='#{eEnhancement.getUri()}' about='#{eEnhancement.getUri()}'><a>#{label} <small>(#{type} from #{source})</small></a></li>")
         .data('enhancement', eEnhancement)
         .appendTo ul
 

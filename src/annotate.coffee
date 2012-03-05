@@ -21,6 +21,7 @@ vie.use(new vie.StanbolService({
     url : "http://dev.iks-project.eu:8080",
     proxyDisabled: true
 }));
+vie.namespaces.add "skos", ns.skos
 
 # In Internet Explorer String.trim is not defined but we're going to use it.
 String.prototype.trim ?= ->
@@ -143,6 +144,7 @@ jQuery.widget 'IKS.annotate',
             skos:     "http://www.w3.org/2004/02/skos/core#"
         # List of enhancement types to filter for
         typeFilter: null
+        annotationInteractionWidget: "annotationInteraction"
         # Give a label to your expected enhancement types
         getTypes: ->
             [
@@ -182,10 +184,12 @@ jQuery.widget 'IKS.annotate',
             logger: @_logger
         if @options.autoAnalyze
             @enable()
+        @_initExistingAnnotations()
     _destroy: ->
         do @disable
         $( ':IKS-annotationSelector', @element ).each () ->
             $(@).annotationSelector 'destroy' if $(@).data().annotationSelector
+        @_destroyExistingAnnotationInteractionWidgets()
 
     # analyze the widget element and show text enhancements
     enable: (cb) ->
@@ -241,7 +245,12 @@ jQuery.widget 'IKS.annotate',
     disable: ->
         $( ':IKS-annotationSelector', @element ).each () ->
             $(@).annotationSelector 'disable' if $(@).data().annotationSelector
-
+    _initExistingAnnotations: ->
+        @existingAnnotations = jQuery "a[about][typeof]", @element
+        console.info @existingAnnotations
+        @existingAnnotations[@options.annotationInteractionWidget] @options
+    _destroyExistingAnnotationInteractionWidgets: ->
+        @existingAnnotations[@options.annotationInteractionWidget] "destroy"
     # accept the best (first) suggestion for all text enhancement.
     acceptAll: (reportCallback) ->
         report = {updated: [], accepted: 0}
