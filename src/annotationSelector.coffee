@@ -394,7 +394,7 @@ jQuery.widget 'IKS.annotationSelector',
                     label = _(labelArr).detect (label) =>
                         # for compatibility with stanbol before 0.9
                         true if typeof label is "string" and label.indexOf("@#{lang}") > -1
-                        true if typeof label is "object" and label["@lang"] is lang
+                        true if typeof label is "object" and label["@language"] is lang
                     if label
                         return label
                         .toString()
