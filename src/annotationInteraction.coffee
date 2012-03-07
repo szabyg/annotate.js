@@ -133,9 +133,14 @@ jQuery.widget "IKS.annotationInteraction",
                     labelArr = _.flatten [entity.get property]
                     # select the label in the user's language
                     label = _(labelArr).detect (label) =>
-                        true if label.indexOf("@#{lang}") > -1
+                        # for compatibility with stanbol before 0.9
+                        true if typeof label is "string" and label.toString().indexOf("@#{lang}") > -1
+                        true if typeof label is "object" and label["@language"] is lang
                     if label
-                        return label.replace /(^\"*|\"*@..$)/g, ""
+                        return label
+                        .toString()
+                        # for compatibility with stanbol before 0.9
+                        .replace /(^\"*|\"*@..$)/g, ""
                 # property can be an object like {property: "skos:broader", makeLabel: function(propertyValueArr){return "..."}}
                 else if typeof property is "object" and entity.get property.property
                     valueArr = _.flatten [entity.get property.property]
