@@ -493,7 +493,7 @@ jQuery.widget 'IKS.annotationSelector',
         @_logger.info "show searchbox"
 
     _cloneCopyEvent: (src, dest) ->
-        if _(jQuery().jquery).contains "1.6"
+        if jQuery().jquery.indexOf("1.6") is 0
             return @_cloneCopyEvent1_6 src, dest
         else 
             return @_cloneCopyEvent1_7 src, dest

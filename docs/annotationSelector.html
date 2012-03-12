@@ -409,7 +409,7 @@ should come from the search result, not from the first textEnhancement</p>      
         <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;show searchbox&quot;</span>
 
     <span class="nv">_cloneCopyEvent: </span><span class="nf">(src, dest) -&gt;</span>
-        <span class="k">if</span> <span class="nx">_</span><span class="p">(</span><span class="nx">jQuery</span><span class="p">().</span><span class="nx">jquery</span><span class="p">).</span><span class="nx">contains</span> <span class="s2">&quot;1.6&quot;</span>
+        <span class="k">if</span> <span class="nx">jQuery</span><span class="p">().</span><span class="nx">jquery</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s2">&quot;1.6&quot;</span><span class="p">)</span> <span class="o">is</span> <span class="mi">0</span>
             <span class="k">return</span> <span class="nx">@_cloneCopyEvent1_6</span> <span class="nx">src</span><span class="p">,</span> <span class="nx">dest</span>
         <span class="k">else</span> 
             <span class="k">return</span> <span class="nx">@_cloneCopyEvent1_7</span> <span class="nx">src</span><span class="p">,</span> <span class="nx">dest</span></pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-37">&#182;</a>               </div>               <p>jquery events cloning method</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">_cloneCopyEvent1_6: </span><span class="nf">(src, dest) -&gt;</span>
