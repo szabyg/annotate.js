@@ -135,6 +135,9 @@ look for a fallback.</p>             </td>             <td class="code">        
             <span class="nv">logger: </span><span class="nx">@_logger</span>
         <span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">autoAnalyze</span>
             <span class="nx">@enable</span><span class="p">()</span>
+        <span class="nx">unless</span> <span class="nx">jQuery</span><span class="p">().</span><span class="nx">tooltip</span>
+            <span class="vi">@options.showTooltip = </span><span class="kc">false</span>
+            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">warn</span> <span class="s2">&quot;the used jQuery UI doesn&#39;t support tooltips, disabling.&quot;</span>
         <span class="nx">@_initExistingAnnotations</span><span class="p">()</span>
     <span class="nv">_destroy: </span><span class="o">-&gt;</span>
         <span class="nx">do</span> <span class="nx">@disable</span>

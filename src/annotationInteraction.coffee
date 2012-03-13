@@ -49,18 +49,19 @@ jQuery.widget "IKS.annotationInteraction",
     _initTooltip: ->
         widget = @
         @_logger.info "init tooltip for", @element
-        jQuery(@element).tooltip
-            items: "[about]"
-            hide: 
-                effect: "hide"
-                delay: 50
-            show:
-                effect: "show"
-                delay: 50
-            content: (response) =>
-                uri = @element.attr "about"
-                @_logger.info "tooltip uri:", uri
-                widget._createPreview uri
+        if @options.showTooltip
+            jQuery(@element).tooltip
+                items: "[about]"
+                hide: 
+                    effect: "hide"
+                    delay: 50
+                show:
+                    effect: "show"
+                    delay: 50
+                content: (response) =>
+                    uri = @element.attr "about"
+                    @_logger.info "tooltip uri:", uri
+                    widget._createPreview uri
     _createPreview: (uri) ->
         html = ""
         picSize = 100

@@ -184,6 +184,9 @@ jQuery.widget 'IKS.annotate',
             logger: @_logger
         if @options.autoAnalyze
             @enable()
+        unless jQuery().tooltip
+            @options.showTooltip = false
+            @_logger.warn "the used jQuery UI doesn't support tooltips, disabling."
         @_initExistingAnnotations()
     _destroy: ->
         do @disable

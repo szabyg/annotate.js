@@ -59,7 +59,7 @@ jQuery.widget 'IKS.annotationSelector',
         @element.click (e) =>
             @_logger.log "click", e, e.isDefaultPrevented()
 #                e.preventDefault()
-            if not @dialog
+            if @dialog or not @dialog # well, always..
                 @_createDialog()
                 setTimeout((=> @dialog.open()), 220)
 
@@ -239,7 +239,8 @@ jQuery.widget 'IKS.annotationSelector',
     # create dialog widget
     _createDialog: ->
         label = @element.text()
-        dialogEl = $("<div><span class='entity-link'></span></div>")
+        jQuery(".annotateselector-dialog").dialog("destroy").remove()
+        dialogEl = $("<div class='annotateselector-dialog'><span class='entity-link'></span></div>")
         .attr( "tabIndex", -1)
         .addClass()
         .keydown( (event) =>
@@ -260,8 +261,8 @@ jQuery.widget 'IKS.annotationSelector',
         dialogEl.dialog
             width: 400
             title: label
-            close: (event, ui) =>
-                @close(event)
+#            close: (event, ui) =>
+#                @close(event)
             autoOpen: false
             open: (e, ui) ->
                 $.data(this, 'dialog').uiDialog.position {
@@ -308,12 +309,14 @@ jQuery.widget 'IKS.annotationSelector',
         ul = $('<ul></ul>')
         .appendTo( @dialog.element )
         @_renderMenu ul, @entityEnhancements
+        selectHandler = (event, ui) =>
+            @_logger.info "selected menu item", ui.item
+            @annotate ui.item.data('enhancement'), styleClass: 'acknowledged'
+            @close(event)
         @menu = ul
         .menu({
-            select: (event, ui) =>
-                @_logger.info "selected menu item", ui.item
-                @annotate ui.item.data('enhancement'), styleClass: 'acknowledged'
-                @close(event)
+            selected: selectHandler # jqueryui 1.8 needs .selected
+            select: selectHandler # jqueryui 1.9 needs .select
             blur: (event, ui) =>
                 @_logger.info 'menu.blur()', ui.item
         })

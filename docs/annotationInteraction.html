@@ -47,18 +47,19 @@ text enhancements and RDFa annotated elements.##################################
     <span class="nv">_initTooltip: </span><span class="o">-&gt;</span>
         <span class="nv">widget = </span><span class="err">@</span>
         <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;init tooltip for&quot;</span><span class="p">,</span> <span class="nx">@element</span>
-        <span class="nx">jQuery</span><span class="p">(</span><span class="nx">@element</span><span class="p">).</span><span class="nx">tooltip</span>
-            <span class="nv">items: </span><span class="s2">&quot;[about]&quot;</span>
-            <span class="nv">hide: </span>
-                <span class="nv">effect: </span><span class="s2">&quot;hide&quot;</span>
-                <span class="nv">delay: </span><span class="mi">50</span>
-            <span class="nv">show:</span>
-                <span class="nv">effect: </span><span class="s2">&quot;show&quot;</span>
-                <span class="nv">delay: </span><span class="mi">50</span>
-            <span class="nv">content: </span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="o">=&gt;</span>
-                <span class="nv">uri = </span><span class="nx">@element</span><span class="p">.</span><span class="nx">attr</span> <span class="s2">&quot;about&quot;</span>
-                <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;tooltip uri:&quot;</span><span class="p">,</span> <span class="nx">uri</span>
-                <span class="nx">widget</span><span class="p">.</span><span class="nx">_createPreview</span> <span class="nx">uri</span>
+        <span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">showTooltip</span>
+            <span class="nx">jQuery</span><span class="p">(</span><span class="nx">@element</span><span class="p">).</span><span class="nx">tooltip</span>
+                <span class="nv">items: </span><span class="s2">&quot;[about]&quot;</span>
+                <span class="nv">hide: </span>
+                    <span class="nv">effect: </span><span class="s2">&quot;hide&quot;</span>
+                    <span class="nv">delay: </span><span class="mi">50</span>
+                <span class="nv">show:</span>
+                    <span class="nv">effect: </span><span class="s2">&quot;show&quot;</span>
+                    <span class="nv">delay: </span><span class="mi">50</span>
+                <span class="nv">content: </span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="o">=&gt;</span>
+                    <span class="nv">uri = </span><span class="nx">@element</span><span class="p">.</span><span class="nx">attr</span> <span class="s2">&quot;about&quot;</span>
+                    <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;tooltip uri:&quot;</span><span class="p">,</span> <span class="nx">uri</span>
+                    <span class="nx">widget</span><span class="p">.</span><span class="nx">_createPreview</span> <span class="nx">uri</span>
     <span class="nv">_createPreview: </span><span class="nf">(uri) -&gt;</span>
         <span class="nv">html = </span><span class="s2">&quot;&quot;</span>
         <span class="nv">picSize = </span><span class="mi">100</span>
