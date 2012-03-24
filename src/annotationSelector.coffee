@@ -50,10 +50,10 @@ jQuery.widget 'IKS.annotationSelector',
                 userLang = navigatorLanguage.split("-")[0]
                 @linkedEntity.label = _(cachedEntity.get("rdfs:label"))
                 .detect((label) =>
-                    if label.indexOf("@#{userLang}") > -1
+                    if label.toString().indexOf("@#{userLang}") > -1
                         true
                 )
-                .replace /(^\"*|\"*@..$)/g, ""
+                .toString().replace /(^\"*|\"*@..$)/g, ""
                 @_logger.info "did I figure out?", @linkedEntity.label
     enableEditing: ->
         @element.click (e) =>
@@ -70,7 +70,7 @@ jQuery.widget 'IKS.annotationSelector',
                     @_createMenu() if @menu is undefined
             else @searchEntryField.find('.search').focus 100
     disableEditing: ->
-        jQuery(@element).off 'click'
+        jQuery(@element).unbind 'click'
     _destroy: ->
         do @disableEditing
         if @menu
@@ -153,7 +153,9 @@ jQuery.widget 'IKS.annotationSelector',
 
     # triggering select event on the enclosing annotate element
     select: (ui) ->
-        @_trigger 'select', null, ui
+        e = new jQuery.Event("select")
+        e.ui = ui
+        @_trigger 'select', e, ui
         jQuery(@options.annotateElement).trigger "annotateselect", ui
 
     # Accept first (best) entity enhancement (if any)

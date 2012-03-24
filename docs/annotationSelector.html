@@ -48,10 +48,10 @@ text enhancements and RDFa annotated elements.##################################
                 <span class="nv">userLang = </span><span class="nx">navigatorLanguage</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="vi">@linkedEntity.label = </span><span class="nx">_</span><span class="p">(</span><span class="nx">cachedEntity</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;rdfs:label&quot;</span><span class="p">))</span>
                 <span class="p">.</span><span class="nx">detect</span><span class="p">((</span><span class="nx">label</span><span class="p">)</span> <span class="o">=&gt;</span>
-                    <span class="k">if</span> <span class="nx">label</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s2">&quot;@#{userLang}&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="k">if</span> <span class="nx">label</span><span class="p">.</span><span class="nx">toString</span><span class="p">().</span><span class="nx">indexOf</span><span class="p">(</span><span class="s2">&quot;@#{userLang}&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span>
                         <span class="kc">true</span>
                 <span class="p">)</span>
-                <span class="p">.</span><span class="nx">replace</span> <span class="sr">/(^\&quot;*|\&quot;*@..$)/g</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+                <span class="p">.</span><span class="nx">toString</span><span class="p">().</span><span class="nx">replace</span> <span class="sr">/(^\&quot;*|\&quot;*@..$)/g</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
                 <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;did I figure out?&quot;</span><span class="p">,</span> <span class="nx">@linkedEntity</span><span class="p">.</span><span class="nx">label</span>
     <span class="nv">enableEditing: </span><span class="o">-&gt;</span>
         <span class="nx">@element</span><span class="p">.</span><span class="nx">click</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="o">=&gt;</span>
@@ -67,7 +67,7 @@ text enhancements and RDFa annotated elements.##################################
                     <span class="nx">@_createMenu</span><span class="p">()</span> <span class="k">if</span> <span class="nx">@menu</span> <span class="o">is</span> <span class="kc">undefined</span>
             <span class="k">else</span> <span class="nx">@searchEntryField</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span><span class="s1">&#39;.search&#39;</span><span class="p">).</span><span class="nx">focus</span> <span class="mi">100</span>
     <span class="nv">disableEditing: </span><span class="o">-&gt;</span>
-        <span class="nx">jQuery</span><span class="p">(</span><span class="nx">@element</span><span class="p">).</span><span class="kc">off</span> <span class="s1">&#39;click&#39;</span>
+        <span class="nx">jQuery</span><span class="p">(</span><span class="nx">@element</span><span class="p">).</span><span class="nx">unbind</span> <span class="s1">&#39;click&#39;</span>
     <span class="nv">_destroy: </span><span class="o">-&gt;</span>
         <span class="nx">do</span> <span class="nx">@disableEditing</span>
         <span class="k">if</span> <span class="nx">@menu</span>
@@ -133,7 +133,9 @@ entityClass = @element.attr 'class'</p>             </td>             <td class=
         <span class="nx">@select</span> <span class="nx">ui</span>
         <span class="nx">@_initTooltip</span><span class="p">()</span>
         <span class="nx">jQuery</span><span class="p">(</span><span class="nx">newElement</span><span class="p">).</span><span class="nx">annotationSelector</span> <span class="nx">@options</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>triggering select event on the enclosing annotate element</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">select: </span><span class="nf">(ui) -&gt;</span>
-        <span class="nx">@_trigger</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">ui</span>
+        <span class="nv">e = </span><span class="k">new</span> <span class="nx">jQuery</span><span class="p">.</span><span class="nx">Event</span><span class="p">(</span><span class="s2">&quot;select&quot;</span><span class="p">)</span>
+        <span class="nv">e.ui = </span><span class="nx">ui</span>
+        <span class="nx">@_trigger</span> <span class="s1">&#39;select&#39;</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">ui</span>
         <span class="nx">jQuery</span><span class="p">(</span><span class="nx">@options</span><span class="p">.</span><span class="nx">annotateElement</span><span class="p">).</span><span class="nx">trigger</span> <span class="s2">&quot;annotateselect&quot;</span><span class="p">,</span> <span class="nx">ui</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>Accept first (best) entity enhancement (if any)</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">acceptBestCandidate: </span><span class="o">-&gt;</span>
         <span class="nv">eEnhancements = </span><span class="nx">@_getEntityEnhancements</span><span class="p">()</span>
         <span class="k">return</span> <span class="nx">unless</span> <span class="nx">eEnhancements</span><span class="p">.</span><span class="nx">length</span>
