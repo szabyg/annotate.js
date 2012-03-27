@@ -67,7 +67,7 @@ jQuery.widget 'IKS.annotationSelector',
 
                 @_createSearchbox()
                 if @entityEnhancements.length > 0
-                    @_createMenu() if @menu is undefined
+                    @_createMenu()
             else @searchEntryField.find('.search').focus 100
     disableEditing: ->
         jQuery(@element).unbind 'click'
