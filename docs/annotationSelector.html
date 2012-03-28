@@ -199,8 +199,8 @@ Filtered by the @options.types list</p>             </td>             <td class=
         <span class="k">else</span>
             <span class="nx">src</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>create dialog widget</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">_createDialog: </span><span class="o">-&gt;</span>
         <span class="nv">label = </span><span class="nx">@element</span><span class="p">.</span><span class="nx">text</span><span class="p">()</span>
-        <span class="nx">jQuery</span><span class="p">(</span><span class="s2">&quot;.annotateselector-dialog&quot;</span><span class="p">).</span><span class="nx">dialog</span><span class="p">(</span><span class="s2">&quot;destroy&quot;</span><span class="p">).</span><span class="nx">remove</span><span class="p">()</span>
-        <span class="nv">dialogEl = </span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;div class=&#39;annotateselector-dialog&#39;&gt;&lt;span class=&#39;entity-link&#39;&gt;&lt;/span&gt;&lt;/div&gt;&quot;</span><span class="p">)</span>
+        <span class="nx">jQuery</span><span class="p">(</span><span class="s2">&quot;.annotateselector-dialog-content&quot;</span><span class="p">).</span><span class="nx">dialog</span><span class="p">(</span><span class="s2">&quot;destroy&quot;</span><span class="p">).</span><span class="nx">remove</span><span class="p">()</span>
+        <span class="nv">dialogEl = </span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;div class=&#39;annotateselector-dialog-content&#39;&gt;&lt;span class=&#39;entity-link&#39;&gt;&lt;/span&gt;&lt;/div&gt;&quot;</span><span class="p">)</span>
         <span class="p">.</span><span class="nx">attr</span><span class="p">(</span> <span class="s2">&quot;tabIndex&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="p">.</span><span class="nx">addClass</span><span class="p">()</span>
         <span class="p">.</span><span class="nx">keydown</span><span class="p">(</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
@@ -220,6 +220,7 @@ Filtered by the @options.types list</p>             </td>             <td class=
         <span class="nv">widget = </span><span class="err">@</span>
         <span class="nx">dialogEl</span><span class="p">.</span><span class="nx">dialog</span>
             <span class="nv">width: </span><span class="mi">400</span>
+            <span class="nv">styleClass: </span><span class="s1">&#39;annotateselector-dialog&#39;</span>
             <span class="nv">title: </span><span class="nx">label</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <pre><code>       close: (event, ui) =&gt;
            @close(event)
 </code></pre>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">autoOpen: </span><span class="kc">false</span>

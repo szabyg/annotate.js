@@ -241,8 +241,8 @@ jQuery.widget 'IKS.annotationSelector',
     # create dialog widget
     _createDialog: ->
         label = @element.text()
-        jQuery(".annotateselector-dialog").dialog("destroy").remove()
-        dialogEl = $("<div class='annotateselector-dialog'><span class='entity-link'></span></div>")
+        jQuery(".annotateselector-dialog-content").dialog("destroy").remove()
+        dialogEl = $("<div class='annotateselector-dialog-content'><span class='entity-link'></span></div>")
         .attr( "tabIndex", -1)
         .addClass()
         .keydown( (event) =>
@@ -262,6 +262,7 @@ jQuery.widget 'IKS.annotationSelector',
         widget = @
         dialogEl.dialog
             width: 400
+            styleClass: 'annotateselector-dialog'
             title: label
 #            close: (event, ui) =>
 #                @close(event)
