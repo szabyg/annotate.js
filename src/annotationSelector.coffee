@@ -382,37 +382,12 @@ jQuery.widget 'IKS.annotationSelector',
     _getLabel: (entity) ->
         preferredFields = @options.labelProperties
         preferredLanguages = [@_getUserLang(), @options.fallbackLanguage]
-        @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
+        VIE.Util.getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
 
     _getDescription: (entity) ->
         preferredFields = @options.descriptionProperties
         preferredLanguages = [@_getUserLang(), @options.fallbackLanguage]
-        @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
-
-    _getPreferredLangForPreferredProperty: (entity, preferredFields, preferredLanguages) ->
-        # Try to find a label in the preferred language
-        for lang in preferredLanguages
-            for property in preferredFields
-                # property can be a string e.g. "skos:prefLabel"
-                if typeof property is "string" and entity.get property
-                    labelArr = _.flatten [entity.get property]
-                    # select the label in the user's language
-                    label = _(labelArr).detect (label) =>
-                        # for compatibility with stanbol before 0.9
-                        true if typeof label is "string" and label.toString().indexOf("@#{lang}") > -1
-                        true if typeof label is "object" and label["@language"] is lang
-                    if label
-                        return label
-                        .toString()
-                        # for compatibility with stanbol before 0.9
-                        .replace /(^\"*|\"*@..$)/g, ""
-                # property can be an object like {property: "skos:broader", makeLabel: function(propertyValueArr){return "..."}}
-                else if typeof property is "object" and entity.get property.property
-                    valueArr = _.flatten [entity.get property.property]
-                    valueArr = _(valueArr).map (termUri) ->
-                        if termUri.isEntity then termUri.getSubject() else termUri
-                    return property.makeLabel valueArr
-        ""
+        VIE.Util.getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
 
     # Rendering menu for the EntityEnhancements suggested for the selected text
     _renderMenu: (ul, entityEnhancements) ->
