@@ -250,7 +250,7 @@ jQuery.widget 'IKS.annotate',
             $(@).annotationSelector 'disable' if $(@).data().annotationSelector
     _initExistingAnnotations: ->
         @existingAnnotations = jQuery "a[about][typeof]", @element
-        console.info @existingAnnotations
+        @_logger.info @existingAnnotations
         @existingAnnotations[@options.annotationInteractionWidget] @options
     _destroyExistingAnnotationInteractionWidgets: ->
         @existingAnnotations[@options.annotationInteractionWidget] "destroy"
@@ -341,7 +341,7 @@ jQuery.widget 'IKS.annotate',
         textContentOf = (element) -> $(element).text().replace(/\n/g, " ")
         # find the text node
         if textContentOf(element).indexOf(text) is -1
-            console.error "'#{text}' doesn't appear in the text block."
+            @_logger.error "'#{text}' doesn't appear in the text block."
             return $()
         start = options.start +
         textContentOf(element).indexOf textContentOf(element).trim()
@@ -370,5 +370,5 @@ jQuery.widget 'IKS.annotate',
                 $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
                 $ newElement
             else
-                console.warn "dom element creation problem: #{textToCut} isnt #{text}"
+                @_logger.warn "dom element creation problem: #{textToCut} isnt #{text}"
 

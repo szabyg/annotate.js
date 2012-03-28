@@ -229,7 +229,7 @@ jQuery.widget 'IKS.annotationSelector',
 
     # make a label for the entity source based on options.getSources()
     _sourceLabel: (src) ->
-        console.warn "No source" unless src
+        @_logger.warn "No source" unless src
         return "" unless src
         sources = @options.getSources()
         sourceObj = _(sources).detect (s) -> src.indexOf(s.uri) isnt -1
