@@ -66,7 +66,8 @@ $('.search')
         <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <ul>
 <li>If label and description is not available in the user's language 
 look for a fallback.</li>
-</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">fallbackLanguage: </span><span class="s2">&quot;en&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <ul>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">fallbackLanguage: </span><span class="s2">&quot;en&quot;</span>
+        <span class="nv">styleClass: </span><span class="s2">&quot;vie-autocomplete&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <ul>
 <li>type label definition</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">getTypes: </span><span class="o">-&gt;</span>
             <span class="p">[</span>
@@ -97,8 +98,12 @@ look for a fallback.</li>
             <span class="nv">warn: </span><span class="o">-&gt;</span>
             <span class="nv">error: </span><span class="o">-&gt;</span>
             <span class="nv">log: </span><span class="o">-&gt;</span>
+        <span class="vi">@menuContainer = </span><span class="nx">jQuery</span> <span class="s2">&quot;&lt;span class=&#39;#{@options.styleClass}&#39;/&gt;&quot;</span>
+        <span class="nx">@menuContainer</span><span class="p">.</span><span class="nx">appendTo</span> <span class="s1">&#39;body&#39;</span>
         <span class="nx">@_instantiateAutocomplete</span><span class="p">()</span>
 
+    <span class="nv">_destroy: </span><span class="o">-&gt;</span>
+        <span class="nx">@menuContainer</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span>
     <span class="nv">_instantiateAutocomplete: </span><span class="o">-&gt;</span>
         <span class="nv">widget = </span><span class="err">@</span>
         <span class="nx">@element</span>
@@ -155,6 +160,7 @@ TODO move to VIE</p>             </td>             <td class="code">            
                 <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;autocomplete.select&quot;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">,</span> <span class="nx">ui</span>
                 <span class="k">if</span> <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">urifield</span>
                     <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">urifield</span><span class="p">.</span><span class="nx">val</span> <span class="nx">ui</span><span class="p">.</span><span class="nx">item</span><span class="p">.</span><span class="nx">key</span>
+            <span class="nv">appendTo: </span><span class="nx">@menuContainer</span>
 
     <span class="nv">_getUserLang: </span><span class="o">-&gt;</span>
         <span class="nb">window</span><span class="p">.</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">language</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>

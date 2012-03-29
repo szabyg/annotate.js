@@ -75,6 +75,7 @@ jQuery.widget "IKS.vieAutocomplete",
         # * If label and description is not available in the user's language 
         # look for a fallback.
         fallbackLanguage: "en"
+        styleClass: "vie-autocomplete"
         # * type label definition
         getTypes: ->
             [
@@ -105,8 +106,12 @@ jQuery.widget "IKS.vieAutocomplete",
             warn: ->
             error: ->
             log: ->
+        @menuContainer = jQuery "<span class='#{@options.styleClass}'/>"
+        @menuContainer.appendTo 'body'
         @_instantiateAutocomplete()
 
+    _destroy: ->
+        @menuContainer.remove()
     _instantiateAutocomplete: ->
         widget = @
         @element
@@ -175,6 +180,7 @@ jQuery.widget "IKS.vieAutocomplete",
                 @_logger.info "autocomplete.select", e.target, ui
                 if widget.options.urifield
                     widget.options.urifield.val ui.item.key
+            appendTo: @menuContainer
 
     _getUserLang: ->
         window.navigator.language.split("-")[0]
