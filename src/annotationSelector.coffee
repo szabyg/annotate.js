@@ -304,7 +304,7 @@ jQuery.widget 'IKS.annotationSelector',
     # create menu and add to the dialog
     _createMenu: ->
         widget = @
-        ul = $('<ul></ul>')
+        ul = $('<ul class="suggestion-menu"></ul>')
         .appendTo( @dialog.element )
         @_renderMenu ul, @entityEnhancements
         selectHandler = (event, ui) =>
@@ -317,6 +317,7 @@ jQuery.widget 'IKS.annotationSelector',
             select: selectHandler # jqueryui 1.9 needs .select
             blur: (event, ui) =>
                 @_logger.info 'menu.blur()', ui.item
+            styleClass: 'suggestion-menu'
         })
         .focus(150)
         if @options.showTooltip
@@ -408,55 +409,19 @@ jQuery.widget 'IKS.annotationSelector',
         sugg = @textEnhancements[0]
         widget = @
         @searchbox = $( '.search', @searchEntryField )
-        .autocomplete
-            # Define source method. TODO make independent from stanbol.
-            source: (req, resp) ->
-                widget._logger.info "req:", req
-                widget.options.vie.find({term: "#{req.term}#{if req.term.length > 3 then '*'  else ''}"})
-                .using('stanbol').execute()
-                .fail (e) ->
-                    widget._logger.error "Something wrong happened at stanbol find:", e
-                .success (entityList) ->
-                  _.defer =>
-                    widget._logger.info "resp:", _(entityList).map (ent) ->
-                        ent.id
-                    limit = 10
-                    entityList = _(entityList).filter (ent) ->
-                        return false if ent.getSubject().replace(/^<|>$/g, "") is "http://www.iks-project.eu/ontology/rick/query/QueryResultSet"
-                        return true
-                    res = _(entityList.slice(0, limit)).map (entity) ->
-                        return {
-                            key: entity.getSubject().replace /^<|>$/g, ""
-                            label: "#{widget._getLabel entity} @ #{widget._sourceLabel entity.id}"
-                            _label: widget._getLabel entity
-                            getLabel: -> @_label
-                            getUri: -> @key
-                            # To rethink: The type of the annotation (person, place, org)
-                            # should come from the search result, not from the first textEnhancement
-                            _tEnh: sugg
-                            getTextEnhancement: -> @_tEnh
-                        }
-                    resp res
-            open: (e, ui) ->
-                widget._logger.info "autocomplete.open", e, ui
-                if widget.options.showTooltip
-                    $(this).data().autocomplete.menu.activeMenu
-                    .tooltip
-                        items: ".ui-menu-item"
-                        hide: 
-                            effect: "hide"
-                            delay: 50
-                        show:
-                            effect: "show"
-                            delay: 50
-                        content: (response) ->
-                            uri = $( @ ).data()["item.autocomplete"].getUri()
-                            widget._createPreview uri, response
-                            "loading..."
-            # An entity selected, annotate
-            select: (e, ui) =>
-                @annotate ui.item, styleClass: "acknowledged"
-                @_logger.info "autocomplete.select", e.target, ui
+        .vieAutocomplete
+          vie: vie
+          urifield: jQuery("#urifield")
+          select: (e, ui) =>
+            item = ui.item
+            item.getUri = ->
+              @key
+            item._tEnh = sugg
+            item.getTextEnhancement = -> @_tEnh
+            item.getLabel = -> @label
+            @annotate ui.item, styleClass: "acknowledged"
+            @_logger.info "autocomplete.select", e.target, ui
+        @searchEntryField
         .focus(200)
         .blur (e, ui) =>
             @_dialogCloseTimeout = setTimeout ( => @close()), 200

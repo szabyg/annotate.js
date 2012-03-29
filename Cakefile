@@ -3,6 +3,7 @@ appFiles  = [
     'src/annotationInteraction.coffee'
     'src/annotationSelector.coffee'
     'src/stanbolEnhancementAPI.coffee'
+    'src/vie.autocomplete.coffee'
 ]
 target = "lib/annotate.js"
 
