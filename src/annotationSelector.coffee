@@ -50,13 +50,6 @@ jQuery.widget 'IKS.annotationSelector',
                 userLang = navigatorLanguage.split("-")[0]
                 @linkedEntity.label = VIE.Util.getPreferredLangForPreferredProperty cachedEntity, 
                   ["skos:prefLabel", "rdfs:label"], [userLang, "en"]
-                _(cachedEntity.get("rdfs:label"))
-                .detect((label) =>
-                    if label.toString().indexOf("@#{userLang}") > -1
-                        true
-                )
-                .toString().replace /(^\"*|\"*@..$)/g, ""
-                @_logger.info "did I figure out?", @linkedEntity.label
     enableEditing: ->
         @element.click (e) =>
             @_logger.log "click", e, e.isDefaultPrevented()
