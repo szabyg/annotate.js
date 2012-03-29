@@ -145,6 +145,7 @@ jQuery.widget 'IKS.annotationSelector',
         @select ui
         @_initTooltip()
         jQuery(newElement).annotationSelector @options
+        @dialog?.close()
 
     # triggering select event on the enclosing annotate element
     select: (ui) ->
