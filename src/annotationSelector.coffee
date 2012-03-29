@@ -48,7 +48,9 @@ jQuery.widget 'IKS.annotationSelector',
             @options.cache.get @linkedEntity.uri, @, (cachedEntity) =>
                 navigatorLanguage = window.navigator.language || window.navigator.userLanguage
                 userLang = navigatorLanguage.split("-")[0]
-                @linkedEntity.label = _(cachedEntity.get("rdfs:label"))
+                @linkedEntity.label = VIE.Util.getPreferredLangForPreferredProperty cachedEntity, 
+                  ["skos:prefLabel", "rdfs:label"], [userLang, "en"]
+                _(cachedEntity.get("rdfs:label"))
                 .detect((label) =>
                     if label.toString().indexOf("@#{userLang}") > -1
                         true
@@ -262,7 +264,7 @@ jQuery.widget 'IKS.annotationSelector',
         widget = @
         dialogEl.dialog
             width: 400
-            styleClass: 'annotateselector-dialog'
+            dialogClass: 'annotation-selector-dialog'
             title: label
 #            close: (event, ui) =>
 #                @close(event)
