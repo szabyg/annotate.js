@@ -291,6 +291,7 @@ jQuery.widget 'IKS.annotationSelector',
                 text: if @isAnnotated() then 'Remove' else 'Decline'
                 click: (event) =>
                     @remove event
+                    @close()
             Cancel: =>
                 @close()
 

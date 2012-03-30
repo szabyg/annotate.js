@@ -243,6 +243,7 @@ Filtered by the @options.types list</p>             </td>             <td class=
                 <span class="nv">text: </span><span class="k">if</span> <span class="nx">@isAnnotated</span><span class="p">()</span> <span class="k">then</span> <span class="s1">&#39;Remove&#39;</span> <span class="k">else</span> <span class="s1">&#39;Decline&#39;</span>
                 <span class="nv">click: </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="o">=&gt;</span>
                     <span class="nx">@remove</span> <span class="nx">event</span>
+                    <span class="nx">@close</span><span class="p">()</span>
             <span class="nv">Cancel: </span><span class="o">=&gt;</span>
                 <span class="nx">@close</span><span class="p">()</span>
 
