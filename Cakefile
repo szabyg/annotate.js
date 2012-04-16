@@ -56,8 +56,8 @@ task 'build', 'Build single application file from source files', ->
                         invoke 'doc'
 
 task 'doc', 'Build documentation', ->
-    exec 'docco src/*.coffee', (err, stdout, stderr) ->
-        util.error strerr if stderr
+    exec 'docco-husky src/*.coffee', (err, stdout, stderr) ->
+        util.error stderr if stderr
         console.log stdout if stdout
 grrrr = (message = '') -> 
     util.error message

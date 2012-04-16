@@ -17,80 +17,80 @@ $('.search')
 });
 </code></pre>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>default VIE instance with stanbol service</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">vie = </span><span class="k">new</span> <span class="nx">VIE</span><span class="p">()</span>
 <span class="nx">vie</span><span class="p">.</span><span class="nx">use</span><span class="p">(</span><span class="k">new</span> <span class="nx">vie</span><span class="p">.</span><span class="nx">StanbolService</span><span class="p">({</span>
-    <span class="nv">url : </span><span class="s2">&quot;http://dev.iks-project.eu:8080&quot;</span><span class="p">,</span>
+    <span class="nv">url : </span><span class="s">&quot;http://dev.iks-project.eu:8080&quot;</span><span class="p">,</span>
     <span class="nv">proxyDisabled: </span><span class="kc">true</span>
 <span class="p">}));</span>
 
-<span class="nx">jQuery</span><span class="p">.</span><span class="nx">widget</span> <span class="s2">&quot;IKS.vieAutocomplete&quot;</span><span class="p">,</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>The widget <strong>options</strong> are:</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">options:</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <ul>
+<span class="nx">jQuery</span><span class="p">.</span><span class="nx">widget</span> <span class="s">&quot;IKS.vieAutocomplete&quot;</span><span class="p">,</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>The widget <strong>options</strong> are:</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">options:</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <ul>
 <li>VIE instance.</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">vie: </span><span class="nx">vie</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <ul>
 <li>callback for selection event</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">select: </span><span class="nf">(e, ui) -&gt;</span>
         <span class="nv">urifield: </span><span class="kc">null</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <ul>
 <li>The field to search in.</li>
-</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">field: </span><span class="s2">&quot;rdfs:label&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <ul>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">field: </span><span class="s">&quot;rdfs:label&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <ul>
 <li>VIE service to use (right now only one)</li>
-</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">services: </span><span class="s2">&quot;stanbol&quot;</span>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">services: </span><span class="s">&quot;stanbol&quot;</span>
         <span class="nv">debug: </span><span class="kc">false</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <ul>
 <li>Define Entity properties for finding depiction</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">depictionProperties: </span><span class="p">[</span>
-            <span class="s2">&quot;foaf:depiction&quot;</span>
-            <span class="s2">&quot;schema:thumbnail&quot;</span>
+            <span class="s">&quot;foaf:depiction&quot;</span>
+            <span class="s">&quot;schema:thumbnail&quot;</span>
         <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <ul>
 <li>Define Entity properties for finding the label</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">labelProperties: </span><span class="p">[</span>
-            <span class="s2">&quot;rdfs:label&quot;</span>
-            <span class="s2">&quot;skos:prefLabel&quot;</span>
-            <span class="s2">&quot;schema:name&quot;</span>
-            <span class="s2">&quot;foaf:name&quot;</span>
+            <span class="s">&quot;rdfs:label&quot;</span>
+            <span class="s">&quot;skos:prefLabel&quot;</span>
+            <span class="s">&quot;schema:name&quot;</span>
+            <span class="s">&quot;foaf:name&quot;</span>
         <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <ul>
 <li>Define Entity properties for finding the description</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">descriptionProperties: </span><span class="p">[</span>
-            <span class="s2">&quot;rdfs:comment&quot;</span>
-            <span class="s2">&quot;skos:note&quot;</span>
-            <span class="s2">&quot;schema:description&quot;</span>
-            <span class="s2">&quot;skos:definition&quot;</span>
-                <span class="nv">property: </span><span class="s2">&quot;skos:broader&quot;</span>
+            <span class="s">&quot;rdfs:comment&quot;</span>
+            <span class="s">&quot;skos:note&quot;</span>
+            <span class="s">&quot;schema:description&quot;</span>
+            <span class="s">&quot;skos:definition&quot;</span>
+                <span class="nv">property: </span><span class="s">&quot;skos:broader&quot;</span>
                 <span class="nv">makeLabel: </span><span class="nf">(propertyValueArr) -&gt;</span>
                     <span class="nv">labels = </span><span class="nx">_</span><span class="p">(</span><span class="nx">propertyValueArr</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(termUri) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>extract the last part of the uri</p>             </td>             <td class="code">               <div class="highlight"><pre>                        <span class="nx">termUri</span>
-                        <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&lt;.*[\/#](.*)&gt;/</span><span class="p">,</span> <span class="s2">&quot;$1&quot;</span><span class="p">)</span>
-                        <span class="p">.</span><span class="nx">replace</span> <span class="sr">/_/g</span><span class="p">,</span> <span class="s2">&quot;&amp;nbsp;&quot;</span>
-                    <span class="s2">&quot;Subcategory of #{labels.join &#39;, &#39;}.&quot;</span>
+                        <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&lt;.*[\/#](.*)&gt;/</span><span class="p">,</span> <span class="s">&quot;$1&quot;</span><span class="p">)</span>
+                        <span class="p">.</span><span class="nx">replace</span> <span class="sr">/_/g</span><span class="p">,</span> <span class="s">&quot;&amp;nbsp;&quot;</span>
+                    <span class="s">&quot;Subcategory of </span><span class="si">#{</span><span class="nx">labels</span><span class="p">.</span><span class="nx">join</span> <span class="s">&#39;, &#39;</span><span class="si">}</span><span class="s">.&quot;</span>
             <span class="p">,</span>
-                <span class="nv">property: </span><span class="s2">&quot;dcterms:subject&quot;</span>
+                <span class="nv">property: </span><span class="s">&quot;dcterms:subject&quot;</span>
                 <span class="nv">makeLabel: </span><span class="nf">(propertyValueArr) -&gt;</span>
                     <span class="nv">labels = </span><span class="nx">_</span><span class="p">(</span><span class="nx">propertyValueArr</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(termUri) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p>extract the last part of the uri</p>             </td>             <td class="code">               <div class="highlight"><pre>                        <span class="nx">termUri</span>
-                        <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&lt;.*[\/#](.*)&gt;/</span><span class="p">,</span> <span class="s2">&quot;$1&quot;</span><span class="p">)</span>
-                        <span class="p">.</span><span class="nx">replace</span> <span class="sr">/_/g</span><span class="p">,</span> <span class="s2">&quot;&amp;nbsp;&quot;</span>
-                    <span class="s2">&quot;Subject(s): #{labels.join &#39;, &#39;}.&quot;</span>
+                        <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/&lt;.*[\/#](.*)&gt;/</span><span class="p">,</span> <span class="s">&quot;$1&quot;</span><span class="p">)</span>
+                        <span class="p">.</span><span class="nx">replace</span> <span class="sr">/_/g</span><span class="p">,</span> <span class="s">&quot;&amp;nbsp;&quot;</span>
+                    <span class="s">&quot;Subject(s): </span><span class="si">#{</span><span class="nx">labels</span><span class="p">.</span><span class="nx">join</span> <span class="s">&#39;, &#39;</span><span class="si">}</span><span class="s">.&quot;</span>
         <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <ul>
 <li>If label and description is not available in the user's language 
 look for a fallback.</li>
-</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">fallbackLanguage: </span><span class="s2">&quot;en&quot;</span>
-        <span class="nv">styleClass: </span><span class="s2">&quot;vie-autocomplete&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <ul>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">fallbackLanguage: </span><span class="s">&quot;en&quot;</span>
+        <span class="nv">styleClass: </span><span class="s">&quot;vie-autocomplete&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <ul>
 <li>type label definition</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">getTypes: </span><span class="o">-&gt;</span>
             <span class="p">[</span>
-                <span class="nv">uri: </span>  <span class="s2">&quot;#{@ns.dbpedia}Place&quot;</span>
-                <span class="nv">label: </span><span class="s1">&#39;Place&#39;</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">dbpedia</span><span class="si">}</span><span class="s">Place&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Place&#39;</span>
             <span class="p">,</span>
-                <span class="nv">uri: </span>  <span class="s2">&quot;#{@ns.dbpedia}Person&quot;</span>
-                <span class="nv">label: </span><span class="s1">&#39;Person&#39;</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">dbpedia</span><span class="si">}</span><span class="s">Person&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Person&#39;</span>
             <span class="p">,</span>
-                <span class="nv">uri: </span>  <span class="s2">&quot;#{@ns.dbpedia}Organisation&quot;</span>
-                <span class="nv">label: </span><span class="s1">&#39;Organisation&#39;</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">dbpedia</span><span class="si">}</span><span class="s">Organisation&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Organisation&#39;</span>
             <span class="p">,</span>
-                <span class="nv">uri: </span>  <span class="s2">&quot;#{@ns.skos}Concept&quot;</span>
-                <span class="nv">label: </span><span class="s1">&#39;Concept&#39;</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">skos</span><span class="si">}</span><span class="s">Concept&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Concept&#39;</span>
             <span class="p">]</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <ul>
 <li>entity source label definition</li>
 </ul>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">getSources: </span><span class="o">-&gt;</span>
             <span class="p">[</span>
-                <span class="nv">uri: </span><span class="s2">&quot;http://dbpedia.org/resource/&quot;</span>
-                <span class="nv">label: </span><span class="s2">&quot;dbpedia&quot;</span>
+                <span class="nv">uri: </span><span class="s">&quot;http://dbpedia.org/resource/&quot;</span>
+                <span class="nv">label: </span><span class="s">&quot;dbpedia&quot;</span>
             <span class="p">,</span>
-                <span class="nv">uri: </span><span class="s2">&quot;http://sws.geonames.org/&quot;</span>
-                <span class="nv">label: </span><span class="s2">&quot;geonames&quot;</span>
+                <span class="nv">uri: </span><span class="s">&quot;http://sws.geonames.org/&quot;</span>
+                <span class="nv">label: </span><span class="s">&quot;geonames&quot;</span>
             <span class="p">]</span>
     <span class="nv">_create: </span><span class="o">-&gt;</span>
         <span class="vi">@_logger = </span><span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">debug</span> <span class="k">then</span> <span class="nx">console</span> <span class="k">else</span> 
@@ -98,78 +98,78 @@ look for a fallback.</li>
             <span class="nv">warn: </span><span class="o">-&gt;</span>
             <span class="nv">error: </span><span class="o">-&gt;</span>
             <span class="nv">log: </span><span class="o">-&gt;</span>
-        <span class="vi">@menuContainer = </span><span class="nx">jQuery</span> <span class="s2">&quot;&lt;span class=&#39;#{@options.styleClass}&#39;/&gt;&quot;</span>
-        <span class="nx">@menuContainer</span><span class="p">.</span><span class="nx">appendTo</span> <span class="s1">&#39;body&#39;</span>
+        <span class="vi">@menuContainer = </span><span class="nx">jQuery</span> <span class="s">&quot;&lt;span class=&#39;</span><span class="si">#{</span><span class="nx">@options</span><span class="p">.</span><span class="nx">styleClass</span><span class="si">}</span><span class="s">&#39;/&gt;&quot;</span>
+        <span class="nx">@menuContainer</span><span class="p">.</span><span class="nx">appendTo</span> <span class="s">&#39;body&#39;</span>
         <span class="nx">@_instantiateAutocomplete</span><span class="p">()</span>
 
     <span class="nv">_destroy: </span><span class="o">-&gt;</span>
         <span class="nx">@menuContainer</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span>
     <span class="nv">_instantiateAutocomplete: </span><span class="o">-&gt;</span>
-        <span class="nv">widget = </span><span class="err">@</span>
+        <span class="nv">widget = </span><span class="nx">@</span>
         <span class="nx">@element</span>
         <span class="p">.</span><span class="nx">autocomplete</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <p>define where do suggestions come from</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">source: </span><span class="nf">(req, resp) -&gt;</span>
-                <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;req:&quot;</span><span class="p">,</span> <span class="nx">req</span>
+                <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;req:&quot;</span><span class="p">,</span> <span class="nx">req</span>
                 <span class="nv">properties = </span><span class="nx">_</span><span class="p">.</span><span class="nx">flatten</span> <span class="p">[</span>
                     <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">labelProperties</span>
                     <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">descriptionProperties</span>
                     <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">depictionProperties</span>
                 <span class="p">]</span>
                 <span class="nv">properties = </span><span class="nx">_</span><span class="p">(</span><span class="nx">properties</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(prop) -&gt;</span>
-                    <span class="k">if</span> <span class="k">typeof</span> <span class="nx">prop</span> <span class="o">is</span> <span class="s2">&quot;object&quot;</span>
+                    <span class="k">if</span> <span class="k">typeof</span> <span class="nx">prop</span> <span class="o">is</span> <span class="s">&quot;object&quot;</span>
                         <span class="nx">prop</span><span class="p">.</span><span class="nx">property</span>
                     <span class="k">else</span>
                         <span class="nx">prop</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <p>call VIE.find</p>             </td>             <td class="code">               <div class="highlight"><pre>                <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">vie</span><span class="p">.</span><span class="nx">find</span><span class="p">({</span>
-                    <span class="nv">term: </span><span class="s2">&quot;#{req.term}#{if req.term.length &gt; 3 then &#39;*&#39;  else &#39;&#39;}&quot;</span>
+                    <span class="nv">term: </span><span class="s">&quot;</span><span class="si">#{</span><span class="nx">req</span><span class="p">.</span><span class="nx">term</span><span class="si">}#{</span><span class="k">if</span> <span class="nx">req</span><span class="p">.</span><span class="nx">term</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">then</span> <span class="s">&#39;*&#39;</span>  <span class="k">else</span> <span class="s">&#39;&#39;</span><span class="si">}</span><span class="s">&quot;</span>
                     <span class="nv">field: </span><span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">field</span>
                     <span class="nv">properties: </span><span class="nx">properties</span>
                 <span class="p">})</span>
                 <span class="p">.</span><span class="nx">using</span><span class="p">(</span><span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">services</span><span class="p">).</span><span class="nx">execute</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <p>error handling</p>             </td>             <td class="code">               <div class="highlight"><pre>                <span class="p">.</span><span class="nx">fail</span> <span class="nf">(e) -&gt;</span>
-                    <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">error</span> <span class="s2">&quot;Something wrong happened at stanbol find:&quot;</span><span class="p">,</span> <span class="nx">e</span>
+                    <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">error</span> <span class="s">&quot;Something wrong happened at stanbol find:&quot;</span><span class="p">,</span> <span class="nx">e</span>
                 <span class="p">.</span><span class="nx">success</span> <span class="nf">(entityList) -&gt;</span>
                   <span class="nx">_</span><span class="p">.</span><span class="nx">defer</span> <span class="o">=&gt;</span>
-                    <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;resp:&quot;</span><span class="p">,</span> <span class="nx">_</span><span class="p">(</span><span class="nx">entityList</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(ent) -&gt;</span>
+                    <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;resp:&quot;</span><span class="p">,</span> <span class="nx">_</span><span class="p">(</span><span class="nx">entityList</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(ent) -&gt;</span>
                         <span class="nx">ent</span><span class="p">.</span><span class="nx">id</span>
                     <span class="nv">limit = </span><span class="mi">10</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p>remove descriptive entity
 TODO move to VIE</p>             </td>             <td class="code">               <div class="highlight"><pre>                    <span class="nv">entityList = </span><span class="nx">_</span><span class="p">(</span><span class="nx">entityList</span><span class="p">).</span><span class="nx">filter</span> <span class="nf">(ent) -&gt;</span>
-                        <span class="k">return</span> <span class="kc">false</span> <span class="k">if</span> <span class="nx">ent</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">is</span> 
-                          <span class="s2">&quot;http://www.iks-project.eu/ontology/rick/query/QueryResultSet&quot;</span>
+                        <span class="k">return</span> <span class="kc">false</span> <span class="k">if</span> <span class="nx">ent</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="o">is</span> 
+                          <span class="s">&quot;http://www.iks-project.eu/ontology/rick/query/QueryResultSet&quot;</span>
                         <span class="k">return</span> <span class="kc">true</span>
                     <span class="nv">res = </span><span class="nx">_</span><span class="p">(</span><span class="nx">entityList</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">limit</span><span class="p">)).</span><span class="nx">map</span> <span class="nf">(entity) -&gt;</span>
                         <span class="k">return</span> <span class="p">{</span>
-                            <span class="nv">key: </span><span class="nx">entity</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">().</span><span class="nx">replace</span> <span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
-                            <span class="nv">label: </span><span class="s2">&quot;#{widget._getLabel entity} @ #{widget._sourceLabel entity.id}&quot;</span>
+                            <span class="nv">key: </span><span class="nx">entity</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">().</span><span class="nx">replace</span> <span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
+                            <span class="nv">label: </span><span class="s">&quot;</span><span class="si">#{</span><span class="nx">widget</span><span class="p">.</span><span class="nx">_getLabel</span> <span class="nx">entity</span><span class="si">}</span><span class="s"> @ </span><span class="si">#{</span><span class="nx">widget</span><span class="p">.</span><span class="nx">_sourceLabel</span> <span class="nx">entity</span><span class="p">.</span><span class="nx">id</span><span class="si">}</span><span class="s">&quot;</span>
                             <span class="nv">value: </span><span class="nx">widget</span><span class="p">.</span><span class="nx">_getLabel</span> <span class="nx">entity</span>
                         <span class="p">}</span>
                     <span class="nx">resp</span> <span class="nx">res</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p>create tooltip on menu elements when menu opens</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">open: </span><span class="nf">(e, ui) -&gt;</span>
-                <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;autocomplete.open&quot;</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">ui</span>
+                <span class="nx">widget</span><span class="p">.</span><span class="nx">_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;autocomplete.open&quot;</span><span class="p">,</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">ui</span>
                 <span class="k">if</span> <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">showTooltip</span>
                     <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">autocomplete</span><span class="p">.</span><span class="nx">menu</span><span class="p">.</span><span class="nx">activeMenu</span>
                     <span class="p">.</span><span class="nx">tooltip</span>
-                        <span class="nv">items: </span><span class="s2">&quot;.ui-menu-item&quot;</span>
+                        <span class="nv">items: </span><span class="s">&quot;.ui-menu-item&quot;</span>
                         <span class="nv">hide: </span>
-                            <span class="nv">effect: </span><span class="s2">&quot;hide&quot;</span>
+                            <span class="nv">effect: </span><span class="s">&quot;hide&quot;</span>
                             <span class="nv">delay: </span><span class="mi">50</span>
                         <span class="nv">show:</span>
-                            <span class="nv">effect: </span><span class="s2">&quot;show&quot;</span>
+                            <span class="nv">effect: </span><span class="s">&quot;show&quot;</span>
                             <span class="nv">delay: </span><span class="mi">50</span>
                         <span class="nv">content: </span><span class="nf">(response) -&gt;</span>
-                            <span class="nv">uri = </span><span class="nx">$</span><span class="p">(</span> <span class="err">@</span> <span class="p">).</span><span class="nx">data</span><span class="p">()[</span><span class="s2">&quot;item.autocomplete&quot;</span><span class="p">].</span><span class="nx">getUri</span><span class="p">()</span>
+                            <span class="nv">uri = </span><span class="nx">$</span><span class="p">(</span> <span class="nx">@</span> <span class="p">).</span><span class="nx">data</span><span class="p">()[</span><span class="s">&quot;item.autocomplete&quot;</span><span class="p">].</span><span class="nx">getUri</span><span class="p">()</span>
                             <span class="nx">widget</span><span class="p">.</span><span class="nx">_createPreview</span> <span class="nx">uri</span><span class="p">,</span> <span class="nx">response</span>
-                            <span class="s2">&quot;loading...&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>An entity selected, annotate</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">select: </span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">ui</span><span class="p">)</span> <span class="o">=&gt;</span>
+                            <span class="s">&quot;loading...&quot;</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p>An entity selected, annotate</p>             </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">select: </span><span class="p">(</span><span class="nx">e</span><span class="p">,</span> <span class="nx">ui</span><span class="p">)</span> <span class="o">=&gt;</span>
                 <span class="nx">@options</span><span class="p">.</span><span class="nx">select</span> <span class="nx">e</span><span class="p">,</span> <span class="nx">ui</span>
-                <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s2">&quot;autocomplete.select&quot;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">,</span> <span class="nx">ui</span>
+                <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;autocomplete.select&quot;</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">target</span><span class="p">,</span> <span class="nx">ui</span>
                 <span class="k">if</span> <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">urifield</span>
                     <span class="nx">widget</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">urifield</span><span class="p">.</span><span class="nx">val</span> <span class="nx">ui</span><span class="p">.</span><span class="nx">item</span><span class="p">.</span><span class="nx">key</span>
             <span class="nv">appendTo: </span><span class="nx">@menuContainer</span>
 
     <span class="nv">_getUserLang: </span><span class="o">-&gt;</span>
-        <span class="nb">window</span><span class="p">.</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">language</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">window</span><span class="p">.</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">language</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="nv">_getDepiction: </span><span class="nf">(entity, picSize) -&gt;</span>
         <span class="nv">preferredFields = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">depictionProperties</span></pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>field is the first property name with a value</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">field = </span><span class="nx">_</span><span class="p">(</span><span class="nx">preferredFields</span><span class="p">).</span><span class="nx">detect</span> <span class="nf">(field) -&gt;</span>
             <span class="kc">true</span> <span class="k">if</span> <span class="nx">entity</span><span class="p">.</span><span class="nx">get</span> <span class="nx">field</span></pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>fieldValue is an array of at least one value</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="nx">field</span> <span class="o">&amp;&amp;</span> <span class="nv">fieldValue = </span><span class="nx">_</span><span class="p">([</span><span class="nx">entity</span><span class="p">.</span><span class="nx">get</span> <span class="nx">field</span><span class="p">]).</span><span class="nx">flatten</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">depictionUrl = </span><span class="nx">_</span><span class="p">(</span><span class="nx">fieldValue</span><span class="p">).</span><span class="nx">detect</span> <span class="nf">(uri) -&gt;</span>
-                <span class="kc">true</span> <span class="k">if</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s2">&quot;thumb&quot;</span><span class="p">)</span> <span class="o">isnt</span> <span class="o">-</span><span class="mi">1</span>
-            <span class="p">.</span><span class="nx">replace</span> <span class="sr">/[0-9]{2..3}px/</span><span class="p">,</span> <span class="s2">&quot;#{picSize}px&quot;</span>
+                <span class="kc">true</span> <span class="k">if</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s">&quot;thumb&quot;</span><span class="p">)</span> <span class="o">isnt</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="p">.</span><span class="nx">replace</span> <span class="sr">/[0-9]{2..3}px/</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">picSize</span><span class="si">}</span><span class="s">px&quot;</span>
             <span class="nx">depictionUrl</span>
 
     <span class="nv">_getLabel: </span><span class="nf">(entity) -&gt;</span>
@@ -181,13 +181,13 @@ TODO move to VIE</p>             </td>             <td class="code">            
         <span class="nv">preferredFields = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">descriptionProperties</span>
         <span class="nv">preferredLanguages = </span><span class="p">[</span><span class="nx">@_getUserLang</span><span class="p">(),</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">fallbackLanguage</span><span class="p">]</span>
         <span class="nx">VIE</span><span class="p">.</span><span class="nx">Util</span><span class="p">.</span><span class="nx">getPreferredLangForPreferredProperty</span> <span class="nx">entity</span><span class="p">,</span> <span class="nx">preferredFields</span><span class="p">,</span> <span class="nx">preferredLanguages</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <p>make a label for the entity source based on options.getSources()</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">_sourceLabel: </span><span class="nf">(src) -&gt;</span>
-        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">warn</span> <span class="s2">&quot;No source&quot;</span> <span class="nx">unless</span> <span class="nx">src</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span> <span class="nx">unless</span> <span class="nx">src</span>
+        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">warn</span> <span class="s">&quot;No source&quot;</span> <span class="nx">unless</span> <span class="nx">src</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;</span> <span class="nx">unless</span> <span class="nx">src</span>
         <span class="nv">sources = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">getSources</span><span class="p">()</span>
         <span class="nv">sourceObj = </span><span class="nx">_</span><span class="p">(</span><span class="nx">sources</span><span class="p">).</span><span class="nx">detect</span> <span class="nf">(s) -&gt;</span> <span class="nx">src</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">s</span><span class="p">.</span><span class="nx">uri</span><span class="p">)</span> <span class="o">isnt</span> <span class="o">-</span><span class="mi">1</span>
         <span class="k">if</span> <span class="nx">sourceObj</span>
             <span class="nx">sourceObj</span><span class="p">.</span><span class="nx">label</span>
         <span class="k">else</span>
-            <span class="nx">src</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="nx">src</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&quot;/&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

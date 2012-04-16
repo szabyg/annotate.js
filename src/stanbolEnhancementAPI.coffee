@@ -1,6 +1,6 @@
 # Stanbool Enhancement API
 
-Stanbol ?= {}
+Stanbol = Stanbol ? {}
 # filter for TextAnnotations
 Stanbol.getTextAnnotations = (enhList) ->
     res = _(enhList)

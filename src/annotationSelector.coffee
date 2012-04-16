@@ -43,8 +43,8 @@ jQuery.widget 'IKS.annotationSelector',
         if @isAnnotated()
             @_initTooltip()
             @linkedEntity =
-                uri: @element.attr "about"
-                type: @element.attr "typeof"
+                uri: @element.attr "resource"
+                # type: @element.attr "typeof"
             @options.cache.get @linkedEntity.uri, @, (cachedEntity) =>
                 navigatorLanguage = window.navigator.language || window.navigator.userLanguage
                 userLang = navigatorLanguage.split("-")[0]
@@ -107,9 +107,9 @@ jQuery.widget 'IKS.annotationSelector',
 
     # tells if this is an annotated dom element (not a highlighted textEnhancement only)
     isAnnotated: ->
-        if @element.attr 'about' then true else false
+        if @element.attr 'resource' then true else false
 
-    # Place the annotation on the DOM element (about and typeof attributes)
+    # Place the annotation on the DOM element (resource and typeof attributes)
     annotate: (entityEnhancement, options) ->
         entityUri = entityEnhancement.getUri()
         entityType = entityEnhancement.getTextEnhancement().getType() or ""
@@ -120,12 +120,24 @@ jQuery.widget 'IKS.annotationSelector',
         sType = ["Other"] unless sType.length
         @element.attr 'xmlns:skos', ns.skos
         rel = options.rel or "skos:related"
+        person = _(sType).detect (t) -> 
+        	true if t.indexOf 'Person'
+        place = _(sType).detect (t) -> 
+        	true if t.indexOf 'Place'
+        organisation = _(sType).detect (t) -> 
+        	true if t.indexOf 'Organisation'
+        if person isnt ""
+        	rel += " person"
+        if place isnt ""
+        	rel += " place"
+        if organisation isnt ""
+        	rel += " organisation"
         entityClass = 'entity ' + uriSuffix(sType[0]).toLowerCase()
         newElement = $ "<a href='#{entityUri}'
-            about='#{entityUri}'
-            typeof='#{entityType}'
+            resource='#{entityUri}'
             rel='#{rel}'
             class='#{entityClass}'>#{entityHtml}</a>"
+#            typeof='#{entityType}'
         @_cloneCopyEvent @element[0], newElement[0]
         @linkedEntity =
             uri: entityUri
@@ -178,7 +190,7 @@ jQuery.widget 'IKS.annotationSelector',
         if @options.showTooltip
             @_logger.info "init tooltip for", @element
             jQuery(@element).tooltip
-                items: "[about]"
+                items: "[resource]"
                 hide: 
                     effect: "hide"
                     delay: 50
@@ -186,7 +198,7 @@ jQuery.widget 'IKS.annotationSelector',
                     effect: "show"
                     delay: 50
                 content: (response) =>
-                    uri = @element.attr "about"
+                    uri = @element.attr "resource"
                     @_logger.info "tooltip uri:", uri
                     widget._createPreview uri, response
                     "loading..."
@@ -399,7 +411,7 @@ jQuery.widget 'IKS.annotationSelector',
         active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
                 " class='ui-state-active'"
             else ""
-        item = $("<li#{active} entityuri='#{eEnhancement.getUri()}' about='#{eEnhancement.getUri()}'><a>#{label} <small>(#{type} from #{source})</small></a></li>")
+        item = $("<li#{active} entityuri='#{eEnhancement.getUri()}' resource='#{eEnhancement.getUri()}'><a>#{label} <small>(#{type} from #{source})</small></a></li>")
         .data('enhancement', eEnhancement)
         .appendTo ul
 
