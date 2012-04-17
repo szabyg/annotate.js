@@ -254,6 +254,7 @@ jQuery.widget 'IKS.annotate',
         @existingAnnotations[@options.annotationInteractionWidget] @options
     _destroyExistingAnnotationInteractionWidgets: ->
         @existingAnnotations[@options.annotationInteractionWidget] "destroy"
+        @existingAnnotations = []
     # accept the best (first) suggestion for all text enhancement.
     acceptAll: (reportCallback) ->
         report = {updated: [], accepted: 0}

@@ -77,26 +77,17 @@ jQuery.widget "IKS.annotationInteraction",
         html
 
     _loadEntity: (callback) ->
-        @vie.use new @vie.RdfaService()
-        @vie.load
-            element: @element
-        .using("rdfa")
-        .execute()
-        .success (res) =>
-            @_logger.info "found", res, @element, @vie
-            _(res).each (entity) =>
-                @vie.load
-                    entity: entity.getSubject()
-                .using("stanbol")
-                .execute()
-                .success (res) =>
-                    loadedEntity = _(res).detect (e) ->
-                        entity.getSubject() is e.getSubject()
-                    callback loadedEntity
-                .fail (err) =>
-                    @_logger.error "error getting entity from stanbol", err, entity.getSubject()
-        .fail (f) =>
-            @_logger.error "error reading RDFa", f, @element
+      uri = @element.attr 'resource'
+      @vie.load
+        entity: uri
+      .using("stanbol")
+      .execute()
+      .success (res) =>
+        loadedEntity = _(res).detect (e) ->
+          e.getSubject().replace(/^<|>$/g, '') is uri
+        callback loadedEntity
+      .fail (err) =>
+        @_logger.error "error getting entity from stanbol", err, entity.getSubject()
 
     _getUserLang: ->
         navigatorLanguage = window.navigator.language || window.navigator.userLanguage

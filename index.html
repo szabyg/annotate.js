@@ -82,7 +82,7 @@
             $('.content').annotate({
                 vie: z,
                 // typeFilter: ["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"],
-                debug: false,
+                debug: true,
                 //autoAnalyze: true,
                 showTooltip: true,
                 decline: function(event, ui){
@@ -158,12 +158,15 @@
         jQuery('.disable').button().click(function(){
             jQuery('.content').annotate('disable');
         });
+        jQuery('.listDom').button().click(function(){
+            alert(jQuery('.content')[0].outerHTML);
+        });
     });});
     </script>
   </head>
   <body  xmlns:sioc     = "http://rdfs.org/sioc/ns#"
          xmlns:skos     = "http://www.w3.org/2004/02/skos/core#"
-         xmlns:schema   = "http://www.schema.org/">
+         xmlns:schema   = "http://schema.org/">
         <div class="panel" id="webview">
             <h2>Test annotate.js on itself</h2>
             <button class="enhanceButton">Enhance!</button>
@@ -193,6 +196,7 @@ The country's official language is Turkish, whereas Kurdish and Zazaki languages
             <button class="instantiate">Instantiate</button>
             <button class="enable">Enable</button>
             <button class="disable">Disable</button>
+            <button class="listDom">Show Dom Html</button>
         </div>
         <div id="loadingDiv" style="display:none;"><img src="spinner.gif"/></div>
     </body>

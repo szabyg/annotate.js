@@ -120,24 +120,15 @@ jQuery.widget 'IKS.annotationSelector',
         sType = ["Other"] unless sType.length
         @element.attr 'xmlns:skos', ns.skos
         rel = options.rel or "skos:related"
-        person = _(sType).detect (t) -> 
-        	true if t.indexOf 'Person'
-        place = _(sType).detect (t) -> 
-        	true if t.indexOf 'Place'
-        organisation = _(sType).detect (t) -> 
-        	true if t.indexOf 'Organisation'
-        if person isnt ""
-        	rel += " person"
-        if place isnt ""
-        	rel += " place"
-        if organisation isnt ""
-        	rel += " organisation"
         entityClass = 'entity ' + uriSuffix(sType[0]).toLowerCase()
+        for type in ['Person', 'Place', 'Organisation']
+          _(sType).each (t) ->
+            if t.indexOf(type) isnt -1
+              entityClass += " #{type}"
         newElement = $ "<a href='#{entityUri}'
             resource='#{entityUri}'
             rel='#{rel}'
             class='#{entityClass}'>#{entityHtml}</a>"
-#            typeof='#{entityType}'
         @_cloneCopyEvent @element[0], newElement[0]
         @linkedEntity =
             uri: entityUri
