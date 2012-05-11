@@ -1,7 +1,8 @@
 ######################################################
 # AnnotationSelector widget
 # the annotationSelector makes an annotated word interactive
-######################################################
+# This widget is instantiated by the IKS.annotate widget for the 
+# text enhancements and RDFa annotated elements.######################################################
 jQuery.widget 'IKS.annotationSelector',
     # just for debugging and understanding
     __widgetName: "IKS.annotationSelector"
@@ -33,19 +34,7 @@ jQuery.widget 'IKS.annotationSelector',
             ]
 
     _create: ->
-        @element.click (e) =>
-            @_logger.log "click", e, e.isDefaultPrevented()
-#                e.preventDefault()
-            if not @dialog
-                @_createDialog()
-                setTimeout((=> @dialog.open()), 220)
-
-                @entityEnhancements = @_getEntityEnhancements()
-
-                @_createSearchbox()
-                if @entityEnhancements.length > 0
-                    @_createMenu() if @menu is undefined
-            else @searchEntryField.find('.search').focus 100
+        do @enableEditing
         @_logger = if @options.debug then console else 
             info: ->
             warn: ->
@@ -54,18 +43,31 @@ jQuery.widget 'IKS.annotationSelector',
         if @isAnnotated()
             @_initTooltip()
             @linkedEntity =
-                uri: @element.attr "about"
-                type: @element.attr "typeof"
+                uri: @element.attr "resource"
+                # type: @element.attr "typeof"
             @options.cache.get @linkedEntity.uri, @, (cachedEntity) =>
-                userLang = window.navigator.language.split("-")[0]
-                @linkedEntity.label = _(cachedEntity.get("rdfs:label"))
-                .detect((label) =>
-                    if label.indexOf("@#{userLang}") > -1
-                        true
-                )
-                .replace /(^\"*|\"*@..$)/g, ""
-                @_logger.info "did I figure out?", @linkedEntity.label
+                navigatorLanguage = window.navigator.language || window.navigator.userLanguage
+                userLang = navigatorLanguage.split("-")[0]
+                @linkedEntity.label = VIE.Util.getPreferredLangForPreferredProperty cachedEntity, 
+                  ["skos:prefLabel", "rdfs:label"], [userLang, "en"]
+    enableEditing: ->
+        @element.click (e) =>
+            @_logger.log "click", e, e.isDefaultPrevented()
+#                e.preventDefault()
+            if @dialog or not @dialog # well, always..
+                @_createDialog()
+                setTimeout((=> @dialog.open()), 220)
+
+                @entityEnhancements = @_getEntityEnhancements()
+
+                @_createSearchbox()
+                if @entityEnhancements.length > 0
+                    @_createMenu()
+            else @searchEntryField.find('.search').focus 100
+    disableEditing: ->
+        jQuery(@element).unbind 'click'
     _destroy: ->
+        do @disableEditing
         if @menu
             @menu.destroy()
             @menu.element.remove()
@@ -75,12 +77,15 @@ jQuery.widget 'IKS.annotationSelector',
             @dialog.element.remove()
             @dialog.uiDialogTitlebar.remove()
             delete @dialog
+        @_logger.info "destroy tooltip"
+        @element.tooltip "destroy" if @element.data().tooltip
 
     # remove textEnhancement/annotation, replace the separate html
     # element with the plain text and close the dialog
     remove: (event) ->
         el = @element.parent()
-        @element.tooltip "destroy"
+        @_logger.info "destroy tooltip"
+        @element.tooltip "destroy" if @element.data().tooltip
         if not @isAnnotated() and @textEnhancements
             @_trigger 'decline', event,
                 textEnhancements: @textEnhancements
@@ -97,12 +102,14 @@ jQuery.widget 'IKS.annotationSelector',
     disable: ->
         if not @isAnnotated() and @element.qname().name isnt '#text'
             @element.replaceWith document.createTextNode @element.text()
+        else
+            @disableEditing()
 
     # tells if this is an annotated dom element (not a highlighted textEnhancement only)
     isAnnotated: ->
-        if @element.attr 'about' then true else false
+        if @element.attr 'resource' then true else false
 
-    # Place the annotation on the DOM element (about and typeof attributes)
+    # Place the annotation on the DOM element (resource and typeof attributes)
     annotate: (entityEnhancement, options) ->
         entityUri = entityEnhancement.getUri()
         entityType = entityEnhancement.getTextEnhancement().getType() or ""
@@ -111,11 +118,15 @@ jQuery.widget 'IKS.annotationSelector',
         # entityClass = @element.attr 'class'
         sType = entityEnhancement.getTextEnhancement().getType()
         sType = ["Other"] unless sType.length
-        rel = options.rel or "#{ns.skos}related"
+        @element.attr 'xmlns:skos', ns.skos
+        rel = options.rel or "skos:related"
         entityClass = 'entity ' + uriSuffix(sType[0]).toLowerCase()
+        for type in ['Person', 'Place', 'Organisation']
+          _(sType).each (t) ->
+            if t.indexOf(type) isnt -1
+              entityClass += " #{type}"
         newElement = $ "<a href='#{entityUri}'
-            about='#{entityUri}'
-            typeof='#{entityType}'
+            resource='#{entityUri}'
             rel='#{rel}'
             class='#{entityClass}'>#{entityHtml}</a>"
         @_cloneCopyEvent @element[0], newElement[0]
@@ -136,10 +147,14 @@ jQuery.widget 'IKS.annotationSelector',
             entityEnhancement: entityEnhancement
         @select ui
         @_initTooltip()
+        jQuery(newElement).annotationSelector @options
+        @dialog?.close()
 
     # triggering select event on the enclosing annotate element
     select: (ui) ->
-        @_trigger 'select', null, ui
+        e = new jQuery.Event("select")
+        e.ui = ui
+        @_trigger 'select', e, ui
         jQuery(@options.annotateElement).trigger "annotateselect", ui
 
     # Accept first (best) entity enhancement (if any)
@@ -158,14 +173,15 @@ jQuery.widget 'IKS.annotationSelector',
 
     # closing the widget
     close: ->
-        @destroy()
+        @dialog?.close?()
         jQuery(".ui-tooltip").remove()
 
     _initTooltip: ->
         widget = @
         if @options.showTooltip
+            @_logger.info "init tooltip for", @element
             jQuery(@element).tooltip
-                items: "[about]"
+                items: "[resource]"
                 hide: 
                     effect: "hide"
                     delay: 50
@@ -173,8 +189,8 @@ jQuery.widget 'IKS.annotationSelector',
                     effect: "show"
                     delay: 50
                 content: (response) =>
-                    uri = @element.attr "about"
-                    @_logger.info "ttooltip uri:", uri
+                    uri = @element.attr "resource"
+                    @_logger.info "tooltip uri:", uri
                     widget._createPreview uri, response
                     "loading..."
 
@@ -192,7 +208,7 @@ jQuery.widget 'IKS.annotationSelector',
         _tempUris = []
         eEnhancements = _(eEnhancements).filter (eEnh) ->
             uri = eEnh.getUri()
-            if _tempUris.indexOf(uri) is -1
+            if _.indexOf(_tempUris, uri) is -1
                 _tempUris.push uri
                 true
             else
@@ -212,7 +228,7 @@ jQuery.widget 'IKS.annotationSelector',
 
     # make a label for the entity source based on options.getSources()
     _sourceLabel: (src) ->
-        console.warn "No source" unless src
+        @_logger.warn "No source" unless src
         return "" unless src
         sources = @options.getSources()
         sourceObj = _(sources).detect (s) -> src.indexOf(s.uri) isnt -1
@@ -224,7 +240,8 @@ jQuery.widget 'IKS.annotationSelector',
     # create dialog widget
     _createDialog: ->
         label = @element.text()
-        dialogEl = $("<div><span class='entity-link'></span></div>")
+        jQuery(".annotateselector-dialog-content").dialog("destroy").remove()
+        dialogEl = $("<div class='annotateselector-dialog-content'><span class='entity-link'></span></div>")
         .attr( "tabIndex", -1)
         .addClass()
         .keydown( (event) =>
@@ -244,9 +261,10 @@ jQuery.widget 'IKS.annotationSelector',
         widget = @
         dialogEl.dialog
             width: 400
+            dialogClass: 'annotation-selector-dialog'
             title: label
-            close: (event, ui) =>
-                @close(event)
+#            close: (event, ui) =>
+#                @close(event)
             autoOpen: false
             open: (e, ui) ->
                 $.data(this, 'dialog').uiDialog.position {
@@ -276,6 +294,7 @@ jQuery.widget 'IKS.annotationSelector',
                 text: if @isAnnotated() then 'Remove' else 'Decline'
                 click: (event) =>
                     @remove event
+                    @close()
             Cancel: =>
                 @close()
 
@@ -290,24 +309,21 @@ jQuery.widget 'IKS.annotationSelector',
     # create menu and add to the dialog
     _createMenu: ->
         widget = @
-        ul = $('<ul></ul>')
+        ul = $('<ul class="suggestion-menu"></ul>')
         .appendTo( @dialog.element )
         @_renderMenu ul, @entityEnhancements
+        selectHandler = (event, ui) =>
+            @_logger.info "selected menu item", ui.item
+            @annotate ui.item.data('enhancement'), styleClass: 'acknowledged'
+            @close(event)
         @menu = ul
         .menu({
-            select: (event, ui) =>
-                @_logger.info "selected menu item", ui.item
-                @annotate ui.item.data('enhancement'), styleClass: 'acknowledged'
-                @close(event)
+            selected: selectHandler # jqueryui 1.8 needs .selected
+            select: selectHandler # jqueryui 1.9 needs .select
             blur: (event, ui) =>
                 @_logger.info 'menu.blur()', ui.item
+            styleClass: 'suggestion-menu'
         })
-        .bind('blur', (event, ui) ->
-            @_logger.info 'menu blur', ui
-        )
-        .bind('menublur', (event, ui) ->
-            @_logger.info 'menu menublur', ui.item
-        )
         .focus(150)
         if @options.showTooltip
             @menu.tooltip
@@ -348,7 +364,8 @@ jQuery.widget 'IKS.annotationSelector',
         @options.cache.get uri, @, success, fail
 
     _getUserLang: ->
-        window.navigator.language.split("-")[0]
+        navigatorLanguage = window.navigator.language || window.navigator.userLanguage
+        navigatorLanguage.split("-")[0]
     _getDepiction: (entity, picSize) ->
         preferredFields = @options.depictionProperties
         # field is the first property name with a value
@@ -358,6 +375,7 @@ jQuery.widget 'IKS.annotationSelector',
         if field && fieldValue = _([entity.get field]).flatten()
             # 
             depictionUrl = _(fieldValue).detect (uri) ->
+                uri = uri.getSubject?() or uri
                 true if uri.indexOf("thumb") isnt -1
             .replace /[0-9]{2..3}px/, "#{picSize}px"
             depictionUrl
@@ -365,32 +383,12 @@ jQuery.widget 'IKS.annotationSelector',
     _getLabel: (entity) ->
         preferredFields = @options.labelProperties
         preferredLanguages = [@_getUserLang(), @options.fallbackLanguage]
-        @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
+        VIE.Util.getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
 
     _getDescription: (entity) ->
         preferredFields = @options.descriptionProperties
         preferredLanguages = [@_getUserLang(), @options.fallbackLanguage]
-        @_getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
-
-    _getPreferredLangForPreferredProperty: (entity, preferredFields, preferredLanguages) ->
-        # Try to find a label in the preferred language
-        for lang in preferredLanguages
-            for property in preferredFields
-                # property can be a string e.g. "skos:prefLabel"
-                if typeof property is "string" and entity.get property
-                    labelArr = _.flatten [entity.get property]
-                    # select the label in the user's language
-                    label = _(labelArr).detect (label) =>
-                        true if label.indexOf("@#{lang}") > -1
-                    if label
-                        return label.replace /(^\"*|\"*@..$)/g, ""
-                # property can be an object like {property: "skos:broader", makeLabel: function(propertyValueArr){return "..."}}
-                else if typeof property is "object" and entity.get property.property
-                    valueArr = _.flatten [entity.get property.property]
-                    valueArr = _(valueArr).map (termUri) ->
-                        if termUri.isEntity then termUri.getSubject() else termUri
-                    return property.makeLabel valueArr
-        ""
+        VIE.Util.getPreferredLangForPreferredProperty entity, preferredFields, preferredLanguages
 
     # Rendering menu for the EntityEnhancements suggested for the selected text
     _renderMenu: (ul, entityEnhancements) ->
@@ -404,7 +402,7 @@ jQuery.widget 'IKS.annotationSelector',
         active = if @linkedEntity and eEnhancement.getUri() is @linkedEntity.uri
                 " class='ui-state-active'"
             else ""
-        item = $("<li#{active} entityuri='#{eEnhancement.getUri()}'><a>#{label} <small>(#{type} from #{source})</small></a></li>")
+        item = $("<li#{active} entityuri='#{eEnhancement.getUri()}' resource='#{eEnhancement.getUri()}'><a>#{label} <small>(#{type} from #{source})</small></a></li>")
         .data('enhancement', eEnhancement)
         .appendTo ul
 
@@ -416,54 +414,19 @@ jQuery.widget 'IKS.annotationSelector',
         sugg = @textEnhancements[0]
         widget = @
         @searchbox = $( '.search', @searchEntryField )
-        .autocomplete
-            source: (req, resp) ->
-                widget._logger.info "req:", req
-                widget.options.vie.find({term: "#{req.term}#{if req.term.length > 3 then '*'  else ''}"})
-                .using('stanbol').execute()
-                .fail (e) ->
-                    widget._logger.error "Something wrong happened at stanbol find:", e
-                .success (entityList) ->
-                  _.defer =>
-                    widget._logger.info "resp:", _(entityList).map (ent) ->
-                        ent.id
-                    limit = 10
-                    entityList = _(entityList).filter (ent) ->
-                        return false if ent.getSubject().replace(/^<|>$/g, "") is "http://www.iks-project.eu/ontology/rick/query/QueryResultSet"
-                        return true
-                    res = _(entityList.slice(0, limit)).map (entity) ->
-                        return {
-                            key: entity.getSubject().replace /^<|>$/g, ""
-                            label: "#{widget._getLabel entity} @ #{widget._sourceLabel entity.id}"
-                            _label: widget._getLabel entity
-                            getLabel: -> @_label
-                            getUri: -> @key
-                            # To rethink: The type of the annotation (person, place, org)
-                            # should come from the search result, not from the first textEnhancement
-                            _tEnh: sugg
-                            getTextEnhancement: -> @_tEnh
-                        }
-                    resp res
-            open: (e, ui) ->
-                widget._logger.info "autocomplete.open", e, ui
-                if widget.options.showTooltip
-                    $(this).data().autocomplete.menu.activeMenu
-                    .tooltip
-                        items: ".ui-menu-item"
-                        hide: 
-                            effect: "hide"
-                            delay: 50
-                        show:
-                            effect: "show"
-                            delay: 50
-                        content: (response) ->
-                            uri = $( @ ).data()["item.autocomplete"].getUri()
-                            widget._createPreview uri, response
-                            "loading..."
-            # An entity selected, annotate
-            select: (e, ui) =>
-                @annotate ui.item, styleClass: "acknowledged"
-                @_logger.info "autocomplete.select", e.target, ui
+        .vieAutocomplete
+          vie: vie
+          urifield: jQuery("#urifield")
+          select: (e, ui) =>
+            item = ui.item
+            item.getUri = ->
+              @key
+            item._tEnh = sugg
+            item.getTextEnhancement = -> @_tEnh
+            item.getLabel = -> @label
+            @annotate ui.item, styleClass: "acknowledged"
+            @_logger.info "autocomplete.select", e.target, ui
+        @searchEntryField
         .focus(200)
         .blur (e, ui) =>
             @_dialogCloseTimeout = setTimeout ( => @close()), 200
@@ -475,8 +438,14 @@ jQuery.widget 'IKS.annotationSelector',
             , 300
         @_logger.info "show searchbox"
 
-    # jquery events cloning method
     _cloneCopyEvent: (src, dest) ->
+        if jQuery().jquery.indexOf("1.6") is 0
+            return @_cloneCopyEvent1_6 src, dest
+        else 
+            return @_cloneCopyEvent1_7 src, dest
+
+    # jquery events cloning method
+    _cloneCopyEvent1_6: (src, dest) ->
         if dest.nodeType isnt 1 or not jQuery.hasData src
             return
 
@@ -502,3 +471,23 @@ jQuery.widget 'IKS.annotationSelector',
                         i++
             null
 
+    _cloneCopyEvent1_7: (src, dest) ->
+      return  if dest.nodeType isnt 1 or not jQuery.hasData(src)
+      type = undefined
+      i = undefined
+      l = undefined
+      oldData = jQuery._data(src)
+      curData = jQuery._data(dest, oldData)
+      events = oldData.events
+      if events
+        delete curData.handle
+
+        curData.events = {}
+        for type of events
+          i = 0
+          l = events[type].length
+
+          while i < l
+            jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
+            i++
+      curData.data = jQuery.extend({}, curData.data)  if curData.data

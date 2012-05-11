@@ -1,0 +1,120 @@
+<!DOCTYPE html>  <html> <head>   <title>annotationInteraction.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="annotate.html">                 annotate.coffee               </a>                                           <a class="source" href="annotationInteraction.html">                 annotationInteraction.coffee               </a>                                           <a class="source" href="annotationSelector.html">                 annotationSelector.coffee               </a>                                           <a class="source" href="stanbolEnhancementAPI.html">                 stanbolEnhancementAPI.coffee               </a>                                           <a class="source" href="vie.autocomplete.html">                 vie.autocomplete.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               annotationInteraction.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <h6>#</h6>
+
+<p>AnnotationSelector widget
+the annotationSelector makes an annotated word interactive
+This widget is instantiated by the IKS.annotate widget for the 
+text enhancements and RDFa annotated elements.######################################################</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">jQuery</span><span class="p">.</span><span class="nx">widget</span> <span class="s">&quot;IKS.annotationInteraction&quot;</span><span class="p">,</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>just for debugging and understanding</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">__widgetName: </span><span class="s">&quot;IKS.annotationInteraction&quot;</span>
+    <span class="nv">options:</span>
+        <span class="nv">ns:</span>
+            <span class="nv">dbpedia: </span> <span class="s">&quot;http://dbpedia.org/ontology/&quot;</span>
+            <span class="nv">skos: </span>    <span class="s">&quot;http://www.w3.org/2004/02/skos/core</span><span class="err">#</span><span class="s">&quot;</span>
+        <span class="nv">getTypes: </span><span class="o">-&gt;</span>
+            <span class="p">[</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">dbpedia</span><span class="si">}</span><span class="s">Place&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Place&#39;</span>
+            <span class="p">,</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">dbpedia</span><span class="si">}</span><span class="s">Person&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Person&#39;</span>
+            <span class="p">,</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">dbpedia</span><span class="si">}</span><span class="s">Organisation&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Organisation&#39;</span>
+            <span class="p">,</span>
+                <span class="nv">uri: </span>  <span class="s">&quot;</span><span class="si">#{</span><span class="nx">@ns</span><span class="p">.</span><span class="nx">skos</span><span class="si">}</span><span class="s">Concept&quot;</span>
+                <span class="nv">label: </span><span class="s">&#39;Concept&#39;</span>
+            <span class="p">]</span>
+        <span class="nv">getSources: </span><span class="o">-&gt;</span>
+            <span class="p">[</span>
+                <span class="nv">uri: </span><span class="s">&quot;http://dbpedia.org/resource/&quot;</span>
+                <span class="nv">label: </span><span class="s">&quot;dbpedia&quot;</span>
+            <span class="p">,</span>
+                <span class="nv">uri: </span><span class="s">&quot;http://sws.geonames.org/&quot;</span>
+                <span class="nv">label: </span><span class="s">&quot;geonames&quot;</span>
+            <span class="p">]</span>
+
+    <span class="nv">_create: </span><span class="o">-&gt;</span>
+        <span class="vi">@_logger = </span><span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">debug</span> <span class="k">then</span> <span class="nx">console</span> <span class="k">else</span> 
+            <span class="nv">info: </span><span class="o">-&gt;</span>
+            <span class="nv">warn: </span><span class="o">-&gt;</span>
+            <span class="nv">error: </span><span class="o">-&gt;</span>
+            <span class="nv">log: </span><span class="o">-&gt;</span>
+        <span class="vi">@vie = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">vie</span>
+        <span class="nx">@_loadEntity</span> <span class="p">(</span><span class="nx">entity</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="vi">@entity = </span><span class="nx">entity</span>
+            <span class="nx">@_initTooltip</span><span class="p">()</span>
+    <span class="nv">_destroy: </span><span class="o">-&gt;</span>
+        <span class="nx">@element</span><span class="p">.</span><span class="nx">tooltip</span> <span class="s">&#39;destroy&#39;</span>
+
+    <span class="nv">_initTooltip: </span><span class="o">-&gt;</span>
+        <span class="nv">widget = </span><span class="nx">@</span>
+        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;init tooltip for&quot;</span><span class="p">,</span> <span class="nx">@element</span>
+        <span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">showTooltip</span>
+            <span class="nx">jQuery</span><span class="p">(</span><span class="nx">@element</span><span class="p">).</span><span class="nx">tooltip</span>
+                <span class="nv">items: </span><span class="s">&quot;[about]&quot;</span>
+                <span class="nv">hide: </span>
+                    <span class="nv">effect: </span><span class="s">&quot;hide&quot;</span>
+                    <span class="nv">delay: </span><span class="mi">50</span>
+                <span class="nv">show:</span>
+                    <span class="nv">effect: </span><span class="s">&quot;show&quot;</span>
+                    <span class="nv">delay: </span><span class="mi">50</span>
+                <span class="nv">content: </span><span class="p">(</span><span class="nx">response</span><span class="p">)</span> <span class="o">=&gt;</span>
+                    <span class="nv">uri = </span><span class="nx">@element</span><span class="p">.</span><span class="nx">attr</span> <span class="s">&quot;about&quot;</span>
+                    <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;tooltip uri:&quot;</span><span class="p">,</span> <span class="nx">uri</span>
+                    <span class="nx">widget</span><span class="p">.</span><span class="nx">_createPreview</span> <span class="nx">uri</span>
+    <span class="nv">_createPreview: </span><span class="nf">(uri) -&gt;</span>
+        <span class="nv">html = </span><span class="s">&quot;&quot;</span>
+        <span class="nv">picSize = </span><span class="mi">100</span>
+        <span class="nv">depictionUrl = </span><span class="nx">@_getDepiction</span> <span class="nx">@entity</span><span class="p">,</span> <span class="nx">picSize</span>
+        <span class="k">if</span> <span class="nx">depictionUrl</span>
+            <span class="nx">html</span> <span class="o">+=</span> <span class="s">&quot;&lt;img style=&#39;float:left;padding: 5px;width: </span><span class="si">#{</span><span class="nx">picSize</span><span class="si">}</span><span class="s">px&#39; src=&#39;</span><span class="si">#{</span><span class="nx">depictionUrl</span><span class="p">.</span><span class="nx">substring</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">depictionUrl</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s">&#39;/&gt;&quot;</span>
+        <span class="nv">descr = </span><span class="nx">@_getDescription</span> <span class="nx">@entity</span>
+        <span class="nx">unless</span> <span class="nx">descr</span>
+            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">warn</span> <span class="s">&quot;No description found for&quot;</span><span class="p">,</span> <span class="nx">@entity</span>
+            <span class="nv">descr = </span><span class="s">&quot;No description found.&quot;</span>
+        <span class="nx">html</span> <span class="o">+=</span> <span class="s">&quot;&lt;div style=&#39;padding 5px;width:250px;float:left;&#39;&gt;&lt;small&gt;</span><span class="si">#{</span><span class="nx">descr</span><span class="si">}</span><span class="s">&lt;/small&gt;&lt;/div&gt;&quot;</span>
+        <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;tooltip for </span><span class="si">#{</span><span class="nx">uri</span><span class="si">}</span><span class="s">: cacheEntry loaded&quot;</span><span class="p">,</span> <span class="nx">@entity</span>
+        <span class="nx">html</span>
+
+    <span class="nv">_loadEntity: </span><span class="nf">(callback) -&gt;</span>
+        <span class="nx">@vie</span><span class="p">.</span><span class="nx">use</span> <span class="k">new</span> <span class="nx">@vie</span><span class="p">.</span><span class="nx">RdfaService</span><span class="p">()</span>
+        <span class="nx">@vie</span><span class="p">.</span><span class="nx">load</span>
+            <span class="nv">element: </span><span class="nx">@element</span>
+        <span class="p">.</span><span class="nx">using</span><span class="p">(</span><span class="s">&quot;rdfa&quot;</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">execute</span><span class="p">()</span>
+        <span class="p">.</span><span class="nx">success</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;found&quot;</span><span class="p">,</span> <span class="nx">res</span><span class="p">,</span> <span class="nx">@element</span><span class="p">,</span> <span class="nx">@vie</span>
+            <span class="nx">_</span><span class="p">(</span><span class="nx">res</span><span class="p">).</span><span class="nx">each</span> <span class="p">(</span><span class="nx">entity</span><span class="p">)</span> <span class="o">=&gt;</span>
+                <span class="nx">@vie</span><span class="p">.</span><span class="nx">load</span>
+                    <span class="nv">entity: </span><span class="nx">entity</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">()</span>
+                <span class="p">.</span><span class="nx">using</span><span class="p">(</span><span class="s">&quot;stanbol&quot;</span><span class="p">)</span>
+                <span class="p">.</span><span class="nx">execute</span><span class="p">()</span>
+                <span class="p">.</span><span class="nx">success</span> <span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span>
+                    <span class="nv">loadedEntity = </span><span class="nx">_</span><span class="p">(</span><span class="nx">res</span><span class="p">).</span><span class="nx">detect</span> <span class="nf">(e) -&gt;</span>
+                        <span class="nx">entity</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">()</span> <span class="o">is</span> <span class="nx">e</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">()</span>
+                    <span class="nx">callback</span> <span class="nx">loadedEntity</span>
+                <span class="p">.</span><span class="nx">fail</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="o">=&gt;</span>
+                    <span class="nx">@_logger</span><span class="p">.</span><span class="nx">error</span> <span class="s">&quot;error getting entity from stanbol&quot;</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">entity</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">()</span>
+        <span class="p">.</span><span class="nx">fail</span> <span class="p">(</span><span class="nx">f</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">@_logger</span><span class="p">.</span><span class="nx">error</span> <span class="s">&quot;error reading RDFa&quot;</span><span class="p">,</span> <span class="nx">f</span><span class="p">,</span> <span class="nx">@element</span>
+
+    <span class="nv">_getUserLang: </span><span class="o">-&gt;</span>
+        <span class="nv">navigatorLanguage = </span><span class="nb">window</span><span class="p">.</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">language</span> <span class="o">||</span> <span class="nb">window</span><span class="p">.</span><span class="nx">navigator</span><span class="p">.</span><span class="nx">userLanguage</span>
+        <span class="nx">navigatorLanguage</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="s">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nv">_getDepiction: </span><span class="nf">(entity, picSize) -&gt;</span>
+        <span class="nv">preferredFields = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">depictionProperties</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>field is the first property name with a value</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nv">field = </span><span class="nx">_</span><span class="p">(</span><span class="nx">preferredFields</span><span class="p">).</span><span class="nx">detect</span> <span class="nf">(field) -&gt;</span>
+            <span class="kc">true</span> <span class="k">if</span> <span class="nx">entity</span><span class="p">.</span><span class="nx">get</span> <span class="nx">field</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>fieldValue is an array of at least one value</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="k">if</span> <span class="nx">field</span> <span class="o">&amp;&amp;</span> <span class="nv">fieldValue = </span><span class="nx">_</span><span class="p">([</span><span class="nx">entity</span><span class="p">.</span><span class="nx">get</span> <span class="nx">field</span><span class="p">]).</span><span class="nx">flatten</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre>            <span class="nv">depictionUrl = </span><span class="nx">_</span><span class="p">(</span><span class="nx">fieldValue</span><span class="p">).</span><span class="nx">detect</span> <span class="nf">(uri) -&gt;</span>
+                <span class="nv">uri = </span><span class="nx">uri</span><span class="p">.</span><span class="nx">getSubject</span><span class="o">?</span><span class="p">()</span> <span class="o">or</span> <span class="nx">uri</span>
+                <span class="kc">true</span> <span class="k">if</span> <span class="nx">uri</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s">&quot;thumb&quot;</span><span class="p">)</span> <span class="o">isnt</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="p">.</span><span class="nx">replace</span> <span class="sr">/[0-9]{2..3}px/</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">#{</span><span class="nx">picSize</span><span class="si">}</span><span class="s">px&quot;</span>
+            <span class="nx">depictionUrl</span>
+
+    <span class="nv">_getLabel: </span><span class="nf">(entity) -&gt;</span>
+        <span class="nv">preferredFields = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">labelProperties</span>
+        <span class="nv">preferredLanguages = </span><span class="p">[</span><span class="nx">@_getUserLang</span><span class="p">(),</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">fallbackLanguage</span><span class="p">]</span>
+        <span class="nx">VIE</span><span class="p">.</span><span class="nx">Util</span><span class="p">.</span><span class="nx">getPreferredLangForPreferredProperty</span> <span class="nx">entity</span><span class="p">,</span> <span class="nx">preferredFields</span><span class="p">,</span> <span class="nx">preferredLanguages</span>
+
+    <span class="nv">_getDescription: </span><span class="nf">(entity) -&gt;</span>
+        <span class="nv">preferredFields = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">descriptionProperties</span>
+        <span class="nv">preferredLanguages = </span><span class="p">[</span><span class="nx">@_getUserLang</span><span class="p">(),</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">fallbackLanguage</span><span class="p">]</span>
+        <span class="nx">VIE</span><span class="p">.</span><span class="nx">Util</span><span class="p">.</span><span class="nx">getPreferredLangForPreferredProperty</span> <span class="nx">entity</span><span class="p">,</span> <span class="nx">preferredFields</span><span class="p">,</span> <span class="nx">preferredLanguages</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

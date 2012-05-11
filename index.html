@@ -5,8 +5,9 @@
     <link rel="stylesheet" href="lib/Smoothness/jquery.ui.all.css" />
     <link rel="stylesheet" href="annotate.css" />
 
-    <script type="text/javascript" src="lib/jquery-1.5.1.js"></script>
+    <script type="text/javascript" src="lib/jquery/jquery-1.7.1.js"></script>
     <script type="text/javascript" src="lib/jquery-ui.1.9m5.js"></script>
+<!--    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>-->
     <script type="text/javascript" src="lib/underscore-min.js"></script>
     <script type="text/javascript" src="lib/backbone.js"></script>
 
@@ -30,6 +31,9 @@
     </style>
 
     <script>
+    if (window.JSON === undefined ) { 
+        document.write('<' + 'script src="lib/json/json2.js">/script>"></' + 'script>');
+    }
     $(document).ready(function(){ _.defer(function(){
         $('#loadingDiv')
         .hide()  // hide it initially
@@ -41,7 +45,7 @@
         });
         var z = new VIE();
         z.use(new z.StanbolService({
-            url : "http://dev.iks-project.eu/stanbolfull",
+            url : "http://dev.iks-project.eu:8081",
             proxyDisabled: true
         }));
 
@@ -158,20 +162,22 @@
         jQuery('.disable').button().click(function(){
             jQuery('.content').annotate('disable');
         });
+        jQuery('.listDom').button().click(function(){
+            alert(jQuery('.content')[0].outerHTML);
+        });
     });});
     </script>
   </head>
   <body  xmlns:sioc     = "http://rdfs.org/sioc/ns#"
-         xmlns:schema   = "http://www.schema.org/"
-         xmlns:enhancer = "http://fise.iks-project.eu/ontology/"
-         xmlns:dc       = "http://purl.org/dc/terms/">
+         xmlns:skos     = "http://www.w3.org/2004/02/skos/core#"
+         xmlns:schema   = "http://schema.org/">
         <div class="panel" id="webview">
             <h2>Test annotate.js - Europeana (needs special dataset in the connected stanbol)</h2>
             <button class="enhanceButton">Enhance!</button>
             <button class="acceptAllButton" style="display:none;">Accept all</button>
             <article typeof="schema:CreativeWork" about="http://stanbol.apache.org/enhancertest">
                 <div property="sioc:content" class="content">
-        Turkey, known officially as the Republic of Turkey, is a Eurasian country that stretches across the Anatolian peninsula in western Asia and Thrace in the Balkan region of southeastern Europe. Turkey is one of the six independent Turkic states. Turkey is bordered by eight countries: Bulgaria to the northwest; Greece to the west; Georgia to the northeast; Armenia, Azerbaijan and Iran to the east; and Iraq and Syria to the southeast. The Mediterranean Sea and Cyprus are to the south; the Aegean Sea to the west; and the Black Sea is to the north. The Sea of Marmara, the Bosphorus and the Dardanelles (which together form the Turkish Straits) demarcate the boundary between Eastern Thrace and Anatolia; they also separate Europe and Asia. Turks began migrating into the area now called Turkey ("land of the Turks") in the eleventh century. 
+        Turkey, known officially as the Republic of Turkey, is a Eurasian country that stretches across the Anatolian peninsula in western Asia and Thrace in the Balkan region of southeastern Europe. Turkey is one of the six independent Turkic states. Turkey is bordered by eight countries: Bulgaria to the northwest; Greece to the west; Georgia to the northeast; Armenia, Azerbaijan and Iran to the east; and Iraq and Syria to the southeast. The Mediterranean Sea and Cyprus are to the south; the Aegean Sea to the west; and the Black Sea is to the north. The Sea of Marmara, the Bosphorus and the Dardanelles (which together form the Turkish <a href="http://dbpedia.org/resource/Strait" resource="http://dbpedia.org/resource/Strait" rel="skos:related" class="entity other acknowledged" title="">Straits</a>) demarcate the boundary between Eastern Thrace and Anatolia; they also separate Europe and Asia. Turks began migrating into the area now called Turkey ("land of the Turks") in the eleventh century. 
 <!--
 </div><div>
 -->
@@ -197,7 +203,8 @@ The country's official language is Turkish, whereas Kurdish and Zazaki languages
             <button class="instantiate">Instantiate</button>
             <button class="enable">Enable</button>
             <button class="disable">Disable</button>
+            <button class="listDom">Show Dom Html</button>
         </div>
-        <div id="loadingDiv"><img src="spinner.gif"/></div>
+        <div id="loadingDiv" style="display:none;"><img src="spinner.gif"/></div>
     </body>
 </html>

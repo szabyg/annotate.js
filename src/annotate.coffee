@@ -1,20 +1,31 @@
-#     Annotate - a text enhancement interaction jQuery UI widget
+###   Annotate - a text enhancement interaction jQuery UI widget
 #     (c) 2011 Szaby Gruenwald, IKS Consortium
 #     Annotate may be freely distributed under the MIT license
-
+###
 # define namespaces
 ns =
     rdf:      'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
     enhancer: 'http://fise.iks-project.eu/ontology/'
-    dc:       'http://purl.org/dc/terms/'
+    dcterms:  'http://purl.org/dc/terms/'
     rdfs:     'http://www.w3.org/2000/01/rdf-schema#'
     skos:     'http://www.w3.org/2004/02/skos/core#'
+
+root = this
+jQuery = root.jQuery
+Backbone = root.Backbone
+_ = root._
+VIE = root.VIE
 
 vie = new VIE()
 vie.use(new vie.StanbolService({
     url : "http://dev.iks-project.eu:8080",
     proxyDisabled: true
 }));
+vie.namespaces.add "skos", ns.skos
+
+# In Internet Explorer String.trim is not defined but we're going to use it.
+String.prototype.trim ?= ->
+    @replace /^\s+|\s+$/g, ''
 
 # calling the get with a scope and callback will call cb(entity) with the scope as soon it's available.'
 class EntityCache
@@ -93,14 +104,14 @@ jQuery.widget 'IKS.annotate',
             "foaf:depiction"
             "schema:thumbnail"
         ]
-        # Define Entity properties for finding the label
+        # Lookup for a label will inspect these properties of an entity
         labelProperties: [
             "rdfs:label"
             "skos:prefLabel"
             "schema:name"
             "foaf:name"
         ]
-        # Define Entity properties for finding the description
+        # Lookup for a description will inspect these properties of an entity
         descriptionProperties: [
             "rdfs:comment"
             "skos:note"
@@ -115,7 +126,7 @@ jQuery.widget 'IKS.annotate',
                         .replace /_/g, "&nbsp;"
                     "Subcategory of #{labels.join ', '}."
             ,
-                property: "dc:subject"
+                property: "dcterms:subject"
                 makeLabel: (propertyValueArr) ->
                     labels = _(propertyValueArr).map (termUri) ->
                         # extract the last part of the uri
@@ -133,6 +144,7 @@ jQuery.widget 'IKS.annotate',
             skos:     "http://www.w3.org/2004/02/skos/core#"
         # List of enhancement types to filter for
         typeFilter: null
+        annotationInteractionWidget: "annotationInteraction"
         # Give a label to your expected enhancement types
         getTypes: ->
             [
@@ -157,7 +169,7 @@ jQuery.widget 'IKS.annotate',
                 uri: "http://sws.geonames.org/"
                 label: "geonames"
             ]
-
+    # widget specific constructor
     _create: ->
         widget = @
         # logger can be turned on and off. It will show the real caller line in the log
@@ -172,6 +184,15 @@ jQuery.widget 'IKS.annotate',
             logger: @_logger
         if @options.autoAnalyze
             @enable()
+        unless jQuery().tooltip
+            @options.showTooltip = false
+            @_logger.warn "the used jQuery UI doesn't support tooltips, disabling."
+        @_initExistingAnnotations()
+    _destroy: ->
+        do @disable
+        $( ':IKS-annotationSelector', @element ).each () ->
+            $(@).annotationSelector 'destroy' if $(@).data().annotationSelector
+        @_destroyExistingAnnotationInteractionWidgets()
 
     # analyze the widget element and show text enhancements
     enable: (cb) ->
@@ -187,7 +208,10 @@ jQuery.widget 'IKS.annotate',
             # Link TextAnnotation entities to EntityAnnotations
             entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
             for entAnn in entityAnnotations
-                textAnns = entAnn.get "dc:relation"
+                textAnns = entAnn.get "dcterms:relation"
+                unless textAnns
+                    @_logger.error "For #{entAnn.getSubject()} dcterms:relation is not set! This makes this EntityAnnotation unusable!", entAnn
+                    continue
                 for textAnn in _.flatten([textAnns])
                     textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
                     continue unless textAnn
@@ -212,7 +236,7 @@ jQuery.widget 'IKS.annotate',
                     'type', s.getType(),
                     'EntityEnhancements', s.getEntityEnhancements()
                 # Process the text enhancements
-                @processTextEnhancement s, analyzedNode
+                @_processTextEnhancement s, analyzedNode
             # trigger 'done' event with success = true
             @_trigger "success", true
             cb true if typeof cb is "function"
@@ -220,13 +244,18 @@ jQuery.widget 'IKS.annotate',
             cb false, xhr if typeof cb is "function"
             @_trigger 'error', xhr
             @_logger.error "analyze failed", xhr.responseText, xhr
-
     # Remove all not accepted text enhancement widgets
     disable: ->
         $( ':IKS-annotationSelector', @element ).each () ->
             $(@).annotationSelector 'disable' if $(@).data().annotationSelector
-
-    # call `acceptBestCandidate` on each contained annotation selector
+    _initExistingAnnotations: ->
+        @existingAnnotations = jQuery "a[resource]", @element
+        @_logger.info @existingAnnotations
+        @existingAnnotations[@options.annotationInteractionWidget] @options
+    _destroyExistingAnnotationInteractionWidgets: ->
+        @existingAnnotations[@options.annotationInteractionWidget] "destroy"
+        @existingAnnotations = []
+    # accept the best (first) suggestion for all text enhancement.
     acceptAll: (reportCallback) ->
         report = {updated: [], accepted: 0}
         $( ':IKS-annotationSelector', @element ).each () ->
@@ -235,10 +264,12 @@ jQuery.widget 'IKS.annotate',
                 if res
                     report.updated.push @
                     report.accepted++
-        reportCallback? report
+        reportCallback report
+
+    # Internal methods
 
     # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
-    processTextEnhancement: (textEnh, parentEl) ->
+    _processTextEnhancement: (textEnh, parentEl) ->
         if not textEnh.getSelectedText()
             @_logger.warn "textEnh", textEnh, "doesn't have selected-text!"
             return
@@ -311,7 +342,7 @@ jQuery.widget 'IKS.annotate',
         textContentOf = (element) -> $(element).text().replace(/\n/g, " ")
         # find the text node
         if textContentOf(element).indexOf(text) is -1
-            console.error "'#{text}' doesn't appear in the text block."
+            @_logger.error "'#{text}' doesn't appear in the text block."
             return $()
         start = options.start +
         textContentOf(element).indexOf textContentOf(element).trim()
@@ -340,5 +371,5 @@ jQuery.widget 'IKS.annotate',
                 $(domEl).parent()[0].replaceChild newElement, domEl.splitText pos
                 $ newElement
             else
-                console.warn "dom element creation problem: #{textToCut} isnt #{text}"
+                @_logger.warn "dom element creation problem: #{textToCut} isnt #{text}"
 

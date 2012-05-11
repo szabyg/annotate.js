@@ -1,16 +1,17 @@
-# Stanbol Enhancement API specific classes
-Stanbol ?= {}
+# Stanbool Enhancement API
+
+Stanbol = Stanbol ? {}
 # filter for TextAnnotations
 Stanbol.getTextAnnotations = (enhList) ->
-        res = _(enhList)
-        .filter (e) ->
-            e.isof "<#{ns.enhancer}TextAnnotation>"
-        res = _(res).sortBy (e) ->
-            conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
-            -1 * conf
+    res = _(enhList)
+    .filter (e) ->
+        e.isof "<#{ns.enhancer}TextAnnotation>"
+    res = _(res).sortBy (e) ->
+        conf = Number e.get "enhancer:confidence" if e.get "enhancer:confidence"
+        -1 * conf
 
-        _(res).map (enh)->
-            new Stanbol.TextEnhancement enh, enhList
+    _(res).map (enh)->
+        new Stanbol.TextEnhancement enh, enhList
 
 # filter the entityManager for TextAnnotations
 Stanbol.getEntityAnnotations = (enhList) ->
@@ -28,7 +29,11 @@ class Stanbol.TextEnhancement
         @id = @_enhancement.getSubject()
     # the text the annotation is for
     getSelectedText: ->
-        @_vals("enhancer:selected-text")
+        res = @_vals("enhancer:selected-text")
+        if typeof res is "string"
+            return res
+        if typeof res is "object"
+            return res.toString()
     # confidence value
     getConfidence: ->
         @_vals("enhancer:confidence")
@@ -41,7 +46,7 @@ class Stanbol.TextEnhancement
             new Stanbol.EntityEnhancement ee, @
     # The type of the entity suggested (e.g. person, location, organization)
     getType: ->
-        @_uriTrim @_vals("dc:type")
+        @_uriTrim @_vals("dcterms:type")
     # Optional, not used
     getContext: ->
         @_vals("enhancer:selection-context")
@@ -73,7 +78,10 @@ class Stanbol.EntityEnhancement
         @_textEnhancement = textEnh
         @
     getLabel: ->
-        @_vals("enhancer:entity-label").replace(/(^\"*|\"*@..$)/g,"")
+        @_vals("enhancer:entity-label")
+        .toString()
+        # for compatibility with stanbol before 0.9
+        .replace(/(^\"*|\"*@..$)/g,"")
     getUri: ->
         @_uriTrim(@_vals("enhancer:entity-reference"))[0]
     getTextEnhancement: ->
