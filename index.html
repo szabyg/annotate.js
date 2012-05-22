@@ -46,6 +46,8 @@
         var z = new VIE();
         z.use(new z.StanbolService({
             url : "http://dev.iks-project.eu:8081",
+            enhancerUrlPostfix: "/enhancer/chain/austrian-national-library",
+            entityhubSite: "anl",
             proxyDisabled: true
         }));
 
@@ -90,10 +92,15 @@
                 },
                 select: function(event, ui){
                     console.info('select event', event, ui);
-		            var imageuri = ui.linkedEntity.uri.replace("data","www").replace("proxy/provider","portal/record")+".png";
-		            var newImage = document.createElement("img");
-		            $(newImage).attr("src", imageuri);
-		            $('#images').append(newImage);
+                    var entityUri = ui.linkedEntity.uri;
+                    z.load({entity: entityUri}).using("stanbol").execute().success(function(res){
+                        var myEntity = _(res).detect(function(e){return e.getSubject().replace(/^<|>$/g, "") === entityUri;});
+                        var imageuri = myEntity.get('dcterms:identifier');
+		                var newImage = document.createElement("img");
+		                $(newImage).attr("src", imageuri);
+		                $(newImage).attr("width", "300");
+		                $('#images').append(newImage);
+                    });
                 },
                 remove: function(event, ui){
                     console.info('remove event', event, ui);
@@ -177,18 +184,9 @@
             <button class="acceptAllButton" style="display:none;">Accept all</button>
             <article typeof="schema:CreativeWork" about="http://stanbol.apache.org/enhancertest">
                 <div property="sioc:content" class="content">
-        Turkey, known officially as the Republic of Turkey, is a Eurasian country that stretches across the Anatolian peninsula in western Asia and Thrace in the Balkan region of southeastern Europe. Turkey is one of the six independent Turkic states. Turkey is bordered by eight countries: Bulgaria to the northwest; Greece to the west; Georgia to the northeast; Armenia, Azerbaijan and Iran to the east; and Iraq and Syria to the southeast. The Mediterranean Sea and Cyprus are to the south; the Aegean Sea to the west; and the Black Sea is to the north. The Sea of Marmara, the Bosphorus and the Dardanelles (which together form the Turkish <a href="http://dbpedia.org/resource/Strait" resource="http://dbpedia.org/resource/Strait" rel="skos:related" class="entity other acknowledged" title="">Straits</a>) demarcate the boundary between Eastern Thrace and Anatolia; they also separate Europe and Asia. Turks began migrating into the area now called Turkey ("land of the Turks") in the eleventh century. 
-<!--
-</div><div>
--->
-        The process was greatly accelerated by the Seljuk victory over the Byzantine Empire at the Battle of Manzikert. Several small beyliks and the Seljuk Sultanate of Rûm ruled Anatolia until the Mongol Empire's invasion. Starting from the thirteenth century, the Ottoman beylik united Anatolia and created an empire encompassing much of Southeastern Europe, Western Asia and North Africa. After the Ottoman Empire collapsed following its defeat in World War I, parts of it were occupied by the victorious Allies. A cadre of young military officers, led by Mustafa Kemal Atatürk, organized a successful resistance to the Allies; in 1923, they would establish the modern Republic of Turkey with Atatürk as its first president. Turkey's location at the crossroads of Europe and Asia makes it a country of significant geostrategic importance. The predominant religion in Turkey is Islam with small minorities of Christianity and Judaism.
-The country's official language is Turkish, whereas Kurdish and Zazaki languages are spoken by Kurds and Zazas which comprise 18% of the population. Turkey is a democratic, secular, unitary, constitutional republic, with an ancient cultural heritage. Turkey has become increasingly integrated with the West through membership in organizations such as the Council of Europe, NATO, OECD, OSCE and the G-20 major economies. Turkey began full membership negotiations with the European Union in 2005, having been an associate member of the European Economic Community since 1963 and having reached a customs union agreement in 1995. Turkey has also fostered close cultural, political, economic and industrial relations with the Middle East, the Turkic states of Central Asia and the African countries through membership in organizations such as the Organisation of the Islamic Conference and Economic Cooperation Organization. Given its strategic location, large economy and army, Turkey is classified as a regional power.
-        Actress Angelina Jolie, a longtime goodwill ambassador for the United Nations' refugee agency, will be headed to Turkey this week to visit Syrian refugees, Turkey's Foreign Ministry said Wednesday.
-        Jolie is expected to arrive in Istanbul and head to Hatay on Friday, according to the ministry, which accepted an application for her visit on Wednesday.
-        More than 8,000 Syrians have fled their country for Turkey to escape violence, including a military offensive in the Jisr al-Shugur area.
-        Jolie was named a goodwill ambassador for the Office of the High Commissioner for Refugees in early 2001 and has visited more than 20 countries "to highlight the plight of millions of uprooted people and to advocate for their protection."
-        The office said her interest in "humanitarian affairs was piqued in 2000 when she went to Cambodia to film the adventure film 'Tomb Raider.' "
-        Jolie has won numerous acting awards, including a best supporting actress Academy Award for her performance in 1999's "Girl, Interrupted."
+        Die ältesten Spuren der Anwesenheit von Menschen in Österreich gehören dem Mittelpaläolithikum, der Zeit der Neandertaler, an. Der Fundort mit den ältesten Spuren ist die Repolusthöhle in der Steiermark. Viele weitere Fundstellen liegen in Niederösterreich, die bekanntesten befinden sich in der Wachau – Darunter auch die Fundorte der beiden ältesten österreichischen Kunstwerke, die figürlichen Frauendarstellungen der sogenannten Tanzenden Fanny von Stratzing/Krems-Rehberg und der Venus von Willendorf.
+Nach der schrittweisen Besiedelung aller Regionen Österreichs in der Jungsteinzeit steht die Kupfersteinzeit im Zeichen der Erschließung von Rohstoffvorkommen, vor allem Kupfer. Aus dieser Zeit stammt auch der Fund der berühmten Gletschermumie Ötzi im österreichisch-italienischen Grenzgebiet.
+Während der Bronzezeit zwischen dem 3. und dem 1. Jahrtausend vor Christus wurden immer größere Handelszentren und auch Befestigungen, vorwiegend in Rohstoff-Abbaugebieten, errichtet. Im Umkreis von Hallstatt begann die systematische Gewinnung von Salz; nach diesem Ort ist auch die ältere Periode der Eisenzeit, die Hallstattzeit, benannt. Die jüngere Eisenzeit, auch La-Tène-Zeit genannt, steht im Zeichen der Kelten, welche im Süden und Osten des heutigen Österreich das erste Staatsgebilde errichteten – der Westen wurde zu dieser Zeit von Rätern besiedelt.
                 </div>
             </article>
             <button class="enhanceButton">Enhance!</button>
