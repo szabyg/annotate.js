@@ -195,55 +195,81 @@ jQuery.widget 'IKS.annotate',
         @_destroyExistingAnnotationInteractionWidgets()
 
     # analyze the widget element and show text enhancements
-    enable: (cb) ->
-        analyzedNode = @element
+    enable: ->
+      $(@element).bind 'keyup', =>
+        @_checkForChanges()
+      @_checkForChanges()
+
+    _checkForChanges: ->
+      for el in @_findElementsToAnalyze()
+        hash = @_elementHash el
+        unless jQuery(el).data('hash')
+          console.info el, "wasn't analized yet."
+          @_analyze el
+        if jQuery(el).data('hash') and jQuery(el).data('hash') isnt hash
+          console.info el, 'changed, try to get annotations for it.'
+          @_analyze el
+
+    _elementHash: (el) ->
+      jQuery(el).text().hashCode()
+
+    _findElementsToAnalyze: ->
+      @_listNonblockElements @element
+
+    _analyze: (el) ->
+        hash = @_elementHash el
         # the analyzedDocUri makes the connection between a document state and
         # the annotations to it. We have to clean up the annotations to any
         # old document state
 
-        @options.vie.analyze( element: @element ).using(@options.vieServices)
+        @options.vie.analyze( element: jQuery el ).using(@options.vieServices)
         .execute()
         .success (enhancements) =>
-          _.defer =>
-            # Link TextAnnotation entities to EntityAnnotations
-            entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
-            for entAnn in entityAnnotations
-                textAnns = entAnn.get "dcterms:relation"
-                unless textAnns
-                    @_logger.error "For #{entAnn.getSubject()} dcterms:relation is not set! This makes this EntityAnnotation unusable!", entAnn
-                    continue
-                for textAnn in _.flatten([textAnns])
-                    textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
-                    continue unless textAnn
-                    _(_.flatten([textAnn])).each (ta) ->
-                        ta.setOrAdd
-                            "entityAnnotation": entAnn.getSubject()
-            # Get enhancements
-            textAnnotations = Stanbol.getTextAnnotations(enhancements)
-            textAnnotations = @_filterByType textAnnotations
-            # Remove all textAnnotations without a selected text property
-            textAnnotations = _(textAnnotations)
-            .filter (textEnh) ->
-                if textEnh.getSelectedText and textEnh.getSelectedText()
-                    true
-                else
-                    false
-            _(textAnnotations)
-            .each (s) =>
-                @_logger.info s._enhancement,
-                    'confidence', s.getConfidence(),
-                    'selectedText', s.getSelectedText(),
-                    'type', s.getType(),
-                    'EntityEnhancements', s.getEntityEnhancements()
-                # Process the text enhancements
-                @_processTextEnhancement s, analyzedNode
-            # trigger 'done' event with success = true
-            @_trigger "success", true
-            cb true if typeof cb is "function"
+          if @_elementHash(el) is hash
+            console.info 'applying suggestions to', el, enhancements
+            @_applyEnhancements el, enhancements
+            jQuery(el).data 'hash', hash
+          else
+            console.info el, 'changed in the meantime.'
+          @_trigger "success", true
         .fail (xhr) =>
-            cb false, xhr if typeof cb is "function"
-            @_trigger 'error', xhr
-            @_logger.error "analyze failed", xhr.responseText, xhr
+          @_trigger 'error', xhr
+          @_logger.error "analyze failed", xhr.responseText, xhr
+
+    _applyEnhancements: (el, enhancements) ->
+        _.defer =>
+          # Link TextAnnotation entities to EntityAnnotations
+          entityAnnotations = Stanbol.getEntityAnnotations(enhancements)
+          for entAnn in entityAnnotations
+              textAnns = entAnn.get "dcterms:relation"
+              unless textAnns
+                  @_logger.error "For #{entAnn.getSubject()} dcterms:relation is not set! This makes this EntityAnnotation unusable!", entAnn
+                  continue
+              for textAnn in _.flatten([textAnns])
+                  textAnn = entAnn.vie.entities.get textAnn unless textAnn instanceof Backbone.Model
+                  continue unless textAnn
+                  _(_.flatten([textAnn])).each (ta) ->
+                      ta.setOrAdd
+                          "entityAnnotation": entAnn.getSubject()
+          # Get enhancements
+          textAnnotations = Stanbol.getTextAnnotations(enhancements)
+          textAnnotations = @_filterByType textAnnotations
+          # Remove all textAnnotations without a selected text property
+          textAnnotations = _(textAnnotations)
+          .filter (textEnh) ->
+              if textEnh.getSelectedText and textEnh.getSelectedText()
+                  true
+              else
+                  false
+          _(textAnnotations)
+          .each (s) =>
+              @_logger.info s._enhancement,
+                  'confidence', s.getConfidence(),
+                  'selectedText', s.getSelectedText(),
+                  'type', s.getType(),
+                  'EntityEnhancements', s.getEntityEnhancements()
+              # Process the text enhancements
+              @_processTextEnhancement s, el
     # Remove all not accepted text enhancement widgets
     disable: ->
         $( ':IKS-annotationSelector', @element ).each () ->
@@ -267,13 +293,30 @@ jQuery.widget 'IKS.annotate',
         reportCallback report
 
     # Internal methods
+    # Devide an element into smaller chunks that can be analyzed in smaller portions.
+    _listNonblockElements: (el) ->
+      # An element is devidable if the sum of all it's children's text is it's own text. Otherwise it has textnodes that are no dom tags.
+      isDevidable = (el) =>
+        sum = ""
+        for child in jQuery(el).children()
+          sum += jQuery(child).text().replace /\s\s*/g, ""
+        jQuery(el).text().replace(/\s\s*/g, "") is sum
 
-    # processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
+      res = jQuery []
+      if isDevidable el
+        jQuery(el).children().each (i, ch) =>
+          res = res.add @_listNonblockElements(ch)
+      else
+        res = res.add jQuery el
+      res
+
+
+# processTextEnhancement deals with one TextEnhancement in an ancestor element of its occurrence
     _processTextEnhancement: (textEnh, parentEl) ->
         if not textEnh.getSelectedText()
             @_logger.warn "textEnh", textEnh, "doesn't have selected-text!"
             return
-        el = $ @_getOrCreateDomElement parentEl[0], textEnh.getSelectedText(),
+        el = $ @_getOrCreateDomElement parentEl, textEnh.getSelectedText(),
             createElement: 'span'
             createMode: 'existing'
             context: textEnh.getContext()
@@ -373,3 +416,13 @@ jQuery.widget 'IKS.annotate',
             else
                 @_logger.warn "dom element creation problem: #{textToCut} isnt #{text}"
 
+String::hashCode = ->
+  hash = 0
+  return hash  if @length is 0
+  i = 0
+  while i < @length
+    char = @charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+    i++
+  hash
