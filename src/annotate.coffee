@@ -196,9 +196,14 @@ jQuery.widget 'IKS.annotate',
 
     # analyze the widget element and show text enhancements
     enable: ->
-      $(@element).bind 'keyup', =>
+      checkerFn = delayThrottle =>
         @_checkForChanges()
+      , 5000
+
+      $(@element).bind 'keyup', =>
+        checkerFn()
       @_checkForChanges()
+
 
     _checkForChanges: ->
       for el in @_findElementsToAnalyze()
@@ -416,6 +421,7 @@ jQuery.widget 'IKS.annotate',
             else
                 @_logger.warn "dom element creation problem: #{textToCut} isnt #{text}"
 
+# Similar to the Java String.hashCode() method, it calculates a hash value of the string.
 String::hashCode = ->
   hash = 0
   return hash  if @length is 0
@@ -426,3 +432,15 @@ String::hashCode = ->
     hash = hash & hash
     i++
   hash
+
+# For throttling keyup events, this method sets up an event handler function resFn that only triggers the callback function cb after
+# being called the resFn at least once AND not being called for timout milliseconds.
+delayThrottle = (cb, timeout) ->
+  timeoutHandler = null
+  resFn = ->
+    if timeoutHandler
+      clearTimeout(timeoutHandler)
+    timeoutHandler = setTimeout ->
+      timeoutHandler = null
+      cb()
+    , timeout
