@@ -1,0 +1,93 @@
+<!DOCTYPE html><html><head><title>stanbolEnhancementAPI.coffee</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="../docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="../index.html" class="source"><span class="file_name">README</span></a><a href="../src/annotate.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">annotate.coffee</span></a><a href="../src/annotationInteraction.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">annotationInteraction.coffee</span></a><a href="../src/annotationSelector.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">annotationSelector.coffee</span></a><a href="../src/stanbolEnhancementAPI.coffee.html" class="source selected"><span class="base_path">src / </span><span class="file_name">stanbolEnhancementAPI.coffee</span></a><a href="../src/vie.autocomplete.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">vie.autocomplete.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"><h1>stanbolEnhancementAPI.coffee</h1><div class="filepath">src/</div></th><th class="code"></th></tr></thead><tbody><tr id="section-1"><td class="docs"><div class="pilwrap"><a href="#section-1" class="pilcrow">&#182;</a></div><p>Stanbool Enhancement API</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">Stanbol = </span><span class="nx">Stanbol</span> <span class="o">?</span> <span class="p">{}</span></pre></div></td></tr><tr id="section-2"><td class="docs"><div class="pilwrap"><a href="#section-2" class="pilcrow">&#182;</a></div><p>filter for TextAnnotations</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">Stanbol.getTextAnnotations = </span><span class="nf">(enhList) -&gt;</span>
+    <span class="nv">res = </span><span class="nx">_</span><span class="p">(</span><span class="nx">enhList</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">filter</span> <span class="nf">(e) -&gt;</span>
+        <span class="nx">e</span><span class="p">.</span><span class="nx">isof</span> <span class="s">&quot;&lt;</span><span class="si">#{</span><span class="nx">ns</span><span class="p">.</span><span class="nx">enhancer</span><span class="si">}</span><span class="s">TextAnnotation&gt;&quot;</span>
+    <span class="nv">res = </span><span class="nx">_</span><span class="p">(</span><span class="nx">res</span><span class="p">).</span><span class="nx">sortBy</span> <span class="nf">(e) -&gt;</span>
+        <span class="nv">conf = </span><span class="nb">Number</span> <span class="nx">e</span><span class="p">.</span><span class="nx">get</span> <span class="s">&quot;enhancer:confidence&quot;</span> <span class="k">if</span> <span class="nx">e</span><span class="p">.</span><span class="nx">get</span> <span class="s">&quot;enhancer:confidence&quot;</span>
+        <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="nx">conf</span>
+
+    <span class="nx">_</span><span class="p">(</span><span class="nx">res</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(enh)-&gt;</span>
+        <span class="k">new</span> <span class="nx">Stanbol</span><span class="p">.</span><span class="nx">TextEnhancement</span> <span class="nx">enh</span><span class="p">,</span> <span class="nx">enhList</span></pre></div></td></tr><tr id="section-3"><td class="docs"><div class="pilwrap"><a href="#section-3" class="pilcrow">&#182;</a></div><p>filter the entityManager for TextAnnotations</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">Stanbol.getEntityAnnotations = </span><span class="nf">(enhList) -&gt;</span>
+    <span class="nx">_</span><span class="p">(</span><span class="nx">enhList</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">filter</span> <span class="nf">(e) -&gt;</span>
+        <span class="nx">e</span><span class="p">.</span><span class="nx">isof</span> <span class="s">&quot;&lt;</span><span class="si">#{</span><span class="nx">ns</span><span class="p">.</span><span class="nx">enhancer</span><span class="si">}</span><span class="s">EntityAnnotation&gt;&quot;</span></pre></div></td></tr><tr id="section-4"><td class="docs"><div class="pilwrap"><a href="#section-4" class="pilcrow">&#182;</a></div><p>Generic API for a TextEnhancement
+A TextEnhancement object has the methods for getting generic
+text-enhancement-specific properties.</p>
+</td><td class="code"><div class="highlight"><pre><span class="k">class</span> <span class="nx">Stanbol</span><span class="p">.</span><span class="nx">TextEnhancement</span>
+    <span class="nv">constructor: </span><span class="nf">(enhancement, enhList) -&gt;</span>
+        <span class="vi">@_enhancement = </span><span class="nx">enhancement</span>
+        <span class="vi">@_enhList = </span><span class="nx">enhList</span>
+        <span class="vi">@id = </span><span class="nx">@_enhancement</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">()</span></pre></div></td></tr><tr id="section-5"><td class="docs"><div class="pilwrap"><a href="#section-5" class="pilcrow">&#182;</a></div><p>the text the annotation is for</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getSelectedText: </span><span class="o">-&gt;</span>
+        <span class="nv">res = </span><span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:selected-text&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="k">typeof</span> <span class="nx">res</span> <span class="o">is</span> <span class="s">&quot;string&quot;</span>
+            <span class="k">return</span> <span class="nx">res</span>
+        <span class="k">if</span> <span class="k">typeof</span> <span class="nx">res</span> <span class="o">is</span> <span class="s">&quot;object&quot;</span>
+            <span class="k">return</span> <span class="nx">res</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span></pre></div></td></tr><tr id="section-6"><td class="docs"><div class="pilwrap"><a href="#section-6" class="pilcrow">&#182;</a></div><p>confidence value</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getConfidence: </span><span class="o">-&gt;</span>
+        <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:confidence&quot;</span><span class="p">)</span></pre></div></td></tr><tr id="section-7"><td class="docs"><div class="pilwrap"><a href="#section-7" class="pilcrow">&#182;</a></div><p>get Entities suggested for the text enhancement (if any)</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getEntityEnhancements: </span><span class="o">-&gt;</span>
+        <span class="nv">rawList = </span><span class="nx">@_enhancement</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s">&quot;entityAnnotation&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span> <span class="nx">unless</span> <span class="nx">rawList</span>
+        <span class="nv">rawList = </span><span class="nx">_</span><span class="p">.</span><span class="nx">flatten</span> <span class="p">[</span><span class="nx">rawList</span><span class="p">]</span>
+        <span class="nx">_</span><span class="p">(</span><span class="nx">rawList</span><span class="p">).</span><span class="nx">map</span> <span class="p">(</span><span class="nx">ee</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="k">new</span> <span class="nx">Stanbol</span><span class="p">.</span><span class="nx">EntityEnhancement</span> <span class="nx">ee</span><span class="p">,</span> <span class="nx">@</span></pre></div></td></tr><tr id="section-8"><td class="docs"><div class="pilwrap"><a href="#section-8" class="pilcrow">&#182;</a></div><p>The type of the entity suggested (e.g. person, location, organization)</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getType: </span><span class="o">-&gt;</span>
+        <span class="nx">@_uriTrim</span> <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;dcterms:type&quot;</span><span class="p">)</span></pre></div></td></tr><tr id="section-9"><td class="docs"><div class="pilwrap"><a href="#section-9" class="pilcrow">&#182;</a></div><p>Optional, not used</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getContext: </span><span class="o">-&gt;</span>
+        <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:selection-context&quot;</span><span class="p">)</span></pre></div></td></tr><tr id="section-10"><td class="docs"><div class="pilwrap"><a href="#section-10" class="pilcrow">&#182;</a></div><p>start position in the original text</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getStart: </span><span class="o">-&gt;</span>
+        <span class="nb">Number</span> <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:start&quot;</span><span class="p">)</span></pre></div></td></tr><tr id="section-11"><td class="docs"><div class="pilwrap"><a href="#section-11" class="pilcrow">&#182;</a></div><p>end position in the original text</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getEnd: </span><span class="o">-&gt;</span>
+        <span class="nb">Number</span> <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:end&quot;</span><span class="p">)</span></pre></div></td></tr><tr id="section-12"><td class="docs"><div class="pilwrap"><a href="#section-12" class="pilcrow">&#182;</a></div><p>Optional</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">getOrigText: </span><span class="o">-&gt;</span>
+        <span class="nv">ciUri = </span><span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:extracted-from&quot;</span><span class="p">)</span>
+        <span class="nx">@_enhList</span><span class="p">[</span><span class="nx">ciUri</span><span class="p">][</span><span class="s">&quot;http://www.semanticdesktop.org/ontologies/2007/01/19/nie</span><span class="err">#</span><span class="s">plainTextContent&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">].</span><span class="nx">value</span>
+    <span class="nv">_vals: </span><span class="nf">(key) -&gt;</span>
+        <span class="nx">@_enhancement</span><span class="p">.</span><span class="nx">get</span> <span class="nx">key</span>
+    <span class="nv">_uriTrim: </span><span class="nf">(uriRef) -&gt;</span>
+        <span class="k">return</span> <span class="p">[]</span> <span class="nx">unless</span> <span class="nx">uriRef</span>
+        <span class="k">if</span> <span class="nx">uriRef</span> <span class="k">instanceof</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span> <span class="o">or</span> <span class="nx">uriRef</span> <span class="k">instanceof</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span>
+            <span class="nv">bbColl = </span><span class="nx">uriRef</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nx">mod</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s">&quot;@subject&quot;</span><span class="p">).</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="nx">mod</span> <span class="k">in</span> <span class="nx">bbColl</span><span class="p">.</span><span class="nx">models</span><span class="p">)</span>
+        <span class="k">else</span>
+        <span class="nx">_</span><span class="p">(</span><span class="nx">_</span><span class="p">.</span><span class="nx">flatten</span><span class="p">([</span><span class="nx">uriRef</span><span class="p">])).</span><span class="nx">map</span> <span class="nf">(ur) -&gt;</span>
+            <span class="nx">ur</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s">&quot;&quot;</span></pre></div></td></tr><tr id="section-13"><td class="docs"><div class="pilwrap"><a href="#section-13" class="pilcrow">&#182;</a></div><p>Generic API for an EntityEnhancement. This is the implementation for Stanbol</p>
+</td><td class="code"><div class="highlight"><pre><span class="k">class</span> <span class="nx">Stanbol</span><span class="p">.</span><span class="nx">EntityEnhancement</span>
+    <span class="nv">constructor: </span><span class="nf">(ee, textEnh) -&gt;</span>
+        <span class="vi">@_enhancement = </span><span class="nx">ee</span>
+        <span class="vi">@_textEnhancement = </span><span class="nx">textEnh</span>
+        <span class="nx">@</span>
+    <span class="nv">getLabel: </span><span class="o">-&gt;</span>
+        <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:entity-label&quot;</span><span class="p">)</span>
+        <span class="p">.</span><span class="nx">toString</span><span class="p">()</span></pre></div></td></tr><tr id="section-14"><td class="docs"><div class="pilwrap"><a href="#section-14" class="pilcrow">&#182;</a></div><p>for compatibility with stanbol before 0.9</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/(^\&quot;*|\&quot;*@..$)/g</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="nv">getUri: </span><span class="o">-&gt;</span>
+        <span class="nx">@_uriTrim</span><span class="p">(</span><span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:entity-reference&quot;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nv">getTextEnhancement: </span><span class="o">-&gt;</span>
+        <span class="nx">@_textEnhancement</span>
+    <span class="nv">getTypes: </span><span class="o">-&gt;</span>
+        <span class="nx">@_uriTrim</span> <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:entity-type&quot;</span><span class="p">)</span>
+    <span class="nv">getConfidence: </span><span class="o">-&gt;</span>
+        <span class="nb">Number</span> <span class="nx">@_vals</span><span class="p">(</span><span class="s">&quot;enhancer:confidence&quot;</span><span class="p">)</span>
+    <span class="nv">_vals: </span><span class="nf">(key) -&gt;</span>
+        <span class="nv">res = </span><span class="nx">@_enhancement</span><span class="p">.</span><span class="nx">get</span> <span class="nx">key</span>
+        <span class="k">return</span> <span class="p">[]</span> <span class="nx">unless</span> <span class="nx">res</span>
+        <span class="k">if</span> <span class="nx">res</span><span class="p">.</span><span class="nx">pluck</span>
+            <span class="nx">res</span><span class="p">.</span><span class="nx">pluck</span><span class="p">(</span><span class="s">&quot;@subject&quot;</span><span class="p">)</span>
+        <span class="k">else</span> <span class="nx">res</span>
+    <span class="nv">_uriTrim: </span><span class="nf">(uriRef) -&gt;</span>
+        <span class="k">return</span> <span class="p">[]</span> <span class="nx">unless</span> <span class="nx">uriRef</span>
+        <span class="k">if</span> <span class="nx">uriRef</span> <span class="k">instanceof</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span>
+            <span class="nv">bbColl = </span><span class="nx">uriRef</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nx">mod</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">().</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="nx">mod</span> <span class="k">in</span> <span class="nx">bbColl</span><span class="p">.</span><span class="nx">models</span><span class="p">)</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="nx">uriRef</span> <span class="k">instanceof</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span>
+            <span class="nv">uriRef = </span><span class="nx">uriRef</span><span class="p">.</span><span class="nx">getSubject</span><span class="p">()</span>
+
+        <span class="nx">_</span><span class="p">(</span><span class="nx">_</span><span class="p">.</span><span class="nx">flatten</span><span class="p">([</span><span class="nx">uriRef</span><span class="p">])).</span><span class="nx">map</span> <span class="nf">(ur) -&gt;</span>
+            <span class="nx">ur</span><span class="p">.</span><span class="nx">replace</span> <span class="sr">/^&lt;|&gt;$/g</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
+
+</pre></div></td></tr></tbody></table><div id="generated">generated Tue Aug 28 2012 14:30:07 GMT+0200 (CEST)  </div></div></body></html>

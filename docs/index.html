@@ -1,0 +1,100 @@
+<!DOCTYPE html><html><head><title>README</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="./docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="./index.html" class="source"><span class="file_name">README</span></a><a href="./src/annotate.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">annotate.coffee</span></a><a href="./src/annotationInteraction.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">annotationInteraction.coffee</span></a><a href="./src/annotationSelector.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">annotationSelector.coffee</span></a><a href="./src/stanbolEnhancementAPI.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">stanbolEnhancementAPI.coffee</span></a><a href="./src/vie.autocomplete.coffee.html" class="source "><span class="base_path">src / </span><span class="file_name">vie.autocomplete.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"></th><th class="code"></th></tr></thead><tbody><tr id="section"><td class="docs"><p><h3>Stats</h3><pre class="code_stats">
+http://cloc.sourceforge.net v 1.55  T=0.5 s (10.0 files/s, 2784.0 lines/s)
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+CoffeeScript                     5             85            173           1134
+-------------------------------------------------------------------------------
+SUM:                             5             85            173           1134
+-------------------------------------------------------------------------------
+</pre></p></td><td id="content" class="code"><h1>Annotate.js (coffeescript)</h1>
+
+<h2>Introduction</h2>
+
+<p>Annotate.js is the frontend widget for entity recognition back-end engines like Stanbol.</p>
+
+<h2>Features</h2>
+
+<ul>
+<li>Text-Enhancement support</li>
+<li>Spell-checker - like interaction with annotation enhancements</li>
+<li>Write RDFa into your content</li>
+<li>Independent of any editor</li>
+<li>One-line integration</li>
+<li>Configurable Enhancement types</li>
+</ul>
+
+<h2>Options</h2>
+
+<ul>
+<li>'vie': VIE instance to use. Default is a simple VIE instance with Stanbol service 
+configured to connect http://dev.iks-project.eu:8080 which is the actual demo stable launcher.</li>
+<li>'vieServices': defines which services to use for the annotation. Default ['stanbol']</li>
+<li>'autoAnalyze': fire analyze on initialization</li>
+<li>'showTooltip': (don't) show a preview tooltip when mouseovering an already annotated word.</li>
+<li>'typeFilter': Annotation Type(s) to filter for. Default empty. Example: 
+["http://dbpedia.org/ontology/Place", "http://dbpedia.org/ontology/Organisation", "http://dbpedia.org/ontology/Person"]</li>
+<li>'debug': Shows console messages about what's happening</li>
+<li>'ns': map of relevant namespaces. Default is DBpedia and SKOS namespace definitions.</li>
+<li>'fallbackLanguage': </li>
+</ul>
+
+<h2>Methods</h2>
+
+<ul>
+<li>'enable' gets enhancements from backend and visualizes them on the analized dom element.</li>
+<li>'disable' hides all the text enhancements that are not accepted by the user.</li>
+<li>'acceptAll' goes through all text enhancements and accepts the best candidate
+automatically.</li>
+</ul>
+
+<h2>Events</h2>
+
+<ul>
+<li>'success': finished loading annotations</li>
+<li>'error': error loading annotations</li>
+<li>'select': User selected an annotation</li>
+<li>'decline': User declined a suggestion</li>
+<li>'remove': User removed a previously selected annotation</li>
+</ul>
+
+<h2>Goals</h2>
+
+<ul>
+<li>Provide Text enhancement directly in your content</li>
+<li>Provide another open source (MIT license), flexibly usable, easy to integrate tool for (semi-)automatic and manual semantic enhancement.</li>
+<li><p>A tool that's fun to integrate</p>
+
+<pre><code>var stanbolConnector = new StanbolConnector();
+$('#content').annotate({
+    connector: stanbolConnector
+});
+</code></pre></li>
+</ul>
+
+<h2>Future features</h2>
+
+<ul>
+<li>Manual annotation - loosely coupled wysiwyg-editor enhancement?, needs selection-support</li>
+<li>Connection to VIE - loosely coupled, easy integration</li>
+<li>Clean up decoupling from the stanbol backend - schema mapping</li>
+<li>Entity preview using client-side templating</li>
+<li>Edit relationships</li>
+</ul>
+
+<h2>Dependencies</h2>
+
+<ul>
+<li>jQuery 1.5</li>
+<li>jQuery UI 1.9m5</li>
+<li>Backbone.js</li>
+<li>a wysiwyg-editor with save() (here: <a href="https://github.com/bergie/hallo">hallo editor</a>)</li>
+<li>VIE, VIE^2 (optional)</li>
+</ul>
+
+<h2>Development guide</h2>
+
+<p>The widget development is done in <a href="http://jashkenas.github.com/coffee-script/">CoffeeScript</a>. Use the following command to automatically compile the script in the background whenever it's edited:</p>
+
+<pre><code>$ cake watch
+</code></pre>  </td></tr></tbody></table><div id="generated">generated Tue Aug 28 2012 14:30:07 GMT+0200 (CEST)  </div></div></body></html>
