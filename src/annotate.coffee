@@ -95,6 +95,10 @@ jQuery.widget 'IKS.annotate',
         vieServices: ["stanbol"]
         # Do analyze on instantiation
         autoAnalyze: false
+        # Keeps continouosly checking in the background, while typing
+        continuousChecking: false
+        # Wait for some time (in ms) for the user not typing, before it starts analyzing.
+        throttleDistance: 5000
         # Tooltip can be disabled
         showTooltip: true
         # Debug can be enabled
@@ -196,12 +200,13 @@ jQuery.widget 'IKS.annotate',
 
     # analyze the widget element and show text enhancements
     enable: ->
-      checkerFn = delayThrottle =>
-        @_checkForChanges()
-      , 5000
+      if @options.continuousChecking
+        checkerFn = delayThrottle =>
+          @_checkForChanges()
+        , @options.throttleDistance
 
-      $(@element).bind 'keyup', =>
-        checkerFn()
+        $(@element).bind 'keyup', =>
+          checkerFn()
       @_checkForChanges()
 
 
