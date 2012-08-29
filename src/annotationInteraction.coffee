@@ -1,8 +1,9 @@
 ######################################################
 # AnnotationSelector widget
 # the annotationSelector makes an annotated word interactive
-# This widget is instantiated by the IKS.annotate widget for the 
-# text enhancements and RDFa annotated elements.######################################################
+# This widget is instantiated by the annotate widget for the
+# text enhancements and RDFa annotated elements.
+######################################################
 jQuery.widget "IKS.annotationInteraction",
     # just for debugging and understanding
     __widgetName: "IKS.annotationInteraction"

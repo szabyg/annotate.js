@@ -2,7 +2,8 @@
 # AnnotationSelector widget
 # the annotationSelector makes an annotated word interactive
 # This widget is instantiated by the IKS.annotate widget for the 
-# text enhancements and RDFa annotated elements.######################################################
+# text enhancements and RDFa annotated elements.
+######################################################
 jQuery.widget 'IKS.annotationSelector',
     # just for debugging and understanding
     __widgetName: "IKS.annotationSelector"
@@ -415,7 +416,7 @@ jQuery.widget 'IKS.annotationSelector',
         widget = @
         @searchbox = $( '.search', @searchEntryField )
         .vieAutocomplete
-          vie: vie
+          vie: @options.vie
           urifield: jQuery("#urifield")
           select: (e, ui) =>
             item = ui.item
