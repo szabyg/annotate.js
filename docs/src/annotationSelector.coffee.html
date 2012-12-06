@@ -201,7 +201,7 @@ Filtered by the @options.types list</p>
 </td><td class="code"><div class="highlight"><pre>    <span class="nv">_typeLabels: </span><span class="nf">(types) -&gt;</span>
         <span class="nv">knownMapping = </span><span class="nx">@options</span><span class="p">.</span><span class="nx">getTypes</span><span class="p">()</span>
         <span class="nv">allKnownPrefixes = </span><span class="nx">_</span><span class="p">(</span><span class="nx">knownMapping</span><span class="p">).</span><span class="nx">map</span> <span class="nf">(x) -&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">uri</span>
-        <span class="nv">knownPrefixes = </span><span class="nx">_</span><span class="p">.</span><span class="nx">intersect</span> <span class="nx">allKnownPrefixes</span><span class="p">,</span> <span class="nx">types</span>
+        <span class="nv">knownPrefixes = </span><span class="nx">_</span><span class="p">.</span><span class="nx">intersection</span> <span class="nx">allKnownPrefixes</span><span class="p">,</span> <span class="nx">types</span>
         <span class="nx">_</span><span class="p">(</span><span class="nx">knownPrefixes</span><span class="p">).</span><span class="nx">map</span> <span class="p">(</span><span class="nx">key</span><span class="p">)</span> <span class="o">=&gt;</span>
             <span class="nv">foundPrefix = </span><span class="nx">_</span><span class="p">(</span><span class="nx">knownMapping</span><span class="p">).</span><span class="nx">detect</span> <span class="nf">(x) -&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">uri</span> <span class="o">is</span> <span class="nx">key</span>
             <span class="nx">foundPrefix</span><span class="p">.</span><span class="nx">label</span></pre></div></td></tr><tr id="section-17"><td class="docs"><div class="pilwrap"><a href="#section-17" class="pilcrow">&#182;</a></div><p>make a label for the entity source based on options.getSources()</p>
@@ -450,4 +450,4 @@ stage of data copying</p>
             <span class="nx">i</span><span class="o">++</span>
       <span class="nv">curData.data = </span><span class="nx">jQuery</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>  <span class="k">if</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span>
 
-</pre></div></td></tr></tbody></table><div id="generated">generated Wed Aug 29 2012 13:07:17 GMT+0200 (CEST)  </div></div></body></html>
+</pre></div></td></tr></tbody></table><div id="generated">generated Thu Dec 06 2012 16:32:38 GMT+0100 (CET)  </div></div></body></html>

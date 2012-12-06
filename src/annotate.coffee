@@ -194,7 +194,7 @@ jQuery.widget 'IKS.annotate',
         @_initExistingAnnotations()
     _destroy: ->
         do @disable
-        $( ':IKS-annotationSelector', @element ).each () ->
+        $( ':iks-annotationselector', @element ).each () ->
             $(@).annotationSelector 'destroy' if $(@).data().annotationSelector
         @_destroyExistingAnnotationInteractionWidgets()
 

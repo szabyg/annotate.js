@@ -222,7 +222,7 @@ jQuery.widget 'IKS.annotationSelector',
     _typeLabels: (types) ->
         knownMapping = @options.getTypes()
         allKnownPrefixes = _(knownMapping).map (x) -> x.uri
-        knownPrefixes = _.intersect allKnownPrefixes, types
+        knownPrefixes = _.intersection allKnownPrefixes, types
         _(knownPrefixes).map (key) =>
             foundPrefix = _(knownMapping).detect (x) -> x.uri is key
             foundPrefix.label
