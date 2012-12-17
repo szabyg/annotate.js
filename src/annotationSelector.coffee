@@ -261,18 +261,18 @@ jQuery.widget 'IKS.annotationSelector',
         .appendTo( $("body")[0] )
         widget = @
         dialogEl.dialog
-            width: 400
-            dialogClass: 'annotation-selector-dialog'
-            title: label
-#            close: (event, ui) =>
-#                @close(event)
-            autoOpen: false
-            open: (e, ui) ->
-                $.data(this, 'dialog').uiDialog.position {
-                    of: widget.element
-                    my: "left top"
-                    at: "left bottom"
-                    collision: "none"}
+          width: 400
+          dialogClass: 'annotation-selector-dialog'
+          title: label
+#          close: (event, ui) =>
+#            @close(event)
+          autoOpen: false
+          open: (e, ui) ->
+          position:
+            of: @element
+            my: "left top"
+            at: "left bottom"
+            collision: "flip"
         @dialog = dialogEl.data 'dialog'
         @dialog.uiDialogTitlebar.hide()
         @_logger.info "dialog widget:", @dialog

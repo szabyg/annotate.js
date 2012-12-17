@@ -236,18 +236,18 @@ Filtered by the @options.types list</p>
         <span class="p">.</span><span class="nx">appendTo</span><span class="p">(</span> <span class="nx">$</span><span class="p">(</span><span class="s">&quot;body&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
         <span class="nv">widget = </span><span class="nx">@</span>
         <span class="nx">dialogEl</span><span class="p">.</span><span class="nx">dialog</span>
-            <span class="nv">width: </span><span class="mi">400</span>
-            <span class="nv">dialogClass: </span><span class="s">&#39;annotation-selector-dialog&#39;</span>
-            <span class="nv">title: </span><span class="nx">label</span></pre></div></td></tr><tr id="section-19"><td class="docs"><div class="pilwrap"><a href="#section-19" class="pilcrow">&#182;</a></div><pre><code>       close: (event, ui) =&gt;
-           @close(event)
+          <span class="nv">width: </span><span class="mi">400</span>
+          <span class="nv">dialogClass: </span><span class="s">&#39;annotation-selector-dialog&#39;</span>
+          <span class="nv">title: </span><span class="nx">label</span></pre></div></td></tr><tr id="section-19"><td class="docs"><div class="pilwrap"><a href="#section-19" class="pilcrow">&#182;</a></div><pre><code>     close: (event, ui) =&gt;
+       @close(event)
 </code></pre>
-</td><td class="code"><div class="highlight"><pre>            <span class="nv">autoOpen: </span><span class="kc">false</span>
-            <span class="nv">open: </span><span class="nf">(e, ui) -&gt;</span>
-                <span class="nx">$</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s">&#39;dialog&#39;</span><span class="p">).</span><span class="nx">uiDialog</span><span class="p">.</span><span class="nx">position</span> <span class="p">{</span>
-                    <span class="k">of</span><span class="o">:</span> <span class="nx">widget</span><span class="p">.</span><span class="nx">element</span>
-                    <span class="nv">my: </span><span class="s">&quot;left top&quot;</span>
-                    <span class="nv">at: </span><span class="s">&quot;left bottom&quot;</span>
-                    <span class="nv">collision: </span><span class="s">&quot;none&quot;</span><span class="p">}</span>
+</td><td class="code"><div class="highlight"><pre>          <span class="nv">autoOpen: </span><span class="kc">false</span>
+          <span class="nv">open: </span><span class="nf">(e, ui) -&gt;</span>
+          <span class="nv">position:</span>
+            <span class="k">of</span><span class="o">:</span> <span class="nx">@element</span>
+            <span class="nv">my: </span><span class="s">&quot;left top&quot;</span>
+            <span class="nv">at: </span><span class="s">&quot;left bottom&quot;</span>
+            <span class="nv">collision: </span><span class="s">&quot;flip&quot;</span>
         <span class="vi">@dialog = </span><span class="nx">dialogEl</span><span class="p">.</span><span class="nx">data</span> <span class="s">&#39;dialog&#39;</span>
         <span class="nx">@dialog</span><span class="p">.</span><span class="nx">uiDialogTitlebar</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
         <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;dialog widget:&quot;</span><span class="p">,</span> <span class="nx">@dialog</span>
@@ -450,4 +450,4 @@ stage of data copying</p>
             <span class="nx">i</span><span class="o">++</span>
       <span class="nv">curData.data = </span><span class="nx">jQuery</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>  <span class="k">if</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span>
 
-</pre></div></td></tr></tbody></table><div id="generated">generated Thu Dec 06 2012 16:32:38 GMT+0100 (CET)  </div></div></body></html>
+</pre></div></td></tr></tbody></table><div id="generated">generated Mon Dec 17 2012 17:33:24 GMT+0100 (CET)  </div></div></body></html>
