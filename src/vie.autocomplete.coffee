@@ -4,8 +4,7 @@
 #
 #     var vie = new VIE();
 #     vie.use(new vie.StanbolService({
-#         url : "http://dev.iks-project.eu:8081",
-#         proxyDisabled: true
+#         url : "http://dev.iks-project.eu:8081"
 #     }));
 #
 #     $('.search')
@@ -19,8 +18,7 @@
 # default VIE instance with stanbol service
 vie = new VIE()
 vie.use(new vie.StanbolService({
-    url : "http://dev.iks-project.eu:8080",
-    proxyDisabled: true
+    url : "http://dev.iks-project.eu:8080"
 }));
 
 jQuery.widget "IKS.vieAutocomplete",

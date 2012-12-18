@@ -18,8 +18,7 @@ VIE = root.VIE
 
 vie = new VIE()
 vie.use(new vie.StanbolService({
-    url : "http://dev.iks-project.eu:8080",
-    proxyDisabled: true
+    url : "http://dev.iks-project.eu:8080"
 }));
 vie.namespaces.add "skos", ns.skos
 
