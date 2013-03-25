@@ -241,9 +241,9 @@ jQuery.widget 'IKS.annotate',
           else
             console.info el, 'changed in the meantime.'
           @_trigger "success", true
-        .fail (xhr) =>
-          @_trigger 'error', xhr
-          @_logger.error "analyze failed", xhr.responseText, xhr
+        .fail (msg) =>
+          @_trigger 'error', msg, message: msg
+          @_logger.error "analyze failed", msg
 
     _applyEnhancements: (el, enhancements) ->
         _.defer =>
@@ -281,6 +281,8 @@ jQuery.widget 'IKS.annotate',
               @_processTextEnhancement s, el
     # Remove all not accepted text enhancement widgets
     disable: ->
+        for el in @_findElementsToAnalyze()
+          jQuery.removeData(el, 'hash')
         $( ':IKS-annotationSelector', @element ).each () ->
             $(@).annotationSelector 'disable' if $(@).data().annotationSelector
     _initExistingAnnotations: ->

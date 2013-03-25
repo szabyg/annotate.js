@@ -212,9 +212,9 @@ old document state</p>
           <span class="k">else</span>
             <span class="nx">console</span><span class="p">.</span><span class="nx">info</span> <span class="nx">el</span><span class="p">,</span> <span class="s">&#39;changed in the meantime.&#39;</span>
           <span class="nx">@_trigger</span> <span class="s">&quot;success&quot;</span><span class="p">,</span> <span class="kc">true</span>
-        <span class="p">.</span><span class="nx">fail</span> <span class="p">(</span><span class="nx">xhr</span><span class="p">)</span> <span class="o">=&gt;</span>
-          <span class="nx">@_trigger</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="nx">xhr</span>
-          <span class="nx">@_logger</span><span class="p">.</span><span class="nx">error</span> <span class="s">&quot;analyze failed&quot;</span><span class="p">,</span> <span class="nx">xhr</span><span class="p">.</span><span class="nx">responseText</span><span class="p">,</span> <span class="nx">xhr</span>
+        <span class="p">.</span><span class="nx">fail</span> <span class="p">(</span><span class="nx">msg</span><span class="p">)</span> <span class="o">=&gt;</span>
+          <span class="nx">@_trigger</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="nx">msg</span><span class="p">,</span> <span class="nv">message: </span><span class="nx">msg</span>
+          <span class="nx">@_logger</span><span class="p">.</span><span class="nx">error</span> <span class="s">&quot;analyze failed&quot;</span><span class="p">,</span> <span class="nx">msg</span>
 
     <span class="nv">_applyEnhancements: </span><span class="nf">(el, enhancements) -&gt;</span>
         <span class="nx">_</span><span class="p">.</span><span class="nx">defer</span> <span class="o">=&gt;</span></pre></div></td></tr><tr id="section-31"><td class="docs"><div class="pilwrap"><a href="#section-31" class="pilcrow">&#182;</a></div><p>Link TextAnnotation entities to EntityAnnotations</p>
@@ -247,6 +247,8 @@ old document state</p>
                   <span class="s">&#39;EntityEnhancements&#39;</span><span class="p">,</span> <span class="nx">s</span><span class="p">.</span><span class="nx">getEntityEnhancements</span><span class="p">()</span></pre></div></td></tr><tr id="section-34"><td class="docs"><div class="pilwrap"><a href="#section-34" class="pilcrow">&#182;</a></div><p>Process the text enhancements</p>
 </td><td class="code"><div class="highlight"><pre>              <span class="nx">@_processTextEnhancement</span> <span class="nx">s</span><span class="p">,</span> <span class="nx">el</span></pre></div></td></tr><tr id="section-35"><td class="docs"><div class="pilwrap"><a href="#section-35" class="pilcrow">&#182;</a></div><p>Remove all not accepted text enhancement widgets</p>
 </td><td class="code"><div class="highlight"><pre>    <span class="nv">disable: </span><span class="o">-&gt;</span>
+        <span class="k">for</span> <span class="nx">el</span> <span class="k">in</span> <span class="nx">@_findElementsToAnalyze</span><span class="p">()</span>
+          <span class="nx">jQuery</span><span class="p">.</span><span class="nx">removeData</span><span class="p">(</span><span class="nx">el</span><span class="p">,</span> <span class="s">&#39;hash&#39;</span><span class="p">)</span>
         <span class="nx">$</span><span class="p">(</span> <span class="s">&#39;:IKS-annotationSelector&#39;</span><span class="p">,</span> <span class="nx">@element</span> <span class="p">).</span><span class="nx">each</span> <span class="nf">() -&gt;</span>
             <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">annotationSelector</span> <span class="s">&#39;disable&#39;</span> <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">annotationSelector</span>
     <span class="nv">_initExistingAnnotations: </span><span class="o">-&gt;</span>
@@ -394,4 +396,4 @@ being called the resFn at least once AND not being called for timout millisecond
       <span class="nx">cb</span><span class="p">()</span>
     <span class="p">,</span> <span class="nx">timeout</span>
 
-</pre></div></td></tr></tbody></table><div id="generated">generated Tue Dec 18 2012 17:40:30 GMT+0100 (CET)  </div></div></body></html>
+</pre></div></td></tr></tbody></table><div id="generated">generated Mon Mar 25 2013 18:32:28 GMT+0100 (CET)  </div></div></body></html>
