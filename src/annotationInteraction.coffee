@@ -104,7 +104,8 @@ jQuery.widget "IKS.annotationInteraction",
             depictionUrl = _(fieldValue).detect (uri) ->
                 uri = uri.getSubject?() or uri
                 true if uri.indexOf("thumb") isnt -1
-            .replace /[0-9]{2..3}px/, "#{picSize}px"
+            if depictionUrl
+              depictionUrl = depictionUrl.replace /[0-9]{2..3}px/, "#{picSize}px"
             depictionUrl
 
     _getLabel: (entity) ->
