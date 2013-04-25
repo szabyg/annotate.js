@@ -174,23 +174,27 @@ jQuery.widget 'IKS.annotate',
             ]
     # widget specific constructor
     _create: ->
-        widget = @
-        # logger can be turned on and off. It will show the real caller line in the log
-        @_logger = if @options.debug then console else 
-            info: ->
-            warn: ->
-            error: ->
-            log: ->
-        # widget.entityCache.get(uri, cb) will get and cache the entity from an entityhub
-        @entityCache = new EntityCache 
-            vie: @options.vie
-            logger: @_logger
-        if @options.autoAnalyze
-            @enable()
-        unless jQuery().tooltip
-            @options.showTooltip = false
-            @_logger.warn "the used jQuery UI doesn't support tooltips, disabling."
-        @_initExistingAnnotations()
+      widget = @
+      # Keep track of pending requests so errors are only reported when all responses are collected
+      @pendingrequests = 0
+      # Collect error messages and throw them only when all requests are finished
+      @errorcollector = []
+      # logger can be turned on and off. It will show the real caller line in the log
+      @_logger = if @options.debug then console else
+        info: ->
+        warn: ->
+        error: ->
+        log: ->
+          # widget.entityCache.get(uri, cb) will get and cache the entity from an entityhub
+      @entityCache = new EntityCache
+        vie: @options.vie
+        logger: @_logger
+      if @options.autoAnalyze
+        @enable()
+      unless jQuery().tooltip
+        @options.showTooltip = false
+        @_logger.warn "the used jQuery UI doesn't support tooltips, disabling."
+      @_initExistingAnnotations()
     _destroy: ->
         do @disable
         $( ':iks-annotationselector', @element ).each () ->
@@ -226,14 +230,21 @@ jQuery.widget 'IKS.annotate',
       @_listNonblockElements @element
 
     _analyze: (el) ->
-        hash = @_elementHash el
-        # the analyzedDocUri makes the connection between a document state and
-        # the annotations to it. We have to clean up the annotations to any
-        # old document state
+      hash = @_elementHash el
+      # the analyzedDocUri makes the connection between a document state and
+      # the annotations to it. We have to clean up the annotations to any
+      # old document state
 
-        @options.vie.analyze( element: jQuery el ).using(@options.vieServices)
+      lastRequestDone = =>
+        @errorcollector = _(@errorcollector).uniq()
+        if @errorcollector.length
+          @_trigger "error", @errorcollector, message: @errorcollector.join '; '
+          @errorcollector = []
+
+      @options.vie.analyze( element: jQuery el ).using(@options.vieServices)
         .execute()
         .success (enhancements) =>
+          @pendingrequests--
           if @_elementHash(el) is hash
             console.info 'applying suggestions to', el, enhancements
             @_applyEnhancements el, enhancements
@@ -241,9 +252,16 @@ jQuery.widget 'IKS.annotate',
           else
             console.info el, 'changed in the meantime.'
           @_trigger "success", true
+          if @pendingrequests is 0
+            lastRequestDone()
         .fail (msg) =>
-          @_trigger 'error', msg, message: msg
           @_logger.error "analyze failed", msg
+          @errorcollector.push msg
+          @pendingrequests--
+          if @pendingrequests is 0
+            lastRequestDone()
+
+      @pendingrequests++
 
     _applyEnhancements: (el, enhancements) ->
         _.defer =>
