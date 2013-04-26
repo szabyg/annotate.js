@@ -198,7 +198,7 @@ jQuery.widget 'IKS.annotate',
     _destroy: ->
         do @disable
         $( ':iks-annotationselector', @element ).each () ->
-            $(@).annotationSelector 'destroy' if $(@).data().annotationSelector
+            $(@).annotationSelector 'destroy' if $(@).data().annotationSelector or $(@).data().IKSAnnotationSelector
         @_destroyExistingAnnotationInteractionWidgets()
 
     # analyze the widget element and show text enhancements
@@ -302,7 +302,7 @@ jQuery.widget 'IKS.annotate',
         for el in @_findElementsToAnalyze()
           jQuery.removeData(el, 'hash')
         $( ':IKS-annotationSelector', @element ).each () ->
-            $(@).annotationSelector 'disable' if $(@).data().annotationSelector
+            $(@).annotationSelector 'disable' if $(@).data().annotationSelector or $(@).data().IKSAnnotationSelector
     _initExistingAnnotations: ->
         @existingAnnotations = jQuery "a[resource]", @element
         @_logger.info @existingAnnotations
@@ -314,7 +314,7 @@ jQuery.widget 'IKS.annotate',
     acceptAll: (reportCallback) ->
         report = {updated: [], accepted: 0}
         $( ':IKS-annotationSelector', @element ).each () ->
-            if $(@).data().annotationSelector
+            if $(@).data().annotationSelector or $(@).data().IKSAnnotationSelector
                 res = $(@).annotationSelector 'acceptBestCandidate'
                 if res
                     report.updated.push @

@@ -79,14 +79,14 @@ jQuery.widget 'IKS.annotationSelector',
             @dialog.uiDialogTitlebar.remove()
             delete @dialog
         @_logger.info "destroy tooltip"
-        @element.tooltip "destroy" if @element.data().tooltip
+        @element.tooltip "destroy" if @element.data().tooltip or @element.data().uiTooltip
 
     # remove textEnhancement/annotation, replace the separate html
     # element with the plain text and close the dialog
     remove: (event) ->
         el = @element.parent()
         @_logger.info "destroy tooltip"
-        @element.tooltip "destroy" if @element.data().tooltip
+        @element.tooltip "destroy" if @element.data().tooltip or @element.data().uiTooltip
         if not @isAnnotated() and @textEnhancements
             @_trigger 'decline', event,
                 textEnhancements: @textEnhancements

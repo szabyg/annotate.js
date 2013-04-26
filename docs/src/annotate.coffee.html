@@ -171,7 +171,7 @@ look for a fallback.</p>
     <span class="nv">_destroy: </span><span class="o">-&gt;</span>
         <span class="nx">do</span> <span class="nx">@disable</span>
         <span class="nx">$</span><span class="p">(</span> <span class="s">&#39;:iks-annotationselector&#39;</span><span class="p">,</span> <span class="nx">@element</span> <span class="p">).</span><span class="nx">each</span> <span class="nf">() -&gt;</span>
-            <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">annotationSelector</span> <span class="s">&#39;destroy&#39;</span> <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">annotationSelector</span>
+            <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">annotationSelector</span> <span class="s">&#39;destroy&#39;</span> <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">annotationSelector</span> <span class="o">or</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">IKSAnnotationSelector</span>
         <span class="nx">@_destroyExistingAnnotationInteractionWidgets</span><span class="p">()</span></pre></div></td></tr><tr id="section-31"><td class="docs"><div class="pilwrap"><a href="#section-31" class="pilcrow">&#182;</a></div><p>analyze the widget element and show text enhancements</p>
 </td><td class="code"><div class="highlight"><pre>    <span class="nv">enable: </span><span class="o">-&gt;</span>
       <span class="k">if</span> <span class="nx">@options</span><span class="p">.</span><span class="nx">continuousChecking</span>
@@ -266,7 +266,7 @@ old document state</p>
         <span class="k">for</span> <span class="nx">el</span> <span class="k">in</span> <span class="nx">@_findElementsToAnalyze</span><span class="p">()</span>
           <span class="nx">jQuery</span><span class="p">.</span><span class="nx">removeData</span><span class="p">(</span><span class="nx">el</span><span class="p">,</span> <span class="s">&#39;hash&#39;</span><span class="p">)</span>
         <span class="nx">$</span><span class="p">(</span> <span class="s">&#39;:IKS-annotationSelector&#39;</span><span class="p">,</span> <span class="nx">@element</span> <span class="p">).</span><span class="nx">each</span> <span class="nf">() -&gt;</span>
-            <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">annotationSelector</span> <span class="s">&#39;disable&#39;</span> <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">annotationSelector</span>
+            <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">annotationSelector</span> <span class="s">&#39;disable&#39;</span> <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">annotationSelector</span> <span class="o">or</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">IKSAnnotationSelector</span>
     <span class="nv">_initExistingAnnotations: </span><span class="o">-&gt;</span>
         <span class="vi">@existingAnnotations = </span><span class="nx">jQuery</span> <span class="s">&quot;a[resource]&quot;</span><span class="p">,</span> <span class="nx">@element</span>
         <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="nx">@existingAnnotations</span>
@@ -277,7 +277,7 @@ old document state</p>
 </td><td class="code"><div class="highlight"><pre>    <span class="nv">acceptAll: </span><span class="nf">(reportCallback) -&gt;</span>
         <span class="nv">report = </span><span class="p">{</span><span class="nv">updated: </span><span class="p">[],</span> <span class="nv">accepted: </span><span class="mi">0</span><span class="p">}</span>
         <span class="nx">$</span><span class="p">(</span> <span class="s">&#39;:IKS-annotationSelector&#39;</span><span class="p">,</span> <span class="nx">@element</span> <span class="p">).</span><span class="nx">each</span> <span class="nf">() -&gt;</span>
-            <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">annotationSelector</span>
+            <span class="k">if</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">annotationSelector</span> <span class="o">or</span> <span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">data</span><span class="p">().</span><span class="nx">IKSAnnotationSelector</span>
                 <span class="nv">res = </span><span class="nx">$</span><span class="p">(</span><span class="nx">@</span><span class="p">).</span><span class="nx">annotationSelector</span> <span class="s">&#39;acceptBestCandidate&#39;</span>
                 <span class="k">if</span> <span class="nx">res</span>
                     <span class="nx">report</span><span class="p">.</span><span class="nx">updated</span><span class="p">.</span><span class="nx">push</span> <span class="nx">@</span>
@@ -412,4 +412,4 @@ being called the resFn at least once AND not being called for timout millisecond
       <span class="nx">cb</span><span class="p">()</span>
     <span class="p">,</span> <span class="nx">timeout</span>
 
-</pre></div></td></tr></tbody></table><div id="generated">generated Fri Apr 26 2013 13:35:55 GMT+0200 (CEST)  </div></div></body></html>
+</pre></div></td></tr></tbody></table><div id="generated">generated Fri Apr 26 2013 16:59:10 GMT+0200 (CEST)  </div></div></body></html>

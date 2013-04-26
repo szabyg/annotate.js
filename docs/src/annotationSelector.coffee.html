@@ -79,12 +79,12 @@ text enhancements and RDFa annotated elements.</p>
             <span class="nx">@dialog</span><span class="p">.</span><span class="nx">uiDialogTitlebar</span><span class="p">.</span><span class="nx">remove</span><span class="p">()</span>
             <span class="k">delete</span> <span class="nx">@dialog</span>
         <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;destroy tooltip&quot;</span>
-        <span class="nx">@element</span><span class="p">.</span><span class="nx">tooltip</span> <span class="s">&quot;destroy&quot;</span> <span class="k">if</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">data</span><span class="p">().</span><span class="nx">tooltip</span></pre></div></td></tr><tr id="section-5"><td class="docs"><div class="pilwrap"><a href="#section-5" class="pilcrow">&#182;</a></div><p>remove textEnhancement/annotation, replace the separate html
+        <span class="nx">@element</span><span class="p">.</span><span class="nx">tooltip</span> <span class="s">&quot;destroy&quot;</span> <span class="k">if</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">data</span><span class="p">().</span><span class="nx">tooltip</span> <span class="o">or</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">data</span><span class="p">().</span><span class="nx">uiTooltip</span></pre></div></td></tr><tr id="section-5"><td class="docs"><div class="pilwrap"><a href="#section-5" class="pilcrow">&#182;</a></div><p>remove textEnhancement/annotation, replace the separate html
 element with the plain text and close the dialog</p>
 </td><td class="code"><div class="highlight"><pre>    <span class="nv">remove: </span><span class="nf">(event) -&gt;</span>
         <span class="nv">el = </span><span class="nx">@element</span><span class="p">.</span><span class="nx">parent</span><span class="p">()</span>
         <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;destroy tooltip&quot;</span>
-        <span class="nx">@element</span><span class="p">.</span><span class="nx">tooltip</span> <span class="s">&quot;destroy&quot;</span> <span class="k">if</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">data</span><span class="p">().</span><span class="nx">tooltip</span>
+        <span class="nx">@element</span><span class="p">.</span><span class="nx">tooltip</span> <span class="s">&quot;destroy&quot;</span> <span class="k">if</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">data</span><span class="p">().</span><span class="nx">tooltip</span> <span class="o">or</span> <span class="nx">@element</span><span class="p">.</span><span class="nx">data</span><span class="p">().</span><span class="nx">uiTooltip</span>
         <span class="k">if</span> <span class="o">not</span> <span class="nx">@isAnnotated</span><span class="p">()</span> <span class="o">and</span> <span class="nx">@textEnhancements</span>
             <span class="nx">@_trigger</span> <span class="s">&#39;decline&#39;</span><span class="p">,</span> <span class="nx">event</span><span class="p">,</span>
                 <span class="nv">textEnhancements: </span><span class="nx">@textEnhancements</span>
@@ -451,4 +451,4 @@ stage of data copying</p>
             <span class="nx">i</span><span class="o">++</span>
       <span class="nv">curData.data = </span><span class="nx">jQuery</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>  <span class="k">if</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span>
 
-</pre></div></td></tr></tbody></table><div id="generated">generated Fri Apr 26 2013 13:35:55 GMT+0200 (CEST)  </div></div></body></html>
+</pre></div></td></tr></tbody></table><div id="generated">generated Fri Apr 26 2013 16:59:10 GMT+0200 (CEST)  </div></div></body></html>
