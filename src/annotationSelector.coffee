@@ -273,7 +273,7 @@ jQuery.widget 'IKS.annotationSelector',
             my: "left top"
             at: "left bottom"
             collision: "flip"
-        @dialog = dialogEl.data 'dialog'
+        @dialog = dialogEl.data('dialog') or dialogEl.data('uiDialog')
         @dialog.uiDialogTitlebar.hide()
         @_logger.info "dialog widget:", @dialog
         @dialog.element.focus(100)
@@ -339,7 +339,7 @@ jQuery.widget 'IKS.annotationSelector',
                     uri = jQuery( @ ).attr "entityuri"
                     widget._createPreview uri, response
                     "loading..."
-        @menu = @menu.data 'menu'
+        @menu = @menu.data('menu') or @menu.data('uiMenu')
     _createPreview: (uri, response) ->
         success = (cacheEntity) =>
             html = ""

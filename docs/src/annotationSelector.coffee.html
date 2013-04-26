@@ -248,7 +248,7 @@ Filtered by the @options.types list</p>
             <span class="nv">my: </span><span class="s">&quot;left top&quot;</span>
             <span class="nv">at: </span><span class="s">&quot;left bottom&quot;</span>
             <span class="nv">collision: </span><span class="s">&quot;flip&quot;</span>
-        <span class="vi">@dialog = </span><span class="nx">dialogEl</span><span class="p">.</span><span class="nx">data</span> <span class="s">&#39;dialog&#39;</span>
+        <span class="vi">@dialog = </span><span class="nx">dialogEl</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s">&#39;dialog&#39;</span><span class="p">)</span> <span class="o">or</span> <span class="nx">dialogEl</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s">&#39;uiDialog&#39;</span><span class="p">)</span>
         <span class="nx">@dialog</span><span class="p">.</span><span class="nx">uiDialogTitlebar</span><span class="p">.</span><span class="nx">hide</span><span class="p">()</span>
         <span class="nx">@_logger</span><span class="p">.</span><span class="nx">info</span> <span class="s">&quot;dialog widget:&quot;</span><span class="p">,</span> <span class="nx">@dialog</span>
         <span class="nx">@dialog</span><span class="p">.</span><span class="nx">element</span><span class="p">.</span><span class="nx">focus</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
@@ -309,7 +309,7 @@ Filtered by the @options.types list</p>
                     <span class="nv">uri = </span><span class="nx">jQuery</span><span class="p">(</span> <span class="nx">@</span> <span class="p">).</span><span class="nx">attr</span> <span class="s">&quot;entityuri&quot;</span>
                     <span class="nx">widget</span><span class="p">.</span><span class="nx">_createPreview</span> <span class="nx">uri</span><span class="p">,</span> <span class="nx">response</span>
                     <span class="s">&quot;loading...&quot;</span>
-        <span class="vi">@menu = </span><span class="nx">@menu</span><span class="p">.</span><span class="nx">data</span> <span class="s">&#39;menu&#39;</span>
+        <span class="vi">@menu = </span><span class="nx">@menu</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s">&#39;menu&#39;</span><span class="p">)</span> <span class="o">or</span> <span class="nx">@menu</span><span class="p">.</span><span class="nx">data</span><span class="p">(</span><span class="s">&#39;uiMenu&#39;</span><span class="p">)</span>
     <span class="nv">_createPreview: </span><span class="nf">(uri, response) -&gt;</span>
         <span class="nv">success = </span><span class="p">(</span><span class="nx">cacheEntity</span><span class="p">)</span> <span class="o">=&gt;</span>
             <span class="nv">html = </span><span class="s">&quot;&quot;</span>
@@ -451,4 +451,4 @@ stage of data copying</p>
             <span class="nx">i</span><span class="o">++</span>
       <span class="nv">curData.data = </span><span class="nx">jQuery</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>  <span class="k">if</span> <span class="nx">curData</span><span class="p">.</span><span class="nx">data</span>
 
-</pre></div></td></tr></tbody></table><div id="generated">generated Thu Apr 25 2013 17:48:22 GMT+0200 (CEST)  </div></div></body></html>
+</pre></div></td></tr></tbody></table><div id="generated">generated Fri Apr 26 2013 13:35:55 GMT+0200 (CEST)  </div></div></body></html>
