@@ -35,22 +35,23 @@ jQuery.widget 'IKS.annotationSelector',
             ]
 
     _create: ->
-        do @enableEditing
-        @_logger = if @options.debug then console else 
-            info: ->
-            warn: ->
-            error: ->
-            log: ->
-        if @isAnnotated()
-            @_initTooltip()
-            @linkedEntity =
-                uri: @element.attr "resource"
-                # type: @element.attr "typeof"
-            @options.cache.get @linkedEntity.uri, @, (cachedEntity) =>
-                navigatorLanguage = window.navigator.language || window.navigator.userLanguage
-                userLang = navigatorLanguage.split("-")[0]
-                @linkedEntity.label = VIE.Util.getPreferredLangForPreferredProperty cachedEntity, 
-                  ["skos:prefLabel", "rdfs:label"], [userLang, "en"]
+      do @enableEditing
+      @_logger = if @options.debug then console else
+        info: ->
+        warn: ->
+        error: ->
+        log: ->
+      if @isAnnotated()
+        @_initTooltip()
+        @linkedEntity =
+          uri: @element.attr "resource"
+        # type: @element.attr "typeof"
+        @options.cache.get @linkedEntity.uri, @, (cachedEntity) =>
+          navigatorLanguage = window.navigator.language || window.navigator.userLanguage
+          userLang = navigatorLanguage.split("-")[0]
+          @linkedEntity.label = VIE.Util.getPreferredLangForPreferredProperty cachedEntity,
+            ["skos:prefLabel", "rdfs:label"], [userLang, "en"]
+
     enableEditing: ->
         @element.click (e) =>
             @_logger.log "click", e, e.isDefaultPrevented()
@@ -493,3 +494,14 @@ jQuery.widget 'IKS.annotationSelector',
             jQuery.event.add dest, type + (if events[type][i].namespace then "." else "") + events[type][i].namespace, events[type][i], events[type][i].data
             i++
       curData.data = jQuery.extend({}, curData.data)  if curData.data
+
+# Bind the click event to window
+$(window).click (event) ->
+  if ($(event.target).closest(".ui-dialog.annotation-selector-dialog")).length > 0
+    # if clicked on a dialog, do nothing
+    false
+  else
+    # if clicked outside the dialog, close it
+    # jQuery-UI dialog adds ui-dialog-content class to the dialog element.
+    # with the following selector, we are sure that any visible dialog is closed.
+    $(".annotation-selector-dialog .ui-dialog-content:visible").dialog "close"
