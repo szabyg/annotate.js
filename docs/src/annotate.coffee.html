@@ -341,10 +341,11 @@ Devide an element into smaller chunks that can be analyzed in smaller portions.<
 </td><td class="code"><div class="highlight"><pre>        <span class="nv">occurrences = </span><span class="nf">(str, s) -&gt;</span>
             <span class="nv">res = </span><span class="p">[]</span>
             <span class="nv">last = </span><span class="mi">0</span>
-            <span class="k">while</span> <span class="nx">str</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">last</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">isnt</span> <span class="o">-</span><span class="mi">1</span>
-                <span class="nv">next = </span><span class="nx">str</span><span class="p">.</span><span class="nx">indexOf</span> <span class="nx">s</span><span class="p">,</span> <span class="nx">last</span><span class="o">+</span><span class="mi">1</span>
+            <span class="k">while</span> <span class="nx">str</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">last</span><span class="p">)</span> <span class="o">isnt</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="nv">next = </span><span class="nx">str</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span> <span class="nx">last</span><span class="p">)</span>
                 <span class="nx">res</span><span class="p">.</span><span class="nx">push</span> <span class="nx">next</span>
-                <span class="nv">last = </span><span class="nx">next</span></pre></div></td></tr><tr id="section-47"><td class="docs"><div class="pilwrap"><a href="#section-47" class="pilcrow">&#182;</a></div><p>Find the nearest number among the </p>
+                <span class="nv">last = </span><span class="nx">next</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="nx">res</span></pre></div></td></tr><tr id="section-47"><td class="docs"><div class="pilwrap"><a href="#section-47" class="pilcrow">&#182;</a></div><p>Find the nearest number among the </p>
 </td><td class="code"><div class="highlight"><pre>        <span class="nv">nearest = </span><span class="nf">(arr, nr) -&gt;</span>
             <span class="nx">_</span><span class="p">(</span><span class="nx">arr</span><span class="p">).</span><span class="nx">sortedIndex</span> <span class="nx">nr</span></pre></div></td></tr><tr id="section-48"><td class="docs"><div class="pilwrap"><a href="#section-48" class="pilcrow">&#182;</a></div><p>Nearest position</p>
 </td><td class="code"><div class="highlight"><pre>        <span class="nv">nearestPosition = </span><span class="nf">(str, s, ind) -&gt;</span>
@@ -414,4 +415,4 @@ being called the resFn at least once AND not being called for timout millisecond
       <span class="nx">cb</span><span class="p">()</span>
     <span class="p">,</span> <span class="nx">timeout</span>
 
-</pre></div></td></tr></tbody></table><div id="generated">generated Tue Apr 30 2013 13:25:55 GMT+0200 (CEST)  </div></div></body></html>
+</pre></div></td></tr></tbody></table><div id="generated">generated Tue Apr 30 2013 14:26:57 GMT+0200 (CEST)  </div></div></body></html>

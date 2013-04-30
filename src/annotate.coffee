@@ -390,10 +390,11 @@ jQuery.widget 'IKS.annotate',
         occurrences = (str, s) ->
             res = []
             last = 0
-            while str.indexOf(s, last + 1) isnt -1
-                next = str.indexOf s, last+1
+            while str.indexOf(s, last) isnt -1
+                next = str.indexOf(s, last)
                 res.push next
-                last = next
+                last = next + 1
+            res
 
         # Find the nearest number among the 
         nearest = (arr, nr) ->
