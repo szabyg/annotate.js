@@ -97,7 +97,7 @@ jQuery.widget 'IKS.annotate',
         # Keeps continouosly checking in the background, while typing
         continuousChecking: false
         # Wait for some time (in ms) for the user not typing, before it starts analyzing.
-        throttleDistance: 5000
+        throttleDistance: 3000
         # Tooltip can be disabled
         showTooltip: true
         # Debug can be enabled
@@ -208,20 +208,22 @@ jQuery.widget 'IKS.annotate',
           @_checkForChanges()
         , @options.throttleDistance
 
-        $(@element).bind 'keyup', =>
+        $(@element).bind 'keyup click', =>
           checkerFn()
       @_checkForChanges()
 
 
     _checkForChanges: ->
       for el in @_findElementsToAnalyze()
-        hash = @_elementHash el
-        unless jQuery(el).data('hash')
-          console.info el, "wasn't analized yet."
-          @_analyze el
-        if jQuery(el).data('hash') and jQuery(el).data('hash') isnt hash
-          console.info el, 'changed, try to get annotations for it.'
-          @_analyze el
+        # Unless the cursor is in this element
+        unless $(el).has(window.getSelection().anchorNode).length
+          hash = @_elementHash el
+          unless jQuery(el).data('hash')
+            console.info el, "wasn't analized yet."
+            @_analyze el
+          if jQuery(el).data('hash') and jQuery(el).data('hash') isnt hash
+            console.info el, 'changed, try to get annotations for it.'
+            @_analyze el
 
     _elementHash: (el) ->
       jQuery(el).text().hashCode()
@@ -245,13 +247,15 @@ jQuery.widget 'IKS.annotate',
         .execute()
         .success (enhancements) =>
           @pendingrequests--
-          if @_elementHash(el) is hash
-            console.info 'applying suggestions to', el, enhancements
-            @_applyEnhancements el, enhancements
-            jQuery(el).data 'hash', hash
-          else
-            console.info el, 'changed in the meantime.'
-          @_trigger "success", true
+          # Unless the cursor is in this element
+          unless $(el).has(window.getSelection().anchorNode).length
+            if @_elementHash(el) is hash
+              console.info 'applying suggestions to', el, enhancements
+              @_applyEnhancements el, enhancements
+              jQuery(el).data 'hash', hash
+            else
+              console.info el, 'changed in the meantime.'
+            @_trigger "success", true
           if @pendingrequests is 0
             lastRequestDone()
         .fail (msg) =>
